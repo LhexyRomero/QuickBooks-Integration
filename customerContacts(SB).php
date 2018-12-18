@@ -14,7 +14,7 @@ $dataService = DataService::Configure(array(
     'ClientSecret' =>  $config['client_secret'],
     'RedirectURI' => $config['oauth_redirect_uri'],
     'scope' => $config['oauth_scope'],
-    'baseUrl' => "production"
+    'baseUrl' => "Development"
 ));
 
 $OAuth2LoginHelper = $dataService->getOAuth2LoginHelper();

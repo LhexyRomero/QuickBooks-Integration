@@ -21,7 +21,7 @@ $dataService = DataService::Configure(array(
     'accessTokenKey' => $accessTokenKey,
     'refreshTokenKey' => $refreshTokenKey,
     'QBORealmID' => $realmId,
-    'baseUrl' => "Production"
+    'baseUrl' => "Development"
 ));
 
 $dataService->setLogLocation("/Users/hlu2/Desktop/newFolderForLog");

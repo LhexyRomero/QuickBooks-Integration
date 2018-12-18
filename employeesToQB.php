@@ -41,7 +41,7 @@ $dataService = DataService::Configure(array(
     'accessTokenKey' => $accessTokenKey,
     'refreshTokenKey' => $refreshTokenKey,
     'QBORealmID' => $realmId,
-    'baseUrl' => "Production"
+    'baseUrl' => "Development"
 ));
 
 
