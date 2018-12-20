@@ -161,8 +161,8 @@ if (isset($_SESSION['sessionAccessToken'])) {
         <br><br>
         
         <div class="btn-group" style='display: none' id="contacts">
-            <a href="/Customer/customerContacts.php" class="btn btn-secondary" id='btnCustomers'>Customers</a>
-            <a href="/Employee/employeeContacts.php" class="btn btn-secondary">Employees</a>
+            <a href="Customer/customerContacts.php" class="btn btn-secondary" id='btnCustomers'>Customers</a>
+            <a href="Employee/employeeContacts.php" class="btn btn-secondary">Employees</a>
         </div>
         <br>
         <div id="table">
@@ -198,10 +198,6 @@ if (isset($_SESSION['sessionAccessToken'])) {
         function contacts(elem) {
             elem.classList.add("active");
             document.getElementById("contacts").style.display = "block";
-        }
-
-        function customer(elem) {
-            window.location.href = "Customer/customerContacts.php";
         }
 
     </script>

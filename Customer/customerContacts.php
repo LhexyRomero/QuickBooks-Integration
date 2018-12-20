@@ -474,7 +474,7 @@ if (isset($_SESSION['sessionAccessToken'])) {
 
                 frmCustomer.innerHTML = "<input name='customer_name' value='"+customer_name+"'><input name='customer_address' value='"+customer_address+", "+customer_city+", "+customer_country+"'><input name='customer_email' values='"+customer_email+"'><input name='customer_phone' value='"+customer_phone+"'><input name='customer_mobile' value='"+customer_mobile+"'><input name='customer_fax' value='"+customer_fax+"'><input name='quickbooks_uid' value='"+quickbooks_uid+"'><input name='representative_name' value='"+representative_name+"'><input name='representative_lname' value='"+representative_lname+"'>";
                 
-                //PASOK SA DB
+                //PASOK SA DB   
                 $.ajax({
                     method: "post",
                     url: "customersToSB.php",
