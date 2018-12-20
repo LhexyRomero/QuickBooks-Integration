@@ -160,9 +160,9 @@ if (isset($_SESSION['sessionAccessToken'])) {
         </div>
         <br><br>
         
-        <div class="btn-group" style='display: none' id="customer">
-            <a href="#" class="btn btn-secondary" onclick="customer(this)" id='btnCustomers'>Customers</a>
-            <a href="#" class="btn btn-secondary">Employees</a>
+        <div class="btn-group" style='display: none' id="contacts">
+            <a href="./Customer/customerContacts.php" class="btn btn-secondary" id='btnCustomers'>Customers</a>
+            <a href="./Employee/employeeContacts.php" class="btn btn-secondary">Employees</a>
         </div>
         <br>
         <div id="table">
@@ -197,11 +197,11 @@ if (isset($_SESSION['sessionAccessToken'])) {
         //SHOW CONTACTS 
         function contacts(elem) {
             elem.classList.add("active");
-            document.getElementById("customer").style.display = "block";
+            document.getElementById("contacts").style.display = "block";
         }
 
         function customer(elem) {
-            window.location.href = "customerContacts.php";
+            window.location.href = "Customer/customerContacts.php";
         }
 
     </script>
