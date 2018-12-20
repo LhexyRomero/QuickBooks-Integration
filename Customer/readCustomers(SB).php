@@ -1,5 +1,5 @@
 <?php
-    require_once "db_connect.php";
+    require_once "../db_connect.php";
 
     $records = array();
     $sql = "SELECT * FROM _relationship_db_customers WHERE quickbooks_uid IS NULL";

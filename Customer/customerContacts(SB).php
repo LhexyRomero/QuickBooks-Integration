@@ -1,10 +1,10 @@
 
 <?php
 
-require_once(__DIR__ . '/vendor/autoload.php');
+require_once('../vendor/autoload.php');
 use QuickBooksOnline\API\DataService\DataService;
 
-$config = include('config.php');
+$config = include('../config.php');
 
 session_start();
 
@@ -94,7 +94,7 @@ if (isset($_SESSION['sessionAccessToken'])) {
             this.getCompanyName = function() {
                 $.ajax({
                     type: "GET",
-                    url: "getCompanyName.php",
+                    url: "../getCompanyName.php",
                 }).done(function( msg ) {
                     $( '#orgName' ).html( msg );
                 });
@@ -141,11 +141,11 @@ if (isset($_SESSION['sessionAccessToken'])) {
             if(isset($accessTokenJson)) {
                 echo "Status: <p style='color: green; display: inline'>Connected</p><br>";
                 echo "Organisation: <p id='orgName' style='display: inline'></p><br>";
-                echo "<a href='logout.php'><img src='disconnect.png'></a>";
+                echo "<a href='logout.php'><img src='../disconnect.png'></a>";
             }
             else {
                 echo "Status: <p style='color: red; display: inline'>Not Connected</p><br><br>";
-                echo "<a class='imgLink' href='#' onclick='oauth.loginPopup()'><img src='views/C2QB_green_btn_lg_default.png' width='178' /></a>
+                echo "<a class='imgLink' href='#' onclick='oauth.loginPopup()'><img src='../views/C2QB_green_btn_lg_default.png' width='178' /></a>
                 <hr />";
             }
         ?>
@@ -161,8 +161,8 @@ if (isset($_SESSION['sessionAccessToken'])) {
         <br><br>
         
         <div class="btn-group" id="customer">
-            <a href="#" class="btn btn-secondary" onclick="window.location.href='customerContacts.php'" id='btnCustomers'>Customers</a>
-            <a href="#" class="btn btn-secondary  active" onclick="window.location.href='employeeContacts.php';" >Employees</a>
+            <a href="#" class="btn btn-secondary active" onclick="customer(this)" id='btnCustomers'>Customers</a>
+            <a href="employeeContacts.php" class="btn btn-secondary">Employees</a>
         </div>
         <br>
         <br>
@@ -188,97 +188,53 @@ if (isset($_SESSION['sessionAccessToken'])) {
                                     $json = json_decode($json, true);
                                     echo $json["refresh_token"];?>";
         var realm_id = "<?php echo $accessToken->getRealmID(); ?>";
+        console.log(access_token);
+        console.log(refresh_token);
+        console.log(realm_id);
 
 
         window.onload = function () {
             //GET COMPANY NAME
             apiCall.getCompanyName();
             //RETRIEVE
-            employee();
+            customer();
         }
 
-        function employee() {
+        function customer() {
             document.getElementById("table").innerHTML = "Loading...";
             $.ajax({
                 type: "post",
-                url: "readEmployees.php",
+                url: "readCustomers(SB).php",
+                dataType: "json",
                 data: "access_token="+ access_token + "&refresh_token=" + refresh_token + "&realm_id=" + realm_id,
                 success: function (data) {
                     console.log(data);
-                    var result = JSON.parse(data);
                     //CONSTRUCT TABLE
                     var tblCustomer = document.createElement("table");
                     tblCustomer.setAttribute("class","table table-stripe");
                     var thead = document.createElement("thead");
-                    thead.innerHTML = "<tr><th><input type='checkbox' class='form-control' onclick='checkAll(this);countIntegrate();'></th></th><th>Employee Name</th><th>Email Address</th><th>Contact No.</th></tr>";
+                    thead.innerHTML = "<tr><th><input type='checkbox' class='form-control' onclick='checkAll(this);countIntegrate();'></th></th><th>Customer Name</th><th>Customer Email</th><th>Representative Name</th><th>Customer Address</th><th>Customer Phone Numbers</th></tr>";
                     var tbody = document.createElement("tbody");
-                    
-                    //CHECK RECORDS THAT ARE IN SMALL BUILDERS
-                    var quickbooks_uid = [];
-                    $.ajax({
-                        url: "countEmployeesSB.php",
-                        method: "post",
-                        dataType: "json",
-                        async: false,
-                        success: function (data) {
-                            for (let i = 0; i < data.length; i++) {
-                                quickbooks_uid.push(data[i].quickbooks_uid);
-                            }
-                        }
-                    });
 
                     //LOOP TABLE
-                    for (let i = 0; i < result.length; i++) {
+                    for (let i = 0; i < data.length; i++) {
                         var row = tbody.insertRow(-1);
                         var cell0 = row.insertCell(-1);
                         var cell1 = row.insertCell(-1);
                         var cell2 = row.insertCell(-1);
+                        var cell3 = row.insertCell(-1);
+                        var cell4 = row.insertCell(-1);
                         var cell5 = row.insertCell(-1);
                         
-                        var company = result[i].CompanyName;
-                        var fname = (result[i].GivenName) ? result[i].GivenName : "";
-                        var mname = (result[i].MiddleName) ? result[i].MiddleName : "";
-                        var lname = (result[i].FamilyName) ? result[i].FamilyName : "";
-                        
-                        
-                        //CHECK EMAIL
-                        try {
-                            var email = result[i].PrimaryEmailAddr.Address;
-                        } catch (error) {
-                            var email = "";
-                        }
-                        
-                        //CHECK PHONE
-                        try {
-                            var phone = "Phone: " + result[i].PrimaryPhone.FreeFormNumber + "<br>";
-                        } catch (error) {
-                            var phone = "";
-                        }
-
-                        //CHECK PHONE NUMBER
-
-                        try {
-                            var mobile = "Mobile: " + result[i].Mobile.FreeFormNumber + "<br>";
-                        } catch (error) {
-                            var mobile = "";
-                        }
-
-                        //CHECK FAX
-
-                        var fax = (result[i].Fax) ? "Fax: "+result[i].Fax.FreeFormNumber + "<br>" : "";
 
                         
-                        cell0.innerHTML = "<input type='checkbox' class='form-control integrateCheck' onclick='countIntegrate()' value="+result[i].Id +">";
-                        cell1.innerHTML = result[i].DisplayName ;
-                        cell2.innerHTML = email;
-                        cell5.innerHTML = phone + mobile + fax;
-                        
-                        for (let j = 0; j < quickbooks_uid.length; j++) {
-                            
-                            if(quickbooks_uid[j] == result[i].Id) {
-                                row.parentNode.removeChild(row);
-                            }
-                        }
+                        cell0.innerHTML = "<input type='checkbox' class='form-control integrateCheck' onclick='countIntegrate()' value="+data[i].id +">";
+                        cell1.innerHTML = data[i].customer_name;
+                        cell2.innerHTML = data[i].customer_email;
+                        cell3.innerHTML = data[i].representative_name + " " + data[i].representative_lname;
+                        cell4.innerHTML = data[i].customer_address;
+                        cell5.innerHTML = "Phone: "+ data[i].customer_phone + "<br>" + "Mobile: "+ data[i].customer_mobile + "<br>" +"Fax: "+ data[i].customer_fax + "<br>" ;
+                    
                     }
 
                     tblCustomer.appendChild(thead);
@@ -289,14 +245,14 @@ if (isset($_SESSION['sessionAccessToken'])) {
                     //CREATE ALERT
                     var alertCard = document.createElement("div");
                     alertCard.setAttribute("class","alert alert-warning");
-                    alertCard.innerHTML = "Below Contacts are those Employees that exist in your QuickBooks account but didn't exist in your Small Builders account."
+                    alertCard.innerHTML = "Below Contacts are those Customers that exist in your SmallBuilders account but didn't exist in your Quickbooks account.";
                     document.getElementById("table").appendChild(alertCard);
 
                     //CREATE QUICKBOOKS TO SMALL BUILDERS
                     var selection = document.createElement("nav");
                     selection.setAttribute("class",'nav nav-tabs nav-justified');
-                    selection.innerHTML = "<a class='nav-item nav-link' href='employeeContacts(SB).php'>Small Builders to Quickbooks</a>"+
-                        "<a class='nav-item nav-link active' href='#'>Quickbooks to Smallbuilders</a>";
+                    selection.innerHTML = "<a class='nav-item nav-link active' href='#'>Small Builders to Quickbooks</a>"+
+                        "<a class='nav-item nav-link' href='customerContacts.php'>Quickbooks to Smallbuilders</a>";
                         
                     document.getElementById("table").appendChild(selection);
 
@@ -312,7 +268,7 @@ if (isset($_SESSION['sessionAccessToken'])) {
                     btnIntegrate.disabled = true;
                     btnIntegrate.innerHTML = "Integrate";
                     btnIntegrate.onclick = function () {
-                        integrateEmployee();
+                        integrateCustomer();
                     };
                     document.getElementById("table").appendChild(btnIntegrate);
                 }
@@ -320,7 +276,6 @@ if (isset($_SESSION['sessionAccessToken'])) {
         }
 
         function countIntegrate() {
-            //VALIDATE TO ENABLE INTEGRATE BUTTON
             var integrateCheck = document.getElementsByClassName("integrateCheck");
             var checks = 0;
             for (let i = 0; i < integrateCheck.length; i++) {
@@ -350,7 +305,7 @@ if (isset($_SESSION['sessionAccessToken'])) {
             }
         }
 
-        function integrateEmployee() {
+        function integrateCustomer() {
             $.confirm({
                 title: "Quickbooks to Smallbuilders",
                 columnClass: "medium",
@@ -365,22 +320,24 @@ if (isset($_SESSION['sessionAccessToken'])) {
                     var integrateCheck = document.querySelectorAll('.integrateCheck:checked');
                     
                     //Quickbooks Array
-                    var employees = [];
+                    var customers = [];
 
                     //Retrieve Customer Info
                     for (let i = 0; i < integrateCheck.length; i++) {
                         var id = integrateCheck[i].value;
-                            //Pupunta sa Quickbooks info
+                        alert(id);
+                            //Pupunta sa Database Kunin ung Info
                             $.ajax({
                                 method: "post",
-                                url: "readEmployee(id).php",
-                                data: "access_token="+ access_token + "&refresh_token=" + refresh_token + "&realm_id=" + realm_id + "&id=" + id,
+                                url: "readCustomer(SBid).php",
+                                dataType: "json",
+                                data: "id=" + id + "&access_token="+ access_token + "&refresh_token=" + refresh_token + "&realm_id=" + realm_id,
                                 success: function (data) {
                                     //Add Customer to Array
-                                    employees.push(data);
+                                    customers.push(data);
                                     //Check if All Request is Done
                                     if(i == integrateCheck.length - 1) {
-                                        employeeToDB (employees,confirmJS);
+                                        customerToQB (customers,confirmJS);
                                     }
                                 }
                             });
@@ -389,99 +346,71 @@ if (isset($_SESSION['sessionAccessToken'])) {
                 buttons: {
                     ok: {
                         action: function () {
-                            employee();
+                            customer(document.getElementById("btnCustomers"));
                         }
                     }
                 }
             });
         }
-        function employeeToDB (employees,confirmJS) {
-            for (let i = 0; i < employees.length; i++) {
-                //PARSE JSON
-                var employee = JSON.parse(employees[i]);
-                //CHECK JSON
-                console.log(employee);
+        function customerToQB (customers,confirmJS) {
+            for (let i = 0; i < customers.length; i++) {
                 //CREATE FORM
-                var frmEmployee = document.createElement("form");
+                var frmCustomer = document.createElement("form");
                 //Create Fields
 
-                //EMPLOYEE ID
-                var employee_number = convertNulltoEmpty(employee.EmployeeNumber);
-                
-                //EMPLOYEE NAME
-                var employee_name = convertNulltoEmpty(employee.GivenName);
-                //EMPLOYEE LAST NAME
-                var employee_lname = convertNulltoEmpty(employee.FamilyName);
-                //BIRTHDAY
-                var employee_birthday = convertNulltoEmpty(employee.BirthDate);
-                //EMPLOYEE START DATE = 
-                var employee_startdate = convertNulltoEmpty(employee.HiredDate);
-                //EMPLOYEE POSTAL CODE
+                //CUSTOMER ID
+                var id = customers[i][0].id;
+                //REPRESENTATIVE NAME
+                var representative_name = convertNulltoEmpty(customers[i][0].representative_name);
+                //REPRESENTATIVE LAST NAME
+                var representative_lname = convertNulltoEmpty(customers[i][0].representative_lname);
+                //CUSTOMER NAME
+                var customer_name = convertNulltoEmpty(customers[i][0].customer_name);   
+                //ADDRESS LINE1
                 try {
-                    var employee_address_postcode = convertNulltoEmpty(employee.PrimaryAddr.PostalCode);
+                    var customer_address = convertNulltoEmpty(customers[i][0].customer_address);
                 } catch (error) {
-                    var employee_address_postcode = "";
+                    var customer_address = "";
                 }
-                //ADDRESS LINE 1
-                try {
-                    var employee_address_line1 = convertNulltoEmpty(employee.PrimaryAddr.Line1);
-                } catch (error) {
-                    var employee_address_line1 = "";
-                }
-                //STATE
-                try {
-                    var employee_address_suburb = convertNulltoEmpty(employee.PrimaryAddr.City);
-                } catch (error) {
-                    var employee_address_suburb = "";
-                }
-                //COUNTRY
-                try {
-                    var employee_address_country = convertNulltoEmpty(employee.PrimaryAddr.Country);
-                } catch (error) {
-                    var employee_address_country = "";
-                }  
                 //CUSTOMER EMAIL
                 try {
-                    var employee_email = convertNulltoEmpty(employee.PrimaryEmailAddr.Address);
+                    var customer_email = convertNulltoEmpty(customers[i][0].customer_email);
                 } catch (error) {
-                    var employee_email = "";
+                    var customer_email = "";
                 }
                 //PHONE
                 try {
-                    var employee_phone = convertNulltoEmpty(employee.PrimaryPhone.FreeFormNumber);
+                    var customer_phone = convertNulltoEmpty(customers[i][0].customer_phone);
                 } catch (error) {
-                    var employee_phone = "";
+                    var customer_phone = "";
                 }
                 //MOBILE
                 try {
-                    var employee_mobile = convertNulltoEmpty(employee.Mobile.FreeFormNumber);
+                    var customer_mobile = convertNulltoEmpty(customers[i][0].customer_mobile);
                 } catch (error) {
-                    var employee_mobile = "";
+                    var customer_mobile = "";
                 }
                 //FAX
                 try {
-                    var employee_fax = convertNulltoEmpty(employee.Fax.FreeFormNumber); 
+                    var customer_fax = convertNulltoEmpty(customers[i][0].customer_fax); 
                 } catch (error) {
-                    var employee_fax = ""; 
+                    var customer_fax = ""; 
                 }
-                var quickbooks_uid = convertNulltoEmpty(employee.Id);
-                
 
-                frmEmployee.innerHTML = "<input name='employee_name' value='"+employee_name+"'><input name='employee_lname' value='"+employee_lname+"'><input name='employee_address' value='"+employee_address_line1+ ", " + employee_address_suburb + ", " + employee_address_country+"'><input name='employee_address_line1' value='"+employee_address_line1+"'><input name='employee_address_postcode' value='"+employee_address_postcode+"'><input name='employee_address_suburb' value='"+employee_address_suburb+"'><input name='employee_birthday' value='"+employee_birthday+"'><input name='employee_address_country' value='"+employee_address_country+"'><input name='employee_startdate' value='"+employee_startdate+"'><input name='employee_email' value='"+employee_email+"'><input name='employee_phone' value='"+employee_phone+"'><input name='employee_mobile' value='"+employee_mobile+"'><input name='employee_fax' value='"+employee_fax+"'><input name='employee_number' value='"+employee_number+"'><input name='quickbooks_uid' value='"+quickbooks_uid+"'>";
 
-                //alert($(frmEmployee).serialize());
+                frmCustomer.innerHTML = "<input name='id' value='"+id+"'><input name='customer_name' value='"+customer_name+"'><input name='customer_address' value='"+customer_address+"'><input name='customer_email' values='"+customer_email+"'><input name='customer_phone' value='"+customer_phone+"'><input name='customer_mobile' value='"+customer_mobile+"'><input name='customer_fax' value='"+customer_fax+"'><input name='representative_name' value='"+representative_name+"'><input name='representative_lname' value='"+representative_lname+"'>";
                 
                 $.ajax({
                     method: "post",
-                    url: "employeesToSB.php",
-                    data : $(frmEmployee).serialize(),
-                    success: function () {
-                        
+                    url: "customersToQB.php",
+                    data: $(frmCustomer).serialize() +"&access_token="+ access_token + "&refresh_token=" + refresh_token + "&realm_id=" + realm_id,
+                    success: function (data) {
+                        console.log(data);
                     },
                 });
                 
                 //IF TAPOS LAHAT NG REQUEST
-                if(i == employees.length - 1) {
+                if(i == customers.length - 1) {
                     confirmJS.hideLoading();
                     confirmJS.setContent("Done");
                 }

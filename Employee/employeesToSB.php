@@ -1,5 +1,5 @@
 <?php
-    require_once "db_connect.php";
+    require_once "../db_connect.php";
 
     if(!empty($_POST)) {
         $employee_name = $_POST["employee_name"];

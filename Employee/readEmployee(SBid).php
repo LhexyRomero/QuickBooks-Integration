@@ -1,10 +1,10 @@
 <?php
-    require_once "db_connect.php";
+    require_once "../db_connect.php";
 
     if(!empty($_POST)) {
         $id = $_POST["id"];
         $records = array();
-        $sql = "SELECT * FROM _relationship_db_customers WHERE id=$id";
+        $sql = "SELECT * FROM _relationship_db_employee WHERE id=$id";
     
         $query = $connect->query($sql);
     

@@ -1,5 +1,5 @@
 <?php
-require "vendor/autoload.php";
+require "../vendor/autoload.php";
 
 
 use QuickBooksOnline\API\DataService\DataService;
@@ -7,13 +7,13 @@ use QuickBooksOnline\API\Core\Http\Serialization\XmlObjectSerializer;
 use QuickBooksOnline\API\Facades\Employee;
 
 // Prep Data Services
-$config = include('config.php');
+$config = include('../config.php');
 //Get Token
 $accessTokenKey = $_POST["access_token"];
 $refreshTokenKey = $_POST["refresh_token"];
 $realmId = $_POST["realm_id"];
 
-require_once "db_connect.php";
+require_once "../db_connect.php";
 
 //POST
 $id = $_POST["id"];

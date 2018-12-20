@@ -1,5 +1,5 @@
 <?php
-require "vendor/autoload.php";
+require "../vendor/autoload.php";
 
 
 use QuickBooksOnline\API\DataService\DataService;
@@ -7,11 +7,12 @@ use QuickBooksOnline\API\Core\Http\Serialization\XmlObjectSerializer;
 use QuickBooksOnline\API\Facades\Customer;
 
 // Prep Data Services
-$config = include('config.php');
+$config = include('../config.php');
 //Get Token
 $accessTokenKey = $_POST["access_token"];
 $refreshTokenKey = $_POST["refresh_token"];
 $realmId = $_POST["realm_id"];
+$id = $_POST["id"];
 
 $dataService = DataService::Configure(array(
     'auth_mode' => 'oauth2',
@@ -26,7 +27,7 @@ $dataService = DataService::Configure(array(
 
 $dataService->setLogLocation("/Users/hlu2/Desktop/newFolderForLog");
 $dataService->throwExceptionOnError(true);
-$employeeAll = $dataService->Query('SELECT * FROM Employee');
+$customer = $dataService->FindbyId('customer', $id);
 $error = $dataService->getLastError();
 if ($error) {
     echo "The Status code is: " . $error->getHttpStatusCode() . "\n";
@@ -37,5 +38,5 @@ else {
     // echo "Created Id={$customer->Id}. Reconstructed response body:\n\n";
     // $xmlBody = XmlObjectSerializer::getPostXmlFromArbitraryEntity($customer , $urlResource);
     // echo $xmlBody . "\n";
-    echo json_encode($employeeAll, JSON_PRETTY_PRINT);
+    echo json_encode($customer, JSON_PRETTY_PRINT);
 }

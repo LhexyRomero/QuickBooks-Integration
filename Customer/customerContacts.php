@@ -1,10 +1,10 @@
 
 <?php
 
-require_once(__DIR__ . '/vendor/autoload.php');
+require_once('../vendor/autoload.php');
 use QuickBooksOnline\API\DataService\DataService;
 
-$config = include('config.php');
+$config = include('../config.php');
 
 session_start();
 
@@ -94,7 +94,7 @@ if (isset($_SESSION['sessionAccessToken'])) {
             this.getCompanyName = function() {
                 $.ajax({
                     type: "GET",
-                    url: "getCompanyName.php",
+                    url: "../getCompanyName.php",
                 }).done(function( msg ) {
                     $( '#orgName' ).html( msg );
                 });
@@ -141,11 +141,11 @@ if (isset($_SESSION['sessionAccessToken'])) {
             if(isset($accessTokenJson)) {
                 echo "Status: <p style='color: green; display: inline'>Connected</p><br>";
                 echo "Organisation: <p id='orgName' style='display: inline'></p><br>";
-                echo "<a href='logout.php'><img src='disconnect.png'></a>";
+                echo "<a href='logout.php'><img src='../disconnect.png'></a>";
             }
             else {
                 echo "Status: <p style='color: red; display: inline'>Not Connected</p><br><br>";
-                echo "<a class='imgLink' href='#' onclick='oauth.loginPopup()'><img src='views/C2QB_green_btn_lg_default.png' width='178' /></a>
+                echo "<a class='imgLink' href='#' onclick='oauth.loginPopup()'><img src='../views/C2QB_green_btn_lg_default.png' width='178' /></a>
                 <hr />";
             }
         ?>
@@ -162,7 +162,7 @@ if (isset($_SESSION['sessionAccessToken'])) {
         
         <div class="btn-group" id="customer">
             <a href="#" class="btn btn-secondary active" onclick="window.location.href='customerContacts.php'" id='btnCustomers'>Customers</a>
-            <a href="#" class="btn btn-secondary" onclick="window.location.href='employeeContacts.php';" >Employees</a>
+            <a href="#" class="btn btn-secondary" onclick="window.location.href='../Employee/employeeContacts.php';" >Employees</a>
         </div>
         <br>
         <br>
@@ -378,7 +378,7 @@ if (isset($_SESSION['sessionAccessToken'])) {
                     //Retrieve Customer Info
                     for (let i = 0; i < integrateCheck.length; i++) {
                         var id = integrateCheck[i].value;
-                            //Pupunta sa Quickbooks info
+                            //GET QUICKBOOKS RECORD USING ID
                             $.ajax({
                                 method: "post",
                                 url: "readCustomer(id).php",

@@ -1,10 +1,10 @@
 
 <?php
 
-require_once(__DIR__ . '/vendor/autoload.php');
+require_once('../vendor/autoload.php');
 use QuickBooksOnline\API\DataService\DataService;
 
-$config = include('config.php');
+$config = include('../config.php');
 
 session_start();
 
