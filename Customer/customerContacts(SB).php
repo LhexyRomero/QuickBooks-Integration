@@ -162,7 +162,7 @@ if (isset($_SESSION['sessionAccessToken'])) {
         
         <div class="btn-group" id="customer">
             <a href="#" class="btn btn-secondary active" onclick="customer(this)" id='btnCustomers'>Customers</a>
-            <a href="employeeContacts.php" class="btn btn-secondary">Employees</a>
+            <a href="../Employee/employeeContacts.php" class="btn btn-secondary">Employees</a>
         </div>
         <br>
         <br>
@@ -329,7 +329,7 @@ if (isset($_SESSION['sessionAccessToken'])) {
                                 success: function (data) {
                                     //Add Customer to Array
                                     customers.push(data);
-                                    
+
                                     //Check if All Request is Done
                                     if(i == integrateCheck.length - 1) {
                                         customerToQB (customers,confirmJS);

@@ -161,8 +161,8 @@ if (isset($_SESSION['sessionAccessToken'])) {
         <br><br>
         
         <div class="btn-group" style='display: none' id="contacts">
-            <a href="./Customer/customerContacts.php" class="btn btn-secondary" id='btnCustomers'>Customers</a>
-            <a href="./Employee/employeeContacts.php" class="btn btn-secondary">Employees</a>
+            <a href="/Customer/customerContacts.php" class="btn btn-secondary" id='btnCustomers'>Customers</a>
+            <a href="/Employee/employeeContacts.php" class="btn btn-secondary">Employees</a>
         </div>
         <br>
         <div id="table">
