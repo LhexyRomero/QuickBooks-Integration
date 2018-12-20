@@ -141,7 +141,7 @@ if (isset($_SESSION['sessionAccessToken'])) {
             if(isset($accessTokenJson)) {
                 echo "Status: <p style='color: green; display: inline'>Connected</p><br>";
                 echo "Organisation: <p id='orgName' style='display: inline'></p><br>";
-                echo "<a href='logout.php'><img src='../disconnect.png'></a>";
+                echo "<a href='../logout.php'><img src='../disconnect.png'></a>";
             }
             else {
                 echo "Status: <p style='color: red; display: inline'>Not Connected</p><br><br>";
@@ -188,10 +188,6 @@ if (isset($_SESSION['sessionAccessToken'])) {
                                     $json = json_decode($json, true);
                                     echo $json["refresh_token"];?>";
         var realm_id = "<?php echo $accessToken->getRealmID(); ?>";
-        console.log(access_token);
-        console.log(refresh_token);
-        console.log(realm_id);
-
 
         window.onload = function () {
             //GET COMPANY NAME
@@ -206,7 +202,6 @@ if (isset($_SESSION['sessionAccessToken'])) {
                 type: "post",
                 url: "readCustomers(SB).php",
                 dataType: "json",
-                data: "access_token="+ access_token + "&refresh_token=" + refresh_token + "&realm_id=" + realm_id,
                 success: function (data) {
                     console.log(data);
                     //CONSTRUCT TABLE
@@ -307,7 +302,7 @@ if (isset($_SESSION['sessionAccessToken'])) {
 
         function integrateCustomer() {
             $.confirm({
-                title: "Quickbooks to Smallbuilders",
+                title: "Smallbuilders to Quickbooks",
                 columnClass: "medium",
                 theme: "modern",
                 content: "",
@@ -325,7 +320,6 @@ if (isset($_SESSION['sessionAccessToken'])) {
                     //Retrieve Customer Info
                     for (let i = 0; i < integrateCheck.length; i++) {
                         var id = integrateCheck[i].value;
-                        alert(id);
                             //Pupunta sa Database Kunin ung Info
                             $.ajax({
                                 method: "post",
@@ -335,6 +329,7 @@ if (isset($_SESSION['sessionAccessToken'])) {
                                 success: function (data) {
                                     //Add Customer to Array
                                     customers.push(data);
+                                    
                                     //Check if All Request is Done
                                     if(i == integrateCheck.length - 1) {
                                         customerToQB (customers,confirmJS);

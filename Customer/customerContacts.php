@@ -1,4 +1,3 @@
-
 <?php
 
 require_once('../vendor/autoload.php');
@@ -141,7 +140,7 @@ if (isset($_SESSION['sessionAccessToken'])) {
             if(isset($accessTokenJson)) {
                 echo "Status: <p style='color: green; display: inline'>Connected</p><br>";
                 echo "Organisation: <p id='orgName' style='display: inline'></p><br>";
-                echo "<a href='logout.php'><img src='../disconnect.png'></a>";
+                echo "<a href='../logout.php'><img src='../disconnect.png'></a>";
             }
             else {
                 echo "Status: <p style='color: red; display: inline'>Not Connected</p><br><br>";
@@ -198,6 +197,7 @@ if (isset($_SESSION['sessionAccessToken'])) {
         }
 
         function customer() {
+            //SET CONTENT LOADING
             document.getElementById("table").innerHTML = "Loading...";
             $.ajax({
                 type: "post",
@@ -228,6 +228,7 @@ if (isset($_SESSION['sessionAccessToken'])) {
 
                     //LOOP TABLE
                     for (let i = 0; i < result.length; i++) {
+                        //
                         var row = tbody.insertRow(-1);
                         var cell0 = row.insertCell(-1);
                         var cell1 = row.insertCell(-1);
@@ -281,7 +282,8 @@ if (isset($_SESSION['sessionAccessToken'])) {
                         cell3.innerHTML = fname  +" "+ mname + " " + lname;
                         cell4.innerHTML = add_id;
                         cell5.innerHTML = phone + mobile + fax;
-                        
+
+                        //REMOVE RECORD IF FOUND ON DB
                         for (let j = 0; j < quickbooks_uid.length; j++) {
                             
                             if(quickbooks_uid[j] == result[i].Id) {
@@ -289,7 +291,8 @@ if (isset($_SESSION['sessionAccessToken'])) {
                             }
                         }
                     }
-
+                    
+                    //ADD TO <TABLE>
                     tblCustomer.appendChild(thead);
                     tblCustomer.appendChild(tbody);
 
@@ -323,6 +326,7 @@ if (isset($_SESSION['sessionAccessToken'])) {
                     btnIntegrate.onclick = function () {
                         integrateCustomer();
                     };
+
                     document.getElementById("table").appendChild(btnIntegrate);
                 }
             });
@@ -367,9 +371,10 @@ if (isset($_SESSION['sessionAccessToken'])) {
                 onOpenBefore: function () {
                     //Add Loading 
                     this.showLoading();
-                    //Get This
+                    //PUT THIS TO VARIABLE
                     var confirmJS = this;
-                    //Collect all QuickBooks ids
+
+                    //Collect all QuickBooks ids na nacheckan
                     var integrateCheck = document.querySelectorAll('.integrateCheck:checked');
                     
                     //Quickbooks Array
@@ -378,6 +383,7 @@ if (isset($_SESSION['sessionAccessToken'])) {
                     //Retrieve Customer Info
                     for (let i = 0; i < integrateCheck.length; i++) {
                         var id = integrateCheck[i].value;
+
                             //GET QUICKBOOKS RECORD USING ID
                             $.ajax({
                                 method: "post",
@@ -386,6 +392,8 @@ if (isset($_SESSION['sessionAccessToken'])) {
                                 success: function (data) {
                                     //Add Customer to Array
                                     customers.push(data);
+
+
                                     //Check if All Request is Done
                                     if(i == integrateCheck.length - 1) {
                                         customerToDB (customers,confirmJS);
@@ -466,16 +474,17 @@ if (isset($_SESSION['sessionAccessToken'])) {
 
                 frmCustomer.innerHTML = "<input name='customer_name' value='"+customer_name+"'><input name='customer_address' value='"+customer_address+", "+customer_city+", "+customer_country+"'><input name='customer_email' values='"+customer_email+"'><input name='customer_phone' value='"+customer_phone+"'><input name='customer_mobile' value='"+customer_mobile+"'><input name='customer_fax' value='"+customer_fax+"'><input name='quickbooks_uid' value='"+quickbooks_uid+"'><input name='representative_name' value='"+representative_name+"'><input name='representative_lname' value='"+representative_lname+"'>";
                 
+                //PASOK SA DB
                 $.ajax({
                     method: "post",
                     url: "customersToSB.php",
                     data : $(frmCustomer).serialize(),
                     success: function () {
-                        //
+                        //NAPASOK
                     },
                 });
                 
-                //IF TAPOS LAHAT NG REQUEST
+                //IF TAPOS NA MAGPASOK GAGAWING DONE UNG CONFIRM JS
                 if(i == customers.length - 1) {
                     confirmJS.hideLoading();
                     confirmJS.setContent("Done");

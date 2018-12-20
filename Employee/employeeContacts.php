@@ -141,7 +141,7 @@ if (isset($_SESSION['sessionAccessToken'])) {
             if(isset($accessTokenJson)) {
                 echo "Status: <p style='color: green; display: inline'>Connected</p><br>";
                 echo "Organisation: <p id='orgName' style='display: inline'></p><br>";
-                echo "<a href='logout.php'><img src='../disconnect.png'></a>";
+                echo "<a href='../logout.php'><img src='../disconnect.png'></a>";
             }
             else {
                 echo "Status: <p style='color: red; display: inline'>Not Connected</p><br><br>";

@@ -8,6 +8,7 @@ use QuickBooksOnline\API\Facades\Customer;
 
 // Prep Data Services
 $config = include('../config.php');
+
 //Get Token
 $accessTokenKey = $_POST["access_token"];
 $refreshTokenKey = $_POST["refresh_token"];
@@ -26,7 +27,11 @@ $dataService = DataService::Configure(array(
 
 $dataService->setLogLocation("/Users/hlu2/Desktop/newFolderForLog");
 $dataService->throwExceptionOnError(true);
+
+//QUERY CUSTOMER
 $customerAll = $dataService->Query('SELECT * FROM Customer');
+
+//CHECK ERROR
 $error = $dataService->getLastError();
 if ($error) {
     echo "The Status code is: " . $error->getHttpStatusCode() . "\n";
@@ -34,8 +39,5 @@ if ($error) {
     echo "The Response message is: " . $error->getResponseBody() . "\n";
 }
 else {
-    // echo "Created Id={$customer->Id}. Reconstructed response body:\n\n";
-    // $xmlBody = XmlObjectSerializer::getPostXmlFromArbitraryEntity($customer , $urlResource);
-    // echo $xmlBody . "\n";
     echo json_encode($customerAll, JSON_PRETTY_PRINT);
 }
