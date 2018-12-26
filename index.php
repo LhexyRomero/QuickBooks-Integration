@@ -155,7 +155,7 @@ if (isset($_SESSION['sessionAccessToken'])) {
         <div class="btn-group">
             <a href="#" onclick="contacts(this)" class="btn btn-secondary">Contacts</a>
             <a href="#" class="btn btn-secondary">Sales</a>
-            <a href="#" class="btn btn-secondary">Purchases</a>
+            <a href="Purchase/purchase.php" class="btn btn-secondary">Purchases</a>
             <a href="#" class="btn btn-secondary">Time Activity</a>
         </div>
         <br><br>
