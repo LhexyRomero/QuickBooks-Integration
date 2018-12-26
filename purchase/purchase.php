@@ -158,12 +158,11 @@ if (isset($_SESSION['sessionAccessToken'])) {
             <a href="#" class="btn btn-secondary">Time Activity</a>
         </div>
         <br><br>
-
+            LEKI
         <div id="table">
             <!-- table views -->
         </div>
 
-        
     <!-- <pre id="accessToken">
         <style="background-color:#efefef;overflow-x:scroll"><?php
     $displayString = isset($accessTokenJson) ? $accessTokenJson : "No Access Token Generated Yet";
@@ -172,3 +171,33 @@ if (isset($_SESSION['sessionAccessToken'])) {
 
 </div>
 </body>
+<script>
+var access_token = "<?php $json = json_encode($accessTokenJson, JSON_PRETTY_PRINT);; 
+                    $json = json_decode($json, true);
+                    echo $json["access_token"];?>";
+    var refresh_token = "<?php $json = json_encode($accessTokenJson, JSON_PRETTY_PRINT);; 
+                        $json = json_decode($json, true);
+                        echo $json["refresh_token"];?>";
+    var realm_id = "<?php echo $accessToken->getRealmID(); ?>";
+
+
+    window.onload = function () {
+        apiCall.getCompanyName();
+        purchase();
+    }
+
+    function purchase() {
+
+        document.getElementById("table").innerHTML = "Loading...";
+        $.ajax({
+            type: "POST",
+            url: "readPurchase.php",
+            data: "access_token="+ access_token + "&refresh_token=" + refresh_token + "&realm_id=" + realm_id,
+            success: (response)=>{
+                console.log("Success Bitch",response);
+            }
+        });
+
+    }
+</script>
+</html>
