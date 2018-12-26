@@ -30,7 +30,12 @@ function makeAPICall()
      */
     $dataService->updateOAuth2Token($accessToken);
     $companyInfo = $dataService->getCompanyInfo();
-    print_r($companyInfo->CompanyName);
+    if(isset($companyInfo->CompanyName)) {
+        print_r($companyInfo->CompanyName);
+    }
+    else {
+        header("Location: logout.php");
+    }
     return $companyInfo;
 }
 

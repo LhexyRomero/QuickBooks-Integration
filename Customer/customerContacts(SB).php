@@ -163,11 +163,99 @@ if (isset($_SESSION['sessionAccessToken'])) {
         <div class="btn-group" id="customer">
             <a href="#" class="btn btn-secondary active" onclick="customer(this)" id='btnCustomers'>Customers</a>
             <a href="../Employee/employeeContacts.php" class="btn btn-secondary">Employees</a>
+            <a href="#" class="btn btn-secondary">Vendor</a>
         </div>
         <br>
         <br>
         <div id="table">
-            <!-- table views -->
+            <div class='alert alert-warning'>
+            Below Contacts are those Customers that exist in your Smallbuilders account but didn't exist in your QuickBooks account.
+            </div>
+            <nav class='nav nav-tabs nav-justified'>
+                <a class='nav-item nav-link active' href='#'>Small Builders to Quickbooks</a>
+                <a class='nav-item nav-link' href='customerContacts.php'>Quickbooks to Smallbuilders</a>
+            </nav>
+            <table id='QBtoSB' class='table table-striped'>
+                <thead>
+                    <tr>
+                        <td><input type='checkbox' onclick='checkAll(this);countIntegrate();'></td>
+                        <td>Customer Name</td>
+                        <td>Customer Email</td>
+                        <td>Representative Name</td>
+                        <td>Customer Address</td>
+                        <td>Customer Phone Number</td>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php
+                        //GET FIELDS THAT HAVE QUICKBOOKS UID
+                        require_once "../db_connect.php";
+
+                        $quickbooks_uids = array();
+                        $sql = "SELECT * FROM _relationship_db_customers WHERE quickbooks_uid IS NULL";
+                    
+                        $query = $connect->query($sql);
+                    
+                        while($row = mysqli_fetch_array($query)) {
+                            echo "<tr>
+                            <td><input type='checkbox' class='form-control integrateCheck' onclick='countIntegrate()' value='".$row["id"]."'></td>
+                            <td>".$row["customer_name"]."</td>";
+                            echo "<td>". $row["customer_email"] ."</td>";
+                            echo "<td>". $row["representative_name"]." " .$row["representative_lname"]."</td>";
+                            echo "<td>". $row["customer_address"]."</td>";
+                            echo "<td>Phone: ".$row["customer_phone"]."<br>Mobile: ".$row["customer_mobile"]."<br>Fax: ".$row["customer_fax"]."</td>";
+                            echo "</tr>"; 
+                        }
+
+                    ?>
+                </tbody>
+            </table>
+            <button id='btnIntegrate' class='mt-2 mb-5 float-right btn btn-success btn-lg' onclick='integrateCustomer()' disabled>Integrate</button>
+            <script>
+                $("#QBtoSB").DataTable();         
+            </script>
+        </div>
+        <hr style='clear: both'>
+        <div id="table2">
+            <br>
+            <h3 class='text-center'>Reconciled Customer</h3>
+            <br>
+            <table id='ReconciledCust'class='table table-striped'>
+                <thead>
+                    <tr>
+                        <td>Customer Name</td>
+                        <td>Customer Email</td>
+                        <td>Representative Name</td>
+                        <td>Customer Address</td>
+                        <td>Customer phone Number</td>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php
+                        //GET RECONCILED CUSTOMER
+                        require_once "../db_connect.php";
+
+                        $records = array();
+                        $sql = "SELECT * FROM _relationship_db_customers WHERE quickbooks_uid IS NOT NULL";
+
+                        $query = $connect->query($sql);
+
+                        while($row = mysqli_fetch_array($query)) {
+                            echo "<tr>
+                                <td>".$row["customer_name"]."</td>
+                                <td>".$row["customer_email"]."</td>
+                                <td>".$row["representative_name"] ." ". $row["representative_lname"] . "</td>
+                                <td>".$row["customer_address"]."</td>
+                                <td>Phone: ".$row["customer_phone"]."<br>Mobile: ".$row["customer_mobile"]. "<br>Fax: ".$row["customer_fax"]."</td>
+                            </tr>";
+                        }
+                        
+                    ?>
+                </tbody>         
+            </table>
+            <script>
+            $("#ReconciledCust").DataTable(); 
+            </script>
         </div>
 
         
@@ -193,81 +281,7 @@ if (isset($_SESSION['sessionAccessToken'])) {
             //GET COMPANY NAME
             apiCall.getCompanyName();
             //RETRIEVE
-            customer();
-        }
-
-        function customer() {
-            document.getElementById("table").innerHTML = "Loading...";
-            $.ajax({
-                type: "post",
-                url: "readCustomers(SB).php",
-                dataType: "json",
-                success: function (data) {
-                    console.log(data);
-                    //CONSTRUCT TABLE
-                    var tblCustomer = document.createElement("table");
-                    tblCustomer.setAttribute("class","table table-stripe");
-                    var thead = document.createElement("thead");
-                    thead.innerHTML = "<tr><th><input type='checkbox' class='form-control' onclick='checkAll(this);countIntegrate();'></th></th><th>Customer Name</th><th>Customer Email</th><th>Representative Name</th><th>Customer Address</th><th>Customer Phone Numbers</th></tr>";
-                    var tbody = document.createElement("tbody");
-
-                    //LOOP TABLE
-                    for (let i = 0; i < data.length; i++) {
-                        var row = tbody.insertRow(-1);
-                        var cell0 = row.insertCell(-1);
-                        var cell1 = row.insertCell(-1);
-                        var cell2 = row.insertCell(-1);
-                        var cell3 = row.insertCell(-1);
-                        var cell4 = row.insertCell(-1);
-                        var cell5 = row.insertCell(-1);
-                        
-
-                        
-                        cell0.innerHTML = "<input type='checkbox' class='form-control integrateCheck' onclick='countIntegrate()' value="+data[i].id +">";
-                        cell1.innerHTML = data[i].customer_name;
-                        cell2.innerHTML = data[i].customer_email;
-                        cell3.innerHTML = data[i].representative_name + " " + data[i].representative_lname;
-                        cell4.innerHTML = data[i].customer_address;
-                        cell5.innerHTML = "Phone: "+ data[i].customer_phone + "<br>" + "Mobile: "+ data[i].customer_mobile + "<br>" +"Fax: "+ data[i].customer_fax + "<br>" ;
-                    
-                    }
-
-                    tblCustomer.appendChild(thead);
-                    tblCustomer.appendChild(tbody);
-
-                    document.getElementById("table").innerHTML = "";
-
-                    //CREATE ALERT
-                    var alertCard = document.createElement("div");
-                    alertCard.setAttribute("class","alert alert-warning");
-                    alertCard.innerHTML = "Below Contacts are those Customers that exist in your SmallBuilders account but didn't exist in your Quickbooks account.";
-                    document.getElementById("table").appendChild(alertCard);
-
-                    //CREATE QUICKBOOKS TO SMALL BUILDERS
-                    var selection = document.createElement("nav");
-                    selection.setAttribute("class",'nav nav-tabs nav-justified');
-                    selection.innerHTML = "<a class='nav-item nav-link active' href='#'>Small Builders to Quickbooks</a>"+
-                        "<a class='nav-item nav-link' href='customerContacts.php'>Quickbooks to Smallbuilders</a>";
-                        
-                    document.getElementById("table").appendChild(selection);
-
-                    document.getElementById("table").appendChild(tblCustomer);
-                    
-                    //Make table as Datable
-                    $(tblCustomer).DataTable();
-
-                    //CREATE INTEGRATE BUTTON
-                    var btnIntegrate = document.createElement("button");
-                    btnIntegrate.setAttribute("id", "btnIntegrate");
-                    btnIntegrate.setAttribute("class", "mt-2 mb-5 float-right btn btn-success btn-lg");
-                    btnIntegrate.disabled = true;
-                    btnIntegrate.innerHTML = "Integrate";
-                    btnIntegrate.onclick = function () {
-                        integrateCustomer();
-                    };
-                    document.getElementById("table").appendChild(btnIntegrate);
-                }
-            });
+            //customer();
         }
 
         function countIntegrate() {
