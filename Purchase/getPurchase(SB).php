@@ -1,11 +1,11 @@
 <?php
     require_once "../db_connect.php";
 
-    parse_str($_POST['data'],$param);
+    parse_str($_POST['formdata'],$params);
 
-    $selected_expense =  $param["selected_expense"];
-    $selected_project = $param["selected_project"];
-    $selected_supplier = $param["selected_supplier"];
+    $selected_expense =  $params["selected_expense"];
+    $selected_project = $params["selected_project"];
+    $selected_supplier = $params["selected_supplier"];
     $quickbooks_uids = array();
 
     $sql = "SELECT * FROM _relationship_db_purchase WHERE quickbooks_uid IS NULL";
@@ -26,10 +26,11 @@
 
     $output = "";
     while($row = mysqli_fetch_assoc($query)) {
-        $output .= "<tr>
-        <td><input type='checkbox' class='form-control integrateCheck' onclick='countIntegrate()' value='".$row["id"]."'></td>
-        <td>'".$row["project_id"]."'</td>
-        <td>'". $row["project_id"] ."'</td>
+        $output .= 
+        "<tr>
+            <td><input type='checkbox' class='form-control integrateCheck' onclick='countIntegrate()' value='".$row["id"]."'></td>
+            <td>'".$row["project_id"]."'</td>
+            <td>'". $row["project_id"] ."'</td>
         </tr>";
     }
 

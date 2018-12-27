@@ -177,7 +177,7 @@ if (isset($_SESSION['sessionAccessToken'])) {
                 <a class='nav-item nav-link' href='purchase.php'>Quickbooks to Smallbuilders</a>
             </nav><br>
             <!-- Dropdown --> 
-            <form id="grpSelect">
+            <form id="grpSelect" name="grpSelect">
                 <select id='selectExpense' name="selected_expense" style='width: 200px;'>
                     <option value='0'>All Expenses</option>    
                 </select>
@@ -217,8 +217,9 @@ if (isset($_SESSION['sessionAccessToken'])) {
                         echo $option;
                     ?>
                 </select>
-
-                <button onclick="viewPurchase()" class="btn btn-sm btn-success" id='but_read'> View Records </button>
+                <!-- <button onclick="viewPurchase()" class="btn btn-sm btn-success" id='but_read'> View Records </button> -->
+                <!-- harnessing jquery, sayang naka-import na rin naman na -->
+                <button type="submit" class="btn btn-sm btn-success" id='but_read'> View Records </button>
             </form>
 
             <div id='result'></div>
@@ -267,20 +268,39 @@ if (isset($_SESSION['sessionAccessToken'])) {
             apiCall.getCompanyName();
         }
 
-        function viewPurchase(){
+        // uncomment this and comment the function below if you want to use your method
+        // i can't guarantee the functionality of my function, no database to test to
+        
+        // function viewPurchase(){
 
-            console.log("im here");
-            var data = $("#grpSelect").serialize();
+        //     console.log("im here");
+        //     var data = $("#grpSelect").serialize();
+        //     $.ajax({
+        //         method: "POST",
+        //         url: "getPurchase(SB).php",
+        //         data: {data:data},
+        //         success: function(data){
+        //             console.log(data);
+        //             $("#expense").html(data);
+        //         }
+        //     });
+        // }
+        $(document).on("submit", "form[name='grpSelect']", function(e) {
+            e.preventDefault();
+
+            var formdata = $(this).serialize();
+
             $.ajax({
-                method: "POST",
+                type: "POST",
                 url: "getPurchase(SB).php",
-                data: {data:data},
-                success: function(data){
+                data: {formdata: formdata},
+                success: function(data) {
                     console.log(data);
                     $("#expense").html(data);
                 }
             });
-        }
+
+        });
 
         function countIntegrate(toIntegrate) {
             var integrateAction = $("input[name=selectAction]:checked").val();
