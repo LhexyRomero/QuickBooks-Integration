@@ -52,6 +52,7 @@ if (isset($_SESSION['sessionAccessToken'])) {
     <link href="https://cdn.datatables.net/1.10.18/css/dataTables.bootstrap4.min.css" rel="stylesheet">
     <script src="https://cdn.datatables.net/1.10.18/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.10.18/js/dataTables.bootstrap4.min.js"></script>
+    
     <script>
 
         var url = '<?php echo $authUrl; ?>';
@@ -125,6 +126,7 @@ if (isset($_SESSION['sessionAccessToken'])) {
         var oauth = new OAuthCode(url);
         var apiCall = new apiCall();
     </script>
+
 </head>
 <body>
 
@@ -170,6 +172,7 @@ if (isset($_SESSION['sessionAccessToken'])) {
                 <a class='nav-item nav-link' href='purchase(SB).php'>Small Builders to Quickbooks</a>
                 <a class='nav-item nav-link active' href='#'>Quickbooks to Smallbuilders</a>
             </nav>
+            <br>
             <table id='QBtoSB' class='table table-striped'>
                 <thead>
                     <tr>
@@ -177,7 +180,8 @@ if (isset($_SESSION['sessionAccessToken'])) {
                         <td>Project Name</td>
                         <td>Supplier/Subcontractor</td>
                         <td>Invoice No. </td>
-                        <td>Due Date <td>
+                        <td>Invoice Date </td>
+                        <td>Due Date </td>
                         <td>Invoice Attachment</td>
                         <td>Account type</td>
                         <td>Amount</td>
@@ -208,7 +212,7 @@ if (isset($_SESSION['sessionAccessToken'])) {
                             { 
                                 echo "<tr>
                                 <td><input type='checkbox' class='form-control integrateCheck' onclick='countIntegrate()' value='".$purchase->Id."'></td>
-                                <td><i> --- </i></td>";
+                                <td> --- </td>";
                                 echo "<td> --- </td>";
                                 echo "<td>". @$purchase->DocNumber. "</td>";
                                 echo "<td>". @$purchase->TxnDate. "</td>";
@@ -338,7 +342,7 @@ if (isset($_SESSION['sessionAccessToken'])) {
                     var integrateCheck = document.querySelectorAll('.integrateCheck:checked');
                     
                     //Quickbooks Array
-                    var customers = [];
+                    var purchases = [];
 
                     //Retrieve Customer Info
                     for (let i = 0; i < integrateCheck.length; i++) {
@@ -351,12 +355,12 @@ if (isset($_SESSION['sessionAccessToken'])) {
                                 data: "access_token="+ access_token + "&refresh_token=" + refresh_token + "&realm_id=" + realm_id + "&id=" + id,
                                 success: function (data) {
                                     //Add Customer to Array
-                                    customers.push(data);
-                                    console.log(data);
+                                    purchases.push(data);
+                                    console.log(purchases);
 
                                     //Check if All Request is Done
                                     if(i == integrateCheck.length - 1) {
-                                        customerToDB (customers,confirmJS);
+                                        customerToDB (purchases,confirmJS);
                                     }
                                 }
                             });
@@ -372,81 +376,54 @@ if (isset($_SESSION['sessionAccessToken'])) {
             });
         }
 
-        function customerToDB (customers,confirmJS) {
-            for (let i = 0; i < customers.length; i++) {
+        function customerToDB (purchases,confirmJS) {
+            for (let i = 0; i < purchases.length; i++) {
                 //PARSE JSON
-                var customer = JSON.parse(customers[i]);
+                var purchase = JSON.parse(purchases[i]);
                 //CHECK JSON
-                console.log(customer);
+                console.log(purchases);
                 //CREATE FORM
                 var frmCustomer = document.createElement("form");
                 //Create Fields
 
-                //REPRESENTATIVE NAME
-                var representative_name = convertNulltoEmpty(customer.GivenName);
-                //REPRESENTATIVE LAST NAME
-                var representative_lname = convertNulltoEmpty(customer.FamilyName);
-                //CUSTOMER NAME
-                var customer_name = convertNulltoEmpty(customer.DisplayName);   
-                //ADDRESS LINE1
                 try {
-                    var customer_address = convertNulltoEmpty(customer.BillAddr.Line1);
+                    var invoice_number = convertNulltoEmpty(purchase.DocNumber);
                 } catch (error) {
-                    var customer_address = "";
+                    var invoice_number = "";
                 }
-                //CITY
                 try {
-                    var customer_city = convertNulltoEmpty(customer.BillAddr.City);
+                    var invoice_date = convertNulltoEmpty(purchase.TxnDate);
                 } catch (error) {
-                    var customer_city = "";
+                    var invoice_date = "";
                 }
-                //COUNTRY
                 try {
-                    var customer_country = convertNulltoEmpty(customer.BillAddr.Country);
+                    var due_date = convertNulltoEmpty(purchase.TxnDate);
                 } catch (error) {
-                    var customer_country = "";
+                    var due_date = "";
                 }  
-                //CUSTOMER EMAIL
                 try {
-                    var customer_email = convertNulltoEmpty(customer.PrimaryEmailAddr.Address);
+                    var amount = convertNulltoEmpty(purchase.TotalAmt);
                 } catch (error) {
-                    var customer_email = "";
+                    var amount = "";
                 }
-                //PHONE
-                try {
-                    var customer_phone = convertNulltoEmpty(customer.PrimaryPhone.FreeFormNumber);
-                } catch (error) {
-                    var customer_phone = "";
-                }
-                //MOBILE
-                try {
-                    var customer_mobile = convertNulltoEmpty(customer.Mobile.FreeFormNumber);
-                } catch (error) {
-                    var customer_mobile = "";
-                }
-                //FAX
-                try {
-                    var customer_fax = convertNulltoEmpty(customer.Fax.FreeFormNumber); 
-                } catch (error) {
-                    var customer_fax = ""; 
-                }
-                var quickbooks_uid = convertNulltoEmpty(customer.Id);
+                var quickbooks_uid = purchase.Id;
+                console.log("ID",quickbooks_uid);
 
-
-                frmCustomer.innerHTML = "<input name='customer_name' value='"+customer_name+"'><input name='customer_address' value='"+customer_address+", "+customer_city+", "+customer_country+"'><input name='customer_email' values='"+customer_email+"'><input name='customer_phone' value='"+customer_phone+"'><input name='customer_mobile' value='"+customer_mobile+"'><input name='customer_fax' value='"+customer_fax+"'><input name='quickbooks_uid' value='"+quickbooks_uid+"'><input name='representative_name' value='"+representative_name+"'><input name='representative_lname' value='"+representative_lname+"'>";
+                frmCustomer.innerHTML = "<input name='quickbooks_uid' value='"+quickbooks_uid+"'><input name='invoice_number' value='"+invoice_number+"'><input name='invoice_date' value='"+invoice_date+"'><input name='due_date' value='"+due_date+"'><input name='amount' value='"+amount+"'><input name='quickbooks_uid' value='"+quickbooks_uid+"";
                 
+                console.log(frmCustomer);
                 //PASOK SA DB   
                 $.ajax({
                     method: "post",
                     url: "purchaseToSB.php",
                     data : $(frmCustomer).serialize(),
                     success: function () {
-                        //NAPASOK
+                        console.log("SUCCESS");
                     },
                 });
                 
                 //IF TAPOS NA MAGPASOK GAGAWING DONE UNG CONFIRM JS
-                if(i == customers.length - 1) {
+                if(i == purchases.length - 1) {
                     confirmJS.hideLoading();
                     confirmJS.setContent("Done");
                 }

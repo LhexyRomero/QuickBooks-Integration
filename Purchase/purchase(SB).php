@@ -53,6 +53,10 @@ if (isset($_SESSION['sessionAccessToken'])) {
     <link href="https://cdn.datatables.net/1.10.18/css/dataTables.bootstrap4.min.css" rel="stylesheet">
     <script src="https://cdn.datatables.net/1.10.18/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.10.18/js/dataTables.bootstrap4.min.js"></script>
+    
+    <script src="../public/js/select2.min.js"></script>
+    <link href='../public/css/select2.min.css' rel='stylesheet' type='text/css'>
+
     <script>
 
         var url = '<?php echo $authUrl; ?>';
@@ -120,12 +124,10 @@ if (isset($_SESSION['sessionAccessToken'])) {
                 });
             }
         }
-
-
-
         var oauth = new OAuthCode(url);
         var apiCall = new apiCall();
     </script>
+
 </head>
 <body>
 
@@ -173,7 +175,54 @@ if (isset($_SESSION['sessionAccessToken'])) {
             <nav class='nav nav-tabs nav-justified'>
                 <a class='nav-item nav-link active' href='#'>Small Builders to Quickbooks</a>
                 <a class='nav-item nav-link' href='purchase.php'>Quickbooks to Smallbuilders</a>
-            </nav>
+            </nav><br>
+            <!-- Dropdown --> 
+            <form id="grpSelect">
+                <select id='selectExpense' name="selected_expense" style='width: 200px;'>
+                    <option value='0'>All Expenses</option>    
+                </select>
+
+                <select id='selectProject' name="selected_project" style='width: 200px;'>
+                    <option value='0'>All Project</option> 
+                    <?php
+                        require_once "../db_connect.php";
+                        $sql = "SELECT * FROM _project_db";
+
+                        $query = $connect->query($sql);
+                        $option = "";
+                        while($row = mysqli_fetch_array($query)) {
+                            $project_id = $row['id'];
+                            $project_name = $row['project_name'];
+                            $option .= "<option value=".$project_id.">".$project_name."</option>";
+                        }
+
+                        echo $option;
+                    ?>
+                </select>
+
+                <select id='selectSupplier' name="selected_supplier" style='width: 200px;'>
+                    <option value='0'>All Supplier</option> 
+                    <?php
+                        require_once "../db_connect.php";
+                        $sql = "SELECT * FROM _supplier_db";
+
+                        $query = $connect->query($sql);
+                        $option = "";
+                        while($row = mysqli_fetch_array($query)) {
+                            $supplier_id = $row['id'];
+                            $supplier_name = $row['supplier_name'];
+                            $option .= "<option value=".$supplier_id.">".$supplier_name."</option>";
+                        }
+
+                        echo $option;
+                    ?>
+                </select>
+
+                <button onclick="viewPurchase()" class="btn btn-sm btn-success" id='but_read'> View Records </button>
+            </form>
+
+            <div id='result'></div>
+            <br>
             <table id='QBtoSB' class='table table-striped'>
                 <thead>
                     <tr>
@@ -187,29 +236,7 @@ if (isset($_SESSION['sessionAccessToken'])) {
                         <td>Amount</td>
                     </tr>
                 </thead>
-                <tbody>
-                    <?php
-                        //GET FIELDS THAT HAVE QUICKBOOKS UID
-                        require_once "../db_connect.php";
-
-                        $quickbooks_uids = array();
-                        $sql = "SELECT * FROM _relationship_db_customers WHERE quickbooks_uid IS NULL";
-                    
-                        $query = $connect->query($sql);
-                    
-                        while($row = mysqli_fetch_array($query)) {
-                            echo "<tr>
-                            <td><input type='checkbox' class='form-control integrateCheck' onclick='countIntegrate()' value='".$row["id"]."'></td>
-                            <td>".$row["customer_name"]."</td>";
-                            echo "<td>". $row["customer_email"] ."</td>";
-                            echo "<td>". $row["representative_name"]." " .$row["representative_lname"]."</td>";
-                            echo "<td>". $row["customer_address"]."</td>";
-                            echo "<td>Phone: ".$row["customer_phone"]."<br>Mobile: ".$row["customer_mobile"]."<br>Fax: ".$row["customer_fax"]."</td>";
-                            echo "</tr>"; 
-                        }
-
-                    ?>
-                </tbody>
+                <tbody id="expense"></tbody>
             </table><br>
             <div class='alert alert-primary'>
                 <input type='radio' name="selectAction" value="1" class="integrateRadio" onclick="countIntegrate(true)"> Move the selected entries into my XERO account. <br>
@@ -217,59 +244,13 @@ if (isset($_SESSION['sessionAccessToken'])) {
             </div>
             <center><button id='btnIntegrate' class='mt-2 mb-5 btn btn-success btn-lg' onclick='integrateCustomer()' disabled>Integrate</button></center>
             <script>
+                $("#selectExpense").select2();
+                $("#selectProject").select2();
+                $("#selectSupplier").select2();
                 $("#QBtoSB").DataTable();         
             </script>
         </div>
         <hr style='clear: both'>
-        <div id="table2">
-            <br>
-            <h3 class='text-center'>Reconciled Customer</h3>
-            <br>
-            <table id='ReconciledCust'class='table table-striped'>
-                <thead>
-                    <tr>
-                        <td>Customer Name</td>
-                        <td>Customer Email</td>
-                        <td>Representative Name</td>
-                        <td>Customer Address</td>
-                        <td>Customer phone Number</td>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php
-                        //GET RECONCILED CUSTOMER
-                        require_once "../db_connect.php";
-
-                        $records = array();
-                        $sql = "SELECT * FROM _relationship_db_customers WHERE quickbooks_uid IS NOT NULL";
-
-                        $query = $connect->query($sql);
-
-                        while($row = mysqli_fetch_array($query)) {
-                            echo "<tr>
-                                <td>".$row["customer_name"]."</td>
-                                <td>".$row["customer_email"]."</td>
-                                <td>".$row["representative_name"] ." ". $row["representative_lname"] . "</td>
-                                <td>".$row["customer_address"]."</td>
-                                <td>Phone: ".$row["customer_phone"]."<br>Mobile: ".$row["customer_mobile"]. "<br>Fax: ".$row["customer_fax"]."</td>
-                            </tr>";
-                        }
-                        
-                    ?>
-                </tbody>         
-            </table>
-            <script>
-            $("#ReconciledCust").DataTable(); 
-            </script>
-        </div>
-
-        
-    <!-- <pre id="accessToken">
-        <style="background-color:#efefef;overflow-x:scroll"><?php
-    $displayString = isset($accessTokenJson) ? $accessTokenJson : "No Access Token Generated Yet";
-    echo json_encode($displayString, JSON_PRETTY_PRINT); ?>
-    </pre> -->
-
 </div>
 </body>
     <script>
@@ -284,6 +265,21 @@ if (isset($_SESSION['sessionAccessToken'])) {
 
         window.onload = function () {
             apiCall.getCompanyName();
+        }
+
+        function viewPurchase(){
+
+            console.log("im here");
+            var data = $("#grpSelect").serialize();
+            $.ajax({
+                method: "POST",
+                url: "getPurchase(SB).php",
+                data: {data:data},
+                success: function(data){
+                    console.log(data);
+                    $("#expense").html(data);
+                }
+            });
         }
 
         function countIntegrate(toIntegrate) {
@@ -362,6 +358,7 @@ if (isset($_SESSION['sessionAccessToken'])) {
                 }
             });
         }
+        
         function customerToQB (customers,confirmJS) {
             for (let i = 0; i < customers.length; i++) {
                 //CREATE FORM
