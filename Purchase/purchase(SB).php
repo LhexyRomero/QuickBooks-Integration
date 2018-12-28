@@ -168,10 +168,7 @@ if (isset($_SESSION['sessionAccessToken'])) {
         </div>
         <br>
         <br>
-        <div id="table"><!-- 
-            <div class='alert alert-warning'>
-            Below Contacts are those Customers that exist in your Smallbuilders account but didn't exist in your QuickBooks account.
-            </div> -->
+        <div id="table">
             <nav class='nav nav-tabs nav-justified'>
                 <a class='nav-item nav-link active' href='#'>Small Builders to Quickbooks</a>
                 <a class='nav-item nav-link' href='purchase.php'>Quickbooks to Smallbuilders</a>
@@ -217,23 +214,23 @@ if (isset($_SESSION['sessionAccessToken'])) {
                         echo $option;
                     ?>
                 </select>
-
-                <button onclick="viewPurchase()" class="btn btn-sm btn-success" id='but_read'> View Records </button>
             </form>
+            <button onclick="viewPurchase()" class="btn btn-sm btn-success"> View Records </button>
 
             <div id='result'></div>
             <br>
             <table id='QBtoSB' class='table table-striped'>
                 <thead>
                     <tr>
-                        <td><input type='checkbox' onclick='checkAll(this);countIntegrate();'></td>
-                        <td>Project Name</td>
-                        <td>Supplier/Subcontractor</td>
-                        <td>Invoice No. </td>
-                        <td>Due Date <td>
-                        <td>Invoice Attachment</td>
-                        <td>Account type</td>
-                        <td>Amount</td>
+                        <th><input type='checkbox' onclick='checkAll(this);countIntegrate();'></th>
+                        <th>Project Name</th>
+                        <th>Supplier/Subcontractor</th>
+                        <th>Invoice No.</th>
+                        <th>Invoice Date</th>
+                        <th>Due Date</th>
+                        <th>Invoice Attachment</th>
+                        <th>Account type</th>
+                        <th>Amount</th>
                     </tr>
                 </thead>
                 <tbody id="expense"></tbody>
@@ -247,7 +244,7 @@ if (isset($_SESSION['sessionAccessToken'])) {
                 $("#selectExpense").select2();
                 $("#selectProject").select2();
                 $("#selectSupplier").select2();
-                $("#QBtoSB").DataTable();         
+                $("#QBtoSB").DataTable();          
             </script>
         </div>
         <hr style='clear: both'>
@@ -268,16 +265,17 @@ if (isset($_SESSION['sessionAccessToken'])) {
         }
 
         function viewPurchase(){
-
-            console.log("im here");
+            
+            console.log($("#grpSelect").serialize());
             var data = $("#grpSelect").serialize();
             $.ajax({
                 method: "POST",
                 url: "getPurchase(SB).php",
-                data: {data:data},
+                data: data, 
                 success: function(data){
                     console.log(data);
                     $("#expense").html(data);
+                    $("#QBtoSB").DataTable();
                 }
             });
         }
@@ -295,6 +293,7 @@ if (isset($_SESSION['sessionAccessToken'])) {
                 return;
             }
             document.getElementById("btnIntegrate").disabled = true;
+            console.log("INTEGRATION COUNTED");
         }
 
         function checkAll(elem) {
@@ -326,98 +325,89 @@ if (isset($_SESSION['sessionAccessToken'])) {
                     var integrateCheck = document.querySelectorAll('.integrateCheck:checked');
                     
                     //Quickbooks Array
-                    var customers = [];
+                    var purchases = [];
 
                     //Retrieve Customer Info
                     for (let i = 0; i < integrateCheck.length; i++) {
                         var id = integrateCheck[i].value;
                             //Pupunta sa Database Kunin ung Info
-                            $.ajax({
-                                method: "post",
-                                url: "readPurchase(SBid).php",
-                                dataType: "json",
-                                data: "id=" + id + "&access_token="+ access_token + "&refresh_token=" + refresh_token + "&realm_id=" + realm_id,
-                                success: function (data) {
-                                    //Add Customer to Array
-                                    customers.push(data);
+                        $.ajax({
+                            method: "post",
+                            url: "readPurchase(SBid).php",
+                            dataType: "json",
+                            data: "id=" + id + "&access_token="+ access_token + "&refresh_token=" + refresh_token + "&realm_id=" + realm_id,
+                            success: function (data) {
+                                //Add Customer to Array
+                                console.log("AJAX FOR getting data from DB",data);
+                                purchases.push(data);
 
-                                    //Check if All Request is Done
-                                    if(i == integrateCheck.length - 1) {
-                                        customerToQB (customers,confirmJS);
-                                    }
+                                //Check if All Request is Done
+                                if(i == integrateCheck.length - 1) {
+                                    customerToQB (purchases,confirmJS);
                                 }
-                            });
+                            }
+                        });
                     }
                 },
                 buttons: {
                     ok: {
-                        action: function () {
-                            register(document.getElementById("btnRegister"));
+                        action: function () {/* 
+                            register(document.getElementById("btnRegister")); */
+                            
+                            window.location.href = "purchase(SB).php";
                         }
                     }
                 }
             });
         }
         
-        function customerToQB (customers,confirmJS) {
-            for (let i = 0; i < customers.length; i++) {
+        function customerToQB (purchases,confirmJS) {
+            for (let i = 0; i < purchases.length; i++) {
                 //CREATE FORM
-                var frmCustomer = document.createElement("form");
+                var frmPurchase = document.createElement("form");
                 //Create Fields
 
-                //CUSTOMER ID
-                var id = customers[i][0].id;
-                //REPRESENTATIVE NAME
-                var representative_name = convertNulltoEmpty(customers[i][0].representative_name);
-                //REPRESENTATIVE LAST NAME
-                var representative_lname = convertNulltoEmpty(customers[i][0].representative_lname);
-                //CUSTOMER NAME
-                var customer_name = convertNulltoEmpty(customers[i][0].customer_name);   
-                //ADDRESS LINE1
                 try {
-                    var customer_address = convertNulltoEmpty(customers[i][0].customer_address);
+                    var id = convertNulltoEmpty(purchases[i][0].id);
                 } catch (error) {
-                    var customer_address = "";
+                    var id = "";
                 }
-                //CUSTOMER EMAIL
                 try {
-                    var customer_email = convertNulltoEmpty(customers[i][0].customer_email);
+                    var invoice_date = convertNulltoEmpty(purchases[i][0].invoice_date);
                 } catch (error) {
-                    var customer_email = "";
+                    var invoice_date = "";
                 }
-                //PHONE
                 try {
-                    var customer_phone = convertNulltoEmpty(customers[i][0].customer_phone);
+                    var due_date = convertNulltoEmpty(purchases[i][0].due_date);
                 } catch (error) {
-                    var customer_phone = "";
+                    var due_date = "";
                 }
-                //MOBILE
                 try {
-                    var customer_mobile = convertNulltoEmpty(customers[i][0].customer_mobile);
+                    var invoice_no = convertNulltoEmpty(purchases[i][0].invoice_no);
                 } catch (error) {
-                    var customer_mobile = "";
+                    var invoice_no = "";
                 }
-                //FAX
                 try {
-                    var customer_fax = convertNulltoEmpty(customers[i][0].customer_fax); 
+                    var amount = convertNulltoEmpty(purchases[i][0].amount); 
                 } catch (error) {
-                    var customer_fax = ""; 
+                    var amount = ""; 
                 }
+                var quickbooks_uid = purchases.quickbooks_uid;
 
 
-                frmCustomer.innerHTML = "<input name='id' value='"+id+"'><input name='customer_name' value='"+customer_name+"'><input name='customer_address' value='"+customer_address+"'><input name='customer_email' values='"+customer_email+"'><input name='customer_phone' value='"+customer_phone+"'><input name='customer_mobile' value='"+customer_mobile+"'><input name='customer_fax' value='"+customer_fax+"'><input name='representative_name' value='"+representative_name+"'><input name='representative_lname' value='"+representative_lname+"'>";
+                frmPurchase.innerHTML = "<input name='id' value='"+id+"'><input name='invoice_date' value='"+invoice_date+"'><input name='due_date' value='"+due_date+"'><input name='invoice_no' values='"+invoice_no+"'><input name='amount' value='"+amount+"'>";
                 
                 $.ajax({
                     method: "post",
                     url: "purchaseToQB.php",
-                    data: $(frmCustomer).serialize() +"&access_token="+ access_token + "&refresh_token=" + refresh_token + "&realm_id=" + realm_id,
+                    data: $(frmPurchase).serialize() +"&access_token="+ access_token + "&refresh_token=" + refresh_token + "&realm_id=" + realm_id,
                     success: function (data) {
-                        console.log(data);
+                        console.log("SB to QB",data);
                     },
                 });
                 
                 //IF TAPOS LAHAT NG REQUEST
-                if(i == customers.length - 1) {
+                if(i == purchases.length - 1) {
                     confirmJS.hideLoading();
                     confirmJS.setContent("Done");
                 }
