@@ -162,7 +162,7 @@ if (isset($_SESSION['sessionAccessToken'])) {
         <div class="btn-group" id="customer">
             <a href="#" class="btn btn-secondary active" onclick="window.location.href='customerContacts.php'" id='btnCustomers'>Customers</a>
             <a href="#" class="btn btn-secondary" onclick="window.location.href='../Employee/employeeContacts.php';" >Employees</a>
-            <a href="#" class="btn btn-secondary">Vendor</a>
+            <a href="#" class="btn btn-secondary" onclick="window.location.href='../Supplier/vendorContacts.php';">Vendor</a>
         </div>
         <br>
         <br>
@@ -437,7 +437,7 @@ if (isset($_SESSION['sessionAccessToken'])) {
                 var quickbooks_uid = convertNulltoEmpty(customer.Id);
 
 
-                frmCustomer.innerHTML = "<input name='customer_name' value='"+customer_name+"'><input name='customer_address' value='"+customer_address+", "+customer_city+", "+customer_country+"'><input name='customer_email' values='"+customer_email+"'><input name='customer_phone' value='"+customer_phone+"'><input name='customer_mobile' value='"+customer_mobile+"'><input name='customer_fax' value='"+customer_fax+"'><input name='quickbooks_uid' value='"+quickbooks_uid+"'><input name='representative_name' value='"+representative_name+"'><input name='representative_lname' value='"+representative_lname+"'>";
+                frmCustomer.innerHTML = "<input name='customer_name' value='"+customer_name+"'><input name='customer_address' value='"+customer_address+", "+customer_city+", "+customer_country+"'><input name='customer_email' value='"+customer_email+"'><input name='customer_phone' value='"+customer_phone+"'><input name='customer_mobile' value='"+customer_mobile+"'><input name='customer_fax' value='"+customer_fax+"'><input name='quickbooks_uid' value='"+quickbooks_uid+"'><input name='representative_name' value='"+representative_name+"'><input name='representative_lname' value='"+representative_lname+"'>";
                 
                 //PASOK SA DB   
                 $.ajax({

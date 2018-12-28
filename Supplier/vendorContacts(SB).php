@@ -160,30 +160,29 @@ if (isset($_SESSION['sessionAccessToken'])) {
         </div>
         <br><br>
         
-        <div class="btn-group" id="customer">
-            <a href="#" class="btn btn-secondary active" onclick="customer(this)" id='btnCustomers'>Customers</a>
+        <div class="btn-group" id="vendor">
+            <a href="#" class="btn btn-secondary" onclick="vendor(this)" id='btnVendors'>Customers</a>
             <a href="../Employee/employeeContacts.php" class="btn btn-secondary">Employees</a>
-            <a href="#" class="btn btn-secondary" onclick="window.location.href='../Vendor/vendorContacts.php';">Vendor</a>
+            <a href="#" class="btn btn-secondary active">Vendor</a>
         </div>
         <br>
         <br>
         <div id="table">
             <div class='alert alert-warning'>
-            Below Contacts are those Customers that exist in your Smallbuilders account but didn't exist in your QuickBooks account.
+            Below Contacts are those Vendors that exist in your Smallbuilders account but didn't exist in your QuickBooks account.
             </div>
             <nav class='nav nav-tabs nav-justified'>
                 <a class='nav-item nav-link active' href='#'>Small Builders to Quickbooks</a>
-                <a class='nav-item nav-link' href='customerContacts.php'>Quickbooks to Smallbuilders</a>
+                <a class='nav-item nav-link' href='vendorContacts.php'>Quickbooks to Smallbuilders</a>
             </nav>
             <table id='QBtoSB' class='table table-striped'>
                 <thead>
                     <tr>
-                        <td><input type='checkbox' onclick='checkAll(this);countIntegrate();'></td>
-                        <td>Customer Name</td>
-                        <td>Customer Email</td>
+                        <td>Supplier Name</td>
+                        <td>Supplier Address</td>
                         <td>Representative Name</td>
-                        <td>Customer Address</td>
-                        <td>Customer Phone Number</td>
+                        <td>Email Address</td>
+                        <td>Phone Number</td>
                     </tr>
                 </thead>
                 <tbody>
@@ -192,25 +191,25 @@ if (isset($_SESSION['sessionAccessToken'])) {
                         require_once "../db_connect.php";
 
                         $quickbooks_uids = array();
-                        $sql = "SELECT * FROM _relationship_db_customers WHERE quickbooks_uid IS NULL";
+                        $sql = "SELECT * FROM _relationship_db_suppliers WHERE quickbooks_uid IS NULL";
                     
                         $query = $connect->query($sql);
                     
                         while($row = mysqli_fetch_array($query)) {
                             echo "<tr>
                             <td><input type='checkbox' class='form-control integrateCheck' onclick='countIntegrate()' value='".$row["id"]."'></td>
-                            <td>".$row["customer_name"]."</td>";
-                            echo "<td>". $row["customer_email"] ."</td>";
+                            <td>".$row["supplier_name"]."</td>";
+                            echo "<td>". $row["representative_email"] ."</td>";
                             echo "<td>". $row["representative_name"]." " .$row["representative_lname"]."</td>";
-                            echo "<td>". $row["customer_address"]."</td>";
-                            echo "<td>Phone: ".$row["customer_phone"]."<br>Mobile: ".$row["customer_mobile"]."<br>Fax: ".$row["customer_fax"]."</td>";
+                            echo "<td>". $row["supplier_address"]."</td>";
+                            echo "<td>Phone: ".$row["representative_phone"]."<br>Mobile: ".$row["representative_mobile"]."<br>Fax: ".$row["representative_fax"]."</td>";
                             echo "</tr>"; 
                         }
 
                     ?>
                 </tbody>
             </table>
-            <button id='btnIntegrate' class='mt-2 mb-5 float-right btn btn-success btn-lg' onclick='integrateCustomer()' disabled>Integrate</button>
+            <button id='btnIntegrate' class='mt-2 mb-5 float-right btn btn-success btn-lg' onclick='integrateVendor()' disabled>Integrate</button>
             <script>
                 $("#QBtoSB").DataTable();         
             </script>
@@ -218,16 +217,16 @@ if (isset($_SESSION['sessionAccessToken'])) {
         <hr style='clear: both'>
         <div id="table2">
             <br>
-            <h3 class='text-center'>Reconciled Customer</h3>
+            <h3 class='text-center'>Reconciled Vendor</h3>
             <br>
             <table id='ReconciledCust'class='table table-striped'>
                 <thead>
                     <tr>
-                        <td>Customer Name</td>
-                        <td>Customer Email</td>
+                        <td>Vendor Name</td>
+                        <td>Vendor Email</td>
                         <td>Representative Name</td>
-                        <td>Customer Address</td>
-                        <td>Customer phone Number</td>
+                        <td>Vendor Address</td>
+                        <td>Vendor phone Number</td>
                     </tr>
                 </thead>
                 <tbody>
@@ -236,17 +235,17 @@ if (isset($_SESSION['sessionAccessToken'])) {
                         require_once "../db_connect.php";
 
                         $records = array();
-                        $sql = "SELECT * FROM _relationship_db_customers WHERE quickbooks_uid IS NOT NULL";
+                        $sql = "SELECT * FROM _relationship_db_suppliers WHERE quickbooks_uid IS NOT NULL";
 
                         $query = $connect->query($sql);
 
                         while($row = mysqli_fetch_array($query)) {
                             echo "<tr>
-                                <td>".$row["customer_name"]."</td>
-                                <td>".$row["customer_email"]."</td>
+                                <td>".$row["supplier_name"]."</td>
+                                <td>".$row["representative_email"]."</td>
                                 <td>".$row["representative_name"] ." ". $row["representative_lname"] . "</td>
-                                <td>".$row["customer_address"]."</td>
-                                <td>Phone: ".$row["customer_phone"]."<br>Mobile: ".$row["customer_mobile"]. "<br>Fax: ".$row["customer_fax"]."</td>
+                                <td>".$row["supplier_address"]."</td>
+                                <td>Phone: ".$row["representative_phone"]."<br>Mobile: ".$row["representative_mobile"]. "<br>Fax: ".$row["representative_fax"]."</td>
                             </tr>";
                         }
                         
@@ -281,7 +280,7 @@ if (isset($_SESSION['sessionAccessToken'])) {
             //GET COMPANY NAME
             apiCall.getCompanyName();
             //RETRIEVE
-            //customer();
+            //vendor();
         }
 
         function countIntegrate() {
@@ -314,7 +313,7 @@ if (isset($_SESSION['sessionAccessToken'])) {
             }
         }
 
-        function integrateCustomer() {
+        function integrateVendor() {
             $.confirm({
                 title: "Smallbuilders to Quickbooks",
                 columnClass: "medium",
@@ -329,24 +328,24 @@ if (isset($_SESSION['sessionAccessToken'])) {
                     var integrateCheck = document.querySelectorAll('.integrateCheck:checked');
                     
                     //Quickbooks Array
-                    var customers = [];
+                    var vendors = [];
 
-                    //Retrieve Customer Info
+                    //Retrieve Vendor Info
                     for (let i = 0; i < integrateCheck.length; i++) {
                         var id = integrateCheck[i].value;
                             //Pupunta sa Database Kunin ung Info
                             $.ajax({
                                 method: "post",
-                                url: "readCustomer(SBid).php",
+                                url: "readVendor(SBid).php",
                                 dataType: "json",
                                 data: "id=" + id + "&access_token="+ access_token + "&refresh_token=" + refresh_token + "&realm_id=" + realm_id,
                                 success: function (data) {
-                                    //Add Customer to Array
-                                    customers.push(data);
+                                    //Add Vendor to Array
+                                    vendors.push(data);
 
                                     //Check if All Request is Done
                                     if(i == integrateCheck.length - 1) {
-                                        customerToQB (customers,confirmJS);
+                                        vendorToQB (vendors,confirmJS);
                                     }
                                 }
                             });
@@ -355,71 +354,80 @@ if (isset($_SESSION['sessionAccessToken'])) {
                 buttons: {
                     ok: {
                         action: function () {
-                            customer(document.getElementById("btnCustomers"));
+                            window.location.href = "vendorContacts(SB).php";
                         }
                     }
                 }
             });
         }
-        function customerToQB (customers,confirmJS) {
-            for (let i = 0; i < customers.length; i++) {
+        function vendorToQB (vendors,confirmJS) {
+            for (let i = 0; i < vendors.length; i++) {
                 //CREATE FORM
-                var frmCustomer = document.createElement("form");
+                var frmVendor = document.createElement("form");
                 //Create Fields
 
                 //CUSTOMER ID
-                var id = customers[i][0].id;
+                var id = vendors[i][0].id;
                 //REPRESENTATIVE NAME
-                var representative_name = convertNulltoEmpty(customers[i][0].representative_name);
+                var representative_name = convertNulltoEmpty(vendors[i][0].representative_name);
                 //REPRESENTATIVE LAST NAME
-                var representative_lname = convertNulltoEmpty(customers[i][0].representative_lname);
+                var representative_lname = convertNulltoEmpty(vendors[i][0].representative_lname);
                 //CUSTOMER NAME
-                var customer_name = convertNulltoEmpty(customers[i][0].customer_name);   
+                var supplier_name = convertNulltoEmpty(vendors[i][0].supplier_name);   
                 //ADDRESS LINE1
                 try {
-                    var customer_address = convertNulltoEmpty(customers[i][0].customer_address);
+                    var supplier_address = convertNulltoEmpty(vendors[i][0].supplier_address);
                 } catch (error) {
-                    var customer_address = "";
+                    var supplier_address = "";
                 }
                 //CUSTOMER EMAIL
                 try {
-                    var customer_email = convertNulltoEmpty(customers[i][0].customer_email);
+                    var representative_email = convertNulltoEmpty(vendors[i][0].representative_email);
                 } catch (error) {
-                    var customer_email = "";
+                    var representative_email = "";
                 }
                 //PHONE
                 try {
-                    var customer_phone = convertNulltoEmpty(customers[i][0].customer_phone);
+                    var representative_phone = convertNulltoEmpty(vendors[i][0].representative_phone);
                 } catch (error) {
-                    var customer_phone = "";
+                    var representative_phone = "";
                 }
                 //MOBILE
                 try {
-                    var customer_mobile = convertNulltoEmpty(customers[i][0].customer_mobile);
+                    var representative_mobile = convertNulltoEmpty(vendors[i][0].representative_mobile);
                 } catch (error) {
-                    var customer_mobile = "";
+                    var representative_mobile = "";
                 }
                 //FAX
                 try {
-                    var customer_fax = convertNulltoEmpty(customers[i][0].customer_fax); 
+                    var representative_fax = convertNulltoEmpty(vendors[i][0].representative_fax); 
                 } catch (error) {
-                    var customer_fax = ""; 
+                    var representative_fax = ""; 
                 }
+                //ACCOUNT NUMBER
+                try {
+                    var bank_account_number = convertNulltoEmpty(vendor[i][0].bank_account_number);
+                } catch (error) {
+                    var bank_account_number = "";
+                }
+                
 
 
-                frmCustomer.innerHTML = "<input name='id' value='"+id+"'><input name='customer_name' value='"+customer_name+"'><input name='customer_address' value='"+customer_address+"'><input name='customer_email' values='"+customer_email+"'><input name='customer_phone' value='"+customer_phone+"'><input name='customer_mobile' value='"+customer_mobile+"'><input name='customer_fax' value='"+customer_fax+"'><input name='representative_name' value='"+representative_name+"'><input name='representative_lname' value='"+representative_lname+"'>";
+                frmVendor.innerHTML = "<input name='id' value='"+id+"'><input name='supplier_name' value='"+supplier_name+"'><input name='supplier_address' value='"+supplier_address+"'><input name='representative_address' values='"+representative_address+"'><input name='representative_phone' value='"+representative_phone+"'><input name='representative_mobile' value='"+representative_mobile+"'><input name='representative_fax' value='"+representative_fax+"'><input name='representative_name' value='"+representative_name+"'><input name='representative_lname' value='"+representative_lname+"'><input name='bank_account_number' value='"+bank_account_number+"'><input name='representative_email' value='"+representative_email+"'>";
+
+                alert($(frmVendor).serialize());
                 
                 $.ajax({
                     method: "post",
-                    url: "customersToQB.php",
-                    data: $(frmCustomer).serialize() +"&access_token="+ access_token + "&refresh_token=" + refresh_token + "&realm_id=" + realm_id,
+                    url: "vendorsToQB.php",
+                    data: $(frmVendor).serialize() +"&access_token="+ access_token + "&refresh_token=" + refresh_token + "&realm_id=" + realm_id,
                     success: function (data) {
                         console.log(data);
                     },
                 });
                 
                 //IF TAPOS LAHAT NG REQUEST
-                if(i == customers.length - 1) {
+                if(i == vendors.length - 1) {
                     confirmJS.hideLoading();
                     confirmJS.setContent("Done");
                 }

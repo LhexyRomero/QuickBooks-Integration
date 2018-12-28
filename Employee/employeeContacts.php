@@ -163,12 +163,50 @@ if (isset($_SESSION['sessionAccessToken'])) {
         <div class="btn-group" id="customer">
             <a href="#" class="btn btn-secondary" onclick="window.location.href='../Customer/customerContacts.php'" id='btnCustomers'>Customers</a>
             <a href="#" class="btn btn-secondary  active" onclick="window.location.href='employeeContacts.php';" >Employees</a>
-            <a href="#" class="btn btn-secondary">Vendor</a>
+            <a href="#" class="btn btn-secondary" onclick="window.location.href='../Supplier/vendorContacts.php';">Vendor</a>
         </div>
         <br>
         <br>
         <div id="table">
             <!-- table views -->
+        </div>
+        <hr style='clear: both'>
+        <div id="table2">
+            <br>
+            <h3 class='text-center'>Reconciled Employee</h3>
+            <br>
+            <table id='ReconciledCust'class='table table-striped'>
+                <thead>
+                    <tr>
+                        <td>Employee Name</td>
+                        <td>Email Address</td>
+                        <td>Contact No.</td>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php
+                        //GET RECONCILED CUSTOMER
+                        require_once "../db_connect.php";
+
+                        $records = array();
+                        $sql = "SELECT * FROM _relationship_db_employee WHERE quickbooks_uid IS NOT NULL";
+
+                        $query = $connect->query($sql);
+
+                        while($row = mysqli_fetch_array($query)) {
+                            echo "<tr>
+                                <td>".$row["employee_name"]."</td>
+                                <td>".$row["employee_email"]."</td>
+                                <td>Phone: ".$row["employee_phone"]."<br>Mobile: ".$row["employee_mobile"]. "<br>Fax: ".$row["employee_fax"]."</td>
+                            </tr>";
+                        }
+                        
+                    ?>
+                </tbody>         
+            </table>
+            <script>
+            $("#ReconciledCust").DataTable(); 
+            </script>
         </div>
 
         
