@@ -4,7 +4,7 @@ require "../vendor/autoload.php";
 
 use QuickBooksOnline\API\DataService\DataService;
 use QuickBooksOnline\API\Core\Http\Serialization\XmlObjectSerializer;
-use QuickBooksOnline\API\Facades\Customer;
+use QuickBooksOnline\API\Facades\Purchase;
 
 // Prep Data Services
 $config = include('../config.php');
@@ -23,14 +23,10 @@ require_once "../db_connect.php";
 
 //POST
 $id = $_POST["id"];
-$customer_name = $_POST["customer_name"];
-$customer_email = $_POST["customer_email"];
-$customer_address = $_POST["customer_address"];
-$customer_phone = $_POST["customer_phone"];
-$customer_mobile = $_POST["customer_mobile"];
-$customer_fax = $_POST["customer_fax"];
-$representative_name = $_POST["representative_name"];
-$representative_lname = $_POST["representative_lname"];
+$invoice_no = $_POST["invoice_no"];
+$invoice_date = $_POST["invoice_date"];
+$due_date = $_POST["due_date"];
+$amount = $_POST["amount"];
 
 $dataService = DataService::Configure(array(
     'auth_mode' => 'oauth2',
@@ -47,28 +43,28 @@ $dataService = DataService::Configure(array(
 $dataService->setLogLocation("/Users/hlu2/Desktop/newFolderForLog");
 $dataService->throwExceptionOnError(true);
 //Add a new Vendor
-$theResourceObj = Customer::create([
-    "BillAddr" => [
-        "Line1" => "$customer_address",
+$theResourceObj = Purchase::create([
+
+    "PaymentType"=> "CreditCard", 
+    "AccountRef"=> [
+      "name"=> "Visa", 
+      "value"=> "42"
+    ], 
+    "Line"=> [
+      [
+        "DetailType"=> "AccountBasedExpenseLineDetail", 
+        "Amount"=> 0.0, 
+        "AccountBasedExpenseLineDetail"=> [
+          "AccountRef"=> [
+            "name"=> "Meals and Entertainment", 
+            "value"=> "13"
+          ]
+        ]
+      ]
     ],
-    "GivenName" => "$representative_name",
-    "FamilyName" => "$representative_lname",
-    "Suffix" => "",
-    "FullyQualifiedName" => "$customer_name",
-    "CompanyName" => "$customer_name",
-    "DisplayName" => "$customer_name",
-    "PrimaryPhone" => [
-        "FreeFormNumber" => "$customer_phone"
-    ],
-    "Mobile" => [
-        "FreeFormNumber" => "$customer_mobile"
-    ],
-    "Fax" => [
-        "FreeFormNumber" => "$customer_fax"
-    ],
-    "PrimaryEmailAddr" => [
-        "Address" => "$customer_email"
-    ]
+        "TotalAmt"=> "$amount", 
+        "DocNumber"=> "$invoice_no",
+        "TxnDate"=> "$invoice_date",
 ]);
 
 $resultingObj = $dataService->Add($theResourceObj);
@@ -83,11 +79,10 @@ else {
     // UPDATE QUICKBOOKS_UID IN DATABASE   
     $quickbooks_uid = $resultingObj->Id;
     
-    $sql = "UPDATE `_relationship_db_customers` SET `quickbooks_uid` = '$quickbooks_uid' WHERE `_relationship_db_customers`.`id` = $id;";
+    $sql = "UPDATE `_relationship_db_purchase` SET `quickbooks_uid` = '$quickbooks_uid' WHERE `_relationship_db_purchase`.`id` = $id";
 
-    
     if($connect->query($sql)) {
-        echo "Success";
+        echo "Success btich";
     }
     else {
         //
