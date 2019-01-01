@@ -168,7 +168,48 @@ if (isset($_SESSION['sessionAccessToken'])) {
         <br>
         <br>
         <div id="table">
-            <!-- table views -->
+        <div class='alert alert-warning'>
+            Below Contacts are those Customers that exist in your Smallbuilders account but didn't exist in your QuickBooks account.
+            </div>
+            <nav class='nav nav-tabs nav-justified'>
+                <a class='nav-item nav-link active' href='#'>Small Builders to Quickbooks</a>
+                <a class='nav-item nav-link' href='customerContacts.php'>Quickbooks to Smallbuilders</a>
+            </nav>
+            <table id='QBtoSB' class='table table-striped'>
+                <thead>
+                    <tr>
+                        <td><input type='checkbox' onclick='checkAll(this);countIntegrate();'></td>
+                        <td>Employee Name</td>
+                        <td>Employee Email</td>
+                        <td>Contact No.</td>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php
+                        //GET FIELDS THAT HAVE QUICKBOOKS UID
+                        require_once "../db_connect.php";
+
+                        $quickbooks_uids = array();
+                        $sql = "SELECT * FROM _relationship_db_employee WHERE quickbooks_uid IS NULL";
+                    
+                        $query = $connect->query($sql);
+                    
+                        while($row = mysqli_fetch_array($query)) {
+                            echo "<tr>
+                            <td><input type='checkbox' class='form-control integrateCheck' onclick='countIntegrate()' value='".$row["id"]."'></td>";
+                            echo "<td>". $row["employee_name"]." " .$row["employee_lastname"]."</td>";
+                            echo "<td>". $row["employee_email"]."</td>";
+                            echo "<td>Phone: ".$row["employee_phone"]."<br>Mobile: ".$row["employee_mobile"]."<br>Fax: ".$row["employee_fax"]."</td>";
+                            echo "</tr>"; 
+                        }
+
+                    ?>
+                </tbody>
+            </table>
+            <button id='btnIntegrate' class='mt-2 mb-5 float-right btn btn-success btn-lg' onclick='integrateEmployee()' disabled>Integrate</button>
+            <script>
+                $("#QBtoSB").DataTable();         
+            </script>
         </div>
         <div id="table2">
             <br>
@@ -194,7 +235,7 @@ if (isset($_SESSION['sessionAccessToken'])) {
 
                         while($row = mysqli_fetch_array($query)) {
                             echo "<tr>
-                                <td>".$row["employee_name"]."</td>
+                                <td>".$row["employee_name"]." ".$row["employee_lastname"]."</td>
                                 <td>".$row["employee_email"]."</td>
                                 <td>Phone: ".$row["employee_phone"]."<br>Mobile: ".$row["employee_mobile"]. "<br>Fax: ".$row["employee_fax"]."</td>
                             </tr>";
@@ -231,7 +272,7 @@ if (isset($_SESSION['sessionAccessToken'])) {
             //GET COMPANY NAME
             apiCall.getCompanyName();
             //RETRIEVE
-            employee();
+            //employee();
         }
 
         function employee() {
@@ -486,7 +527,7 @@ if (isset($_SESSION['sessionAccessToken'])) {
 
                 frmEmployee.innerHTML = "<input name='employee_name' value='"+employee_name+"'><input name='employee_lname' value='"+employee_lname+"'><input name='employee_address' value='"+employee_address_line1+ ", " + employee_address_suburb + ", " + employee_address_country+"'><input name='employee_address_line1' value='"+employee_address_line1+"'><input name='employee_address_postcode' value='"+employee_address_postcode+"'><input name='employee_address_suburb' value='"+employee_address_suburb+"'><input name='employee_birthday' value='"+employee_birthday+"'><input name='employee_address_country' value='"+employee_address_country+"'><input name='employee_startdate' value='"+employee_startdate+"'><input name='employee_email' value='"+employee_email+"'><input name='employee_phone' value='"+employee_phone+"'><input name='employee_mobile' value='"+employee_mobile+"'><input name='employee_fax' value='"+employee_fax+"'><input name='employee_number' value='"+employee_number+"'><input name='id' value='"+id+"'>";
 
-                alert($(frmEmployee).serialize());
+                //alert($(frmEmployee).serialize());
                 
                 $.ajax({
                     method: "post",

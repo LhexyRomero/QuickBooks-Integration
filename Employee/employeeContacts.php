@@ -168,7 +168,59 @@ if (isset($_SESSION['sessionAccessToken'])) {
         <br>
         <br>
         <div id="table">
-            <!-- table views -->
+        <div class='alert alert-warning'>
+            Below Contacts are those Employee that exist in your QuickBooks account but didn't exist in your Small Builders account.
+            </div>
+            <nav class='nav nav-tabs nav-justified'>
+                <a class='nav-item nav-link' href='employeeContacts(SB).php'>Small Builders to Quickbooks</a>
+                <a class='nav-item nav-link active' href='#'>Quickbooks to Smallbuilders</a>
+            </nav>
+            <table id='QBtoSB' class='table table-striped'>
+                <thead>
+                    <tr>
+                        <td><input type='checkbox' onclick='checkAll(this);countIntegrate();'></td>
+                        <td>Employee Name</td>
+                        <td>Email Address</td>
+                        <td>Contact No.</td>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php
+                        //GET FIELDS THAT HAVE QUICKBOOKS UID
+                        require_once "../db_connect.php";
+
+                        $quickbooks_uids = array();
+                        $sql = "SELECT quickbooks_uid FROM _relationship_db_employee";
+                    
+                        $query = $connect->query($sql);
+                    
+                        while($row = mysqli_fetch_array($query)) {
+                            array_push($quickbooks_uids,$row["quickbooks_uid"]);
+                        }
+
+                        //GET Quickbooks Records
+                        $employeeAll = $dataService->Query('SELECT * FROM Employee');
+                        foreach($employeeAll as $employee) {
+                            if (in_array($employee->Id, $quickbooks_uids, TRUE)) 
+                            { 
+                                //If Found Show
+                            } 
+                            else
+                            { 
+                                echo "<tr>
+                                <td><input type='checkbox' class='form-control integrateCheck' onclick='countIntegrate()' value='".$employee->Id."'></td><td>". @$employee->GivenName." ".@$employee->MiddleName." ".@$employee->FamilyName."</td>";
+                                echo "<td>". @$employee->PrimaryEmailAddr->Address. "</td>";
+                                echo "<td>Phone: ".@$employee->PrimaryPhone->FreeFormNumber."<br>Mobile: ".@$customer->Mobile->FreeFormNumber."<br>Fax: ".@$customer->Fax->FreeFormNumber."</td>";
+                                echo "</tr>"; 
+                            } 
+                        }
+                    ?>
+                </tbody>
+            </table>
+            <button id='btnIntegrate' class='mt-2 mb-5 float-right btn btn-success btn-lg' onclick='integrateEmployee()' disabled>Integrate</button>
+            <script>
+                $("#QBtoSB").DataTable();         
+            </script>
         </div>
         <hr style='clear: both'>
         <div id="table2">
@@ -195,7 +247,7 @@ if (isset($_SESSION['sessionAccessToken'])) {
 
                         while($row = mysqli_fetch_array($query)) {
                             echo "<tr>
-                                <td>".$row["employee_name"]."</td>
+                                <td>".$row["employee_name"]." ".$row["employee_lastname"]."</td>
                                 <td>".$row["employee_email"]."</td>
                                 <td>Phone: ".$row["employee_phone"]."<br>Mobile: ".$row["employee_mobile"]. "<br>Fax: ".$row["employee_fax"]."</td>
                             </tr>";
@@ -233,129 +285,7 @@ if (isset($_SESSION['sessionAccessToken'])) {
             //GET COMPANY NAME
             apiCall.getCompanyName();
             //RETRIEVE
-            employee();
-        }
-
-        function employee() {
-            document.getElementById("table").innerHTML = "Loading...";
-            $.ajax({
-                type: "post",
-                url: "readEmployees.php",
-                data: "access_token="+ access_token + "&refresh_token=" + refresh_token + "&realm_id=" + realm_id,
-                success: function (data) {
-                    console.log(data);
-                    var result = JSON.parse(data);
-                    //CONSTRUCT TABLE
-                    var tblCustomer = document.createElement("table");
-                    tblCustomer.setAttribute("class","table table-stripe");
-                    var thead = document.createElement("thead");
-                    thead.innerHTML = "<tr><th><input type='checkbox' class='form-control' onclick='checkAll(this);countIntegrate();'></th></th><th>Employee Name</th><th>Email Address</th><th>Contact No.</th></tr>";
-                    var tbody = document.createElement("tbody");
-                    
-                    //CHECK RECORDS THAT ARE IN SMALL BUILDERS
-                    var quickbooks_uid = [];
-                    $.ajax({
-                        url: "countEmployeesSB.php",
-                        method: "post",
-                        dataType: "json",
-                        async: false,
-                        success: function (data) {
-                            for (let i = 0; i < data.length; i++) {
-                                quickbooks_uid.push(data[i].quickbooks_uid);
-                            }
-                        }
-                    });
-
-                    //LOOP TABLE
-                    for (let i = 0; i < result.length; i++) {
-                        var row = tbody.insertRow(-1);
-                        var cell0 = row.insertCell(-1);
-                        var cell1 = row.insertCell(-1);
-                        var cell2 = row.insertCell(-1);
-                        var cell5 = row.insertCell(-1);
-                        
-                        var company = result[i].CompanyName;
-                        var fname = (result[i].GivenName) ? result[i].GivenName : "";
-                        var mname = (result[i].MiddleName) ? result[i].MiddleName : "";
-                        var lname = (result[i].FamilyName) ? result[i].FamilyName : "";
-                        
-                        
-                        //CHECK EMAIL
-                        try {
-                            var email = result[i].PrimaryEmailAddr.Address;
-                        } catch (error) {
-                            var email = "";
-                        }
-                        
-                        //CHECK PHONE
-                        try {
-                            var phone = "Phone: " + result[i].PrimaryPhone.FreeFormNumber + "<br>";
-                        } catch (error) {
-                            var phone = "";
-                        }
-
-                        //CHECK PHONE NUMBER
-
-                        try {
-                            var mobile = "Mobile: " + result[i].Mobile.FreeFormNumber + "<br>";
-                        } catch (error) {
-                            var mobile = "";
-                        }
-
-                        //CHECK FAX
-
-                        var fax = (result[i].Fax) ? "Fax: "+result[i].Fax.FreeFormNumber + "<br>" : "";
-
-                        
-                        cell0.innerHTML = "<input type='checkbox' class='form-control integrateCheck' onclick='countIntegrate()' value="+result[i].Id +">";
-                        cell1.innerHTML = result[i].DisplayName ;
-                        cell2.innerHTML = email;
-                        cell5.innerHTML = phone + mobile + fax;
-                        
-                        for (let j = 0; j < quickbooks_uid.length; j++) {
-                            
-                            if(quickbooks_uid[j] == result[i].Id) {
-                                row.parentNode.removeChild(row);
-                            }
-                        }
-                    }
-
-                    tblCustomer.appendChild(thead);
-                    tblCustomer.appendChild(tbody);
-
-                    document.getElementById("table").innerHTML = "";
-
-                    //CREATE ALERT
-                    var alertCard = document.createElement("div");
-                    alertCard.setAttribute("class","alert alert-warning");
-                    alertCard.innerHTML = "Below Contacts are those Employees that exist in your QuickBooks account but didn't exist in your Small Builders account."
-                    document.getElementById("table").appendChild(alertCard);
-
-                    //CREATE QUICKBOOKS TO SMALL BUILDERS
-                    var selection = document.createElement("nav");
-                    selection.setAttribute("class",'nav nav-tabs nav-justified');
-                    selection.innerHTML = "<a class='nav-item nav-link' href='employeeContacts(SB).php'>Small Builders to Quickbooks</a>"+
-                        "<a class='nav-item nav-link active' href='#'>Quickbooks to Smallbuilders</a>";
-                        
-                    document.getElementById("table").appendChild(selection);
-
-                    document.getElementById("table").appendChild(tblCustomer);
-                    
-                    //Make table as Datable
-                    $(tblCustomer).DataTable();
-
-                    //CREATE INTEGRATE BUTTON
-                    var btnIntegrate = document.createElement("button");
-                    btnIntegrate.setAttribute("id", "btnIntegrate");
-                    btnIntegrate.setAttribute("class", "mt-2 mb-5 float-right btn btn-success btn-lg");
-                    btnIntegrate.disabled = true;
-                    btnIntegrate.innerHTML = "Integrate";
-                    btnIntegrate.onclick = function () {
-                        integrateEmployee();
-                    };
-                    document.getElementById("table").appendChild(btnIntegrate);
-                }
-            });
+            //employee();
         }
 
         function countIntegrate() {
@@ -428,7 +358,7 @@ if (isset($_SESSION['sessionAccessToken'])) {
                 buttons: {
                     ok: {
                         action: function () {
-                            employee();
+                            window.location.href = "employeeContacts.php";
                         }
                     }
                 }

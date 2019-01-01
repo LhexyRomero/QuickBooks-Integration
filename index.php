@@ -54,6 +54,11 @@ if (isset($_SESSION['sessionAccessToken'])) {
     <script src="https://cdn.datatables.net/1.10.18/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.10.18/js/dataTables.bootstrap4.min.js"></script>
     <script>
+        //SHOW CONTACTS 
+        function contacts(elem) {
+            elem.classList.add("active");
+            document.getElementById("contacts").style.display = "block";
+        }
 
         var url = '<?php echo $authUrl; ?>';
 
@@ -193,12 +198,6 @@ if (isset($_SESSION['sessionAccessToken'])) {
         window.onload = function () {
             //GET COMPANY NAME
             apiCall.getCompanyName();
-        }
-
-        //SHOW CONTACTS 
-        function contacts(elem) {
-            elem.classList.add("active");
-            document.getElementById("contacts").style.display = "block";
         }
 
     </script>

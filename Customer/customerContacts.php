@@ -37,6 +37,14 @@ if (isset($_SESSION['sessionAccessToken'])) {
     $oauthLoginHelper = $dataService -> getOAuth2LoginHelper();
     $CompanyInfo = $dataService->getCompanyInfo();
 }
+else { 
+        echo "<script>
+            alert('Please Connect to Quickbooks');
+            window.location.href = '../index.php';
+        </script>";
+    // $home_url = '../index.php';
+    // header('Location: '.$home_url);
+}
 
 
 ?>
@@ -119,7 +127,6 @@ if (isset($_SESSION['sessionAccessToken'])) {
                 });
             }
         }
-
 
 
         var oauth = new OAuthCode(url);
@@ -268,8 +275,6 @@ if (isset($_SESSION['sessionAccessToken'])) {
             $("#ReconciledCust").DataTable(); 
             </script>
         </div>
-
-        
     <!-- <pre id="accessToken">
         <style="background-color:#efefef;overflow-x:scroll"><?php
     $displayString = isset($accessTokenJson) ? $accessTokenJson : "No Access Token Generated Yet";
@@ -290,6 +295,7 @@ if (isset($_SESSION['sessionAccessToken'])) {
 
 
         window.onload = function () {
+            echo ""
             //GET COMPANY NAME
             apiCall.getCompanyName();
             //RETRIEVE
