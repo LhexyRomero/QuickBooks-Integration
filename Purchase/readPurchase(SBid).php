@@ -4,7 +4,7 @@
     if(!empty($_POST)) {
         $id = $_POST["id"];
         $records = array();
-        $sql = "SELECT * FROM _relationship_db_customers WHERE id=$id";
+        $sql = "SELECT * FROM _relationship_db_purchase WHERE id=$id";
     
         $query = $connect->query($sql);
     
