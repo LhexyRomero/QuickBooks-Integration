@@ -7,6 +7,12 @@ use QuickBooksOnline\API\DataService\DataService;
 $config = include('../config.php');
 
 session_start();
+if(isset($_SESSION["client_id"])) {
+    //Has Session
+}
+else {
+    header('Location:../login.php');
+}
 
 $dataService = DataService::Configure(array(
     'auth_mode' => 'oauth2',
@@ -37,6 +43,12 @@ if (isset($_SESSION['sessionAccessToken'])) {
     $dataService->updateOAuth2Token($accessToken);
     $oauthLoginHelper = $dataService -> getOAuth2LoginHelper();
     $CompanyInfo = $dataService->getCompanyInfo();
+}
+else {
+    echo "<script>
+        alert('Please Connect to Quickbooks');
+        window.location.href = '../index.php';
+    </script>";
 }
 
 
@@ -161,7 +173,7 @@ if (isset($_SESSION['sessionAccessToken'])) {
         <br><br>
         
         <div class="btn-group" id="vendor">
-            <a href="#" class="btn btn-secondary" onclick="vendor(this)" id='btnVendors'>Customers</a>
+            <a href="../Customer/customerContacts.php" class="btn btn-secondary" id='btnCustomer'>Customers</a>
             <a href="../Employee/employeeContacts.php" class="btn btn-secondary">Employees</a>
             <a href="#" class="btn btn-secondary active">Vendor</a>
         </div>
