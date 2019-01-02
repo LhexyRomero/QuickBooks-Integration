@@ -233,18 +233,21 @@ if (isset($_SESSION['sessionAccessToken'])) {
                         <th>Amount</th>
                     </tr>
                 </thead>
-                <tbody id="expense"></tbody>
+                <tbody id="expense">
+                    <tr>
+                        <td colspan = '9'><center>No data available in table</center></td>
+                    </tr>
+                </tbody>
             </table><br>
             <div class='alert alert-primary'>
-                <input type='radio' name="selectAction" value="1" class="integrateRadio" onclick="countIntegrate(true)"> Move the selected entries into my XERO account. <br>
-                <input type='radio' name="selectAction" value="0" class="integrateRadio" onclick="countIntegrate(true)"> I do not want to move the selected items to XERO. Move the selected items into Small Builders history. You must select this box first if the expense form attachment is more than 3mb file size.
+                <input  type='radio' name="selectAction" value="1" class="integrateRadio" checked> Move the selected entries into my Quickbooks account. <br>
+                <input  type='radio' name="selectAction" value="0" class="integrateRadio" > I do not want to move the selected items to Quickbooks. Move the selected items into Small Builders history.
             </div>
-            <center><button id='btnIntegrate' class='mt-2 mb-5 btn btn-success btn-lg' onclick='integrateCustomer()' disabled>Integrate</button></center>
+            <center><button id='btnIntegrate' class='mt-2 mb-5 btn btn-success btn-lg' onclick='integratePurchase()' disabled>Integrate</button></center>
             <script>
                 $("#selectExpense").select2();
                 $("#selectProject").select2();
                 $("#selectSupplier").select2();
-                $("#QBtoSB").DataTable();          
             </script>
         </div>
         <hr style='clear: both'>
@@ -280,20 +283,19 @@ if (isset($_SESSION['sessionAccessToken'])) {
             });
         }
 
-        function countIntegrate(toIntegrate) {
-            var integrateAction = $("input[name=selectAction]:checked").val();
+        function countIntegrate() {
             var integrateCheck = document.getElementsByClassName("integrateCheck");
-
+            var checks = 0;
             for (let i = 0; i < integrateCheck.length; i++) {
-                integrateCheck[i].checked == true
+                if(integrateCheck[i].checked == true) {
+                    checks++;
+                }
             }
-
-            if(toIntegrate) {
-                document.getElementById("btnIntegrate").disabled = false;
+            if(checks == 0) {
+                document.getElementById("btnIntegrate").disabled = true;
                 return;
             }
-            document.getElementById("btnIntegrate").disabled = true;
-            console.log("INTEGRATION COUNTED");
+            document.getElementById("btnIntegrate").disabled = false;
         }
 
         function checkAll(elem) {
@@ -310,7 +312,7 @@ if (isset($_SESSION['sessionAccessToken'])) {
             }
         }
 
-        function integrateCustomer() {
+        function integratePurchase() {
             $.confirm({
                 title: "Smallbuilders to Quickbooks",
                 columnClass: "medium",
@@ -343,7 +345,7 @@ if (isset($_SESSION['sessionAccessToken'])) {
 
                                 //Check if All Request is Done
                                 if(i == integrateCheck.length - 1) {
-                                    customerToQB (purchases,confirmJS);
+                                    purchaseToQB (purchases,confirmJS);
                                 }
                             }
                         });
@@ -361,7 +363,7 @@ if (isset($_SESSION['sessionAccessToken'])) {
             });
         }
         
-        function customerToQB (purchases,confirmJS) {
+        function purchaseToQB (purchases,confirmJS) {
             for (let i = 0; i < purchases.length; i++) {
                 //CREATE FORM
                 var frmPurchase = document.createElement("form");
