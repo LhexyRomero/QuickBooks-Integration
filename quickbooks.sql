@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jan 02, 2019 at 10:16 AM
+-- Generation Time: Jan 03, 2019 at 09:07 AM
 -- Server version: 10.1.35-MariaDB
 -- PHP Version: 7.2.9
 
@@ -48,7 +48,7 @@ INSERT INTO `users` (`id`, `username`, `password`) VALUES
 --
 
 CREATE TABLE `_account_type_db` (
-  `id` int(11) NOT NULL,
+  `account_id` int(11) NOT NULL,
   `type` varchar(100) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
@@ -56,32 +56,32 @@ CREATE TABLE `_account_type_db` (
 -- Dumping data for table `_account_type_db`
 --
 
-INSERT INTO `_account_type_db` (`id`, `type`) VALUES
-(1, 'Advertising'),
-(2, 'Bank Fees'),
-(3, 'Cleaning'),
-(4, 'Consulting and Accounting'),
-(5, 'Cost of Goods Sold'),
-(6, 'Depreciation '),
-(7, 'Entertainment'),
-(8, 'Freight and Courier'),
-(9, 'General Expenses'),
-(10, 'Income Tax Expense'),
+INSERT INTO `_account_type_db` (`account_id`, `type`) VALUES
+(7, 'Advertising'),
+(10, 'Subscriptions'),
 (11, 'Insurance'),
-(12, 'Interest Expense'),
-(13, 'Legal Expenses'),
-(14, 'Light, Power, Heating'),
-(15, 'Motor Vehicle Expenses'),
-(16, 'Office Expenses'),
-(17, 'Printing & Stationary'),
-(18, 'Rent'),
-(19, 'Repairs and Maintenance'),
-(20, 'Subscriptions'),
-(21, 'Superannuantion'),
-(22, 'Telephone & Internet'),
-(23, 'Travel - International'),
-(24, 'Travel National'),
-(25, 'Wages and Salaries');
+(15, 'Office Expenses'),
+(17, 'Rent'),
+(40, 'Depreciation '),
+(80, 'Cost of Goods Sold'),
+(93, 'Bank Fees'),
+(94, 'Cleaning'),
+(95, 'Consulting and Accounting'),
+(96, 'Entertainment'),
+(97, 'Freight and Courier'),
+(98, 'General Expenses'),
+(99, 'Income Tax Expense'),
+(100, 'Interest Expense'),
+(101, 'Legal Expenses'),
+(102, 'Light, Power, Heating'),
+(103, 'Motor Vehicle Expenses'),
+(104, 'Printing & Stationary'),
+(105, 'Repairs and Maintenance'),
+(106, 'Superannuantion'),
+(107, 'Telephone & Internet'),
+(108, 'Travel - International'),
+(109, 'Travel National'),
+(110, 'Wages and Salaries');
 
 -- --------------------------------------------------------
 
@@ -90,7 +90,7 @@ INSERT INTO `_account_type_db` (`id`, `type`) VALUES
 --
 
 CREATE TABLE `_project_db` (
-  `id` int(11) NOT NULL,
+  `project_id` int(11) NOT NULL,
   `project_name` varchar(100) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
@@ -98,7 +98,7 @@ CREATE TABLE `_project_db` (
 -- Dumping data for table `_project_db`
 --
 
-INSERT INTO `_project_db` (`id`, `project_name`) VALUES
+INSERT INTO `_project_db` (`project_id`, `project_name`) VALUES
 (1, 'Riverdale'),
 (2, 'Stranger Things'),
 (3, 'A Series of Unfortunate Events'),
@@ -249,9 +249,9 @@ CREATE TABLE `_relationship_db_purchase` (
 --
 
 INSERT INTO `_relationship_db_purchase` (`id`, `project_id`, `supplier_subcontractor_id`, `invoice_no`, `invoice_date`, `due_date`, `invoice_attachment`, `account_type_id`, `amount`, `expense_type`, `quickbooks_uid`) VALUES
-(1, 1, 2, 'hjklom', '2018-11-04', '2018-11-04', NULL, 3, 47777, 1, NULL),
-(2, NULL, NULL, '', '2018-12-25', '2018-12-25', NULL, NULL, 500, NULL, 145),
-(3, NULL, NULL, '', '2018-10-30', '2018-10-30', NULL, NULL, 20, NULL, 184);
+(1, 1, 2, 'hjklom', '2018-11-04', '2018-11-04', NULL, 94, 47777, 1, 196),
+(2, 1, 1, '', '2018-12-25', '2018-12-25', NULL, 103, 500, NULL, 201),
+(3, 3, 3, '', '2018-10-30', '2018-10-30', NULL, 17, 20, 1, 200);
 
 -- --------------------------------------------------------
 
@@ -313,7 +313,7 @@ INSERT INTO `_relationship_db_suppliers` (`id`, `client_id`, `supplier_name`, `s
 --
 
 CREATE TABLE `_supplier_db` (
-  `id` int(11) NOT NULL,
+  `supplier_id` int(11) NOT NULL,
   `supplier_name` varchar(100) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
@@ -321,7 +321,7 @@ CREATE TABLE `_supplier_db` (
 -- Dumping data for table `_supplier_db`
 --
 
-INSERT INTO `_supplier_db` (`id`, `supplier_name`) VALUES
+INSERT INTO `_supplier_db` (`supplier_id`, `supplier_name`) VALUES
 (1, 'Starbucks'),
 (2, 'JCO'),
 (3, 'Greenwich'),
@@ -342,13 +342,13 @@ ALTER TABLE `users`
 -- Indexes for table `_account_type_db`
 --
 ALTER TABLE `_account_type_db`
-  ADD PRIMARY KEY (`id`);
+  ADD PRIMARY KEY (`account_id`);
 
 --
 -- Indexes for table `_project_db`
 --
 ALTER TABLE `_project_db`
-  ADD PRIMARY KEY (`id`);
+  ADD PRIMARY KEY (`project_id`);
 
 --
 -- Indexes for table `_relationship_db_customers`
@@ -381,7 +381,7 @@ ALTER TABLE `_relationship_db_suppliers`
 -- Indexes for table `_supplier_db`
 --
 ALTER TABLE `_supplier_db`
-  ADD PRIMARY KEY (`id`);
+  ADD PRIMARY KEY (`supplier_id`);
 
 --
 -- AUTO_INCREMENT for dumped tables
@@ -397,13 +397,13 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `_account_type_db`
 --
 ALTER TABLE `_account_type_db`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=26;
+  MODIFY `account_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=26;
 
 --
 -- AUTO_INCREMENT for table `_project_db`
 --
 ALTER TABLE `_project_db`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `project_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `_relationship_db_customers`
@@ -433,7 +433,7 @@ ALTER TABLE `_relationship_db_suppliers`
 -- AUTO_INCREMENT for table `_supplier_db`
 --
 ALTER TABLE `_supplier_db`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `supplier_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- Constraints for dumped tables
@@ -443,9 +443,9 @@ ALTER TABLE `_supplier_db`
 -- Constraints for table `_relationship_db_purchase`
 --
 ALTER TABLE `_relationship_db_purchase`
-  ADD CONSTRAINT `_relationship_db_purchase_ibfk_1` FOREIGN KEY (`account_type_id`) REFERENCES `_account_type_db` (`id`) ON DELETE NO ACTION ON UPDATE CASCADE,
-  ADD CONSTRAINT `_relationship_db_purchase_ibfk_2` FOREIGN KEY (`supplier_subcontractor_id`) REFERENCES `_supplier_db` (`id`) ON DELETE NO ACTION ON UPDATE CASCADE,
-  ADD CONSTRAINT `_relationship_db_purchase_ibfk_3` FOREIGN KEY (`project_id`) REFERENCES `_project_db` (`id`) ON DELETE NO ACTION ON UPDATE CASCADE;
+  ADD CONSTRAINT `_relationship_db_purchase_ibfk_1` FOREIGN KEY (`account_type_id`) REFERENCES `_account_type_db` (`account_id`) ON DELETE NO ACTION ON UPDATE CASCADE,
+  ADD CONSTRAINT `_relationship_db_purchase_ibfk_2` FOREIGN KEY (`supplier_subcontractor_id`) REFERENCES `_supplier_db` (`supplier_id`) ON DELETE NO ACTION ON UPDATE CASCADE,
+  ADD CONSTRAINT `_relationship_db_purchase_ibfk_3` FOREIGN KEY (`project_id`) REFERENCES `_project_db` (`project_id`) ON DELETE NO ACTION ON UPDATE CASCADE;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
