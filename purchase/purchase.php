@@ -52,6 +52,9 @@ if (isset($_SESSION['sessionAccessToken'])) {
     <link href="https://cdn.datatables.net/1.10.18/css/dataTables.bootstrap4.min.css" rel="stylesheet">
     <script src="https://cdn.datatables.net/1.10.18/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.10.18/js/dataTables.bootstrap4.min.js"></script>
+
+    <script src="../public/js/select2.min.js"></script>
+    <link href='../public/css/select2.min.css' rel='stylesheet' type='text/css'>
     
     <script>
 
@@ -210,6 +213,7 @@ if (isset($_SESSION['sessionAccessToken'])) {
                             } 
                             else
                             { 
+                                /* echo $purchase->AccountRef; */
                                 echo "<tr>
                                 <td><input type='checkbox' class='form-control integrateCheck' onclick='countIntegrate()' value='".$purchase->Id."'></td>
                                 <td> --- </td>";
@@ -218,7 +222,11 @@ if (isset($_SESSION['sessionAccessToken'])) {
                                 echo "<td>". @$purchase->TxnDate. "</td>";
                                 echo "<td>". @$purchase->TxnDate. "</td>";
                                 echo "<td> --- </td>";
-                                echo "<td> --- </td>";
+                                echo "<td>
+                                        <select id='select_type' name='selected_expense' style='width: 200px;'>
+                                            <option value=". @$purchase->AccountRef .">". @$purchase->AccountRef->name ."</option>
+                                        </select>
+                                     </td>";
                                 echo "<td>". @$purchase->TotalAmt. "</td>";
                                 echo "</tr>"; 
                             } 
@@ -229,6 +237,7 @@ if (isset($_SESSION['sessionAccessToken'])) {
             <center><button id='btnIntegrate' class='mt-2 mb-5 btn btn-success btn-lg' onclick='integratePurchase()' disabled>Integrate</button></center>
             <script>
                 $("#QBtoSB").DataTable();         
+                $("#select_type").select2();
             </script>
         </div>
         <hr style='clear: both'>
