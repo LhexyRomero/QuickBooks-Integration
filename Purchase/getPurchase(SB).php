@@ -10,7 +10,7 @@
             JOIN _project_db ON _relationship_db_purchase.project_id = _project_db.project_id 
             JOIN _supplier_db ON supplier_subcontractor_id = supplier_id 
             JOIN _account_type_db ON account_type_id = account_id 
-            WHERE quickbooks_uid is NULL";
+            WHERE quickbooks_uid is NULL AND expense_type = 1";
     
     $option = "SELECT * FROM `_account_type_db`";
 

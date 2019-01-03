@@ -241,9 +241,10 @@ if (isset($_SESSION['sessionAccessToken'])) {
             </table><br>
             <div class='alert alert-primary'>
                 <input  type='radio' name="selectAction" value="1" class="integrateRadio" checked> Move the selected entries into my Quickbooks account. <br>
-                <input  type='radio' name="selectAction" value="0" class="integrateRadio" > I do not want to move the selected items to Quickbooks. Move the selected items into Small Builders history.
+                <input  type='radio' name="selectAction" value="0" class="integrateRadio" onclick="history()"> I do not want to move the selected items to Quickbooks. Move the selected items into Small Builders history.
             </div>
-            <center><button id='btnIntegrate' class='mt-2 mb-5 btn btn-success btn-lg' onclick='integratePurchase()' disabled>Integrate</button></center>
+            <center><button id='btnIntegrate' class='mt-2 mb-5 btn btn-success btn-lg' onclick='integratePurchase()' disabled>Integrate</button>
+            <button id='btnHistory' class='mt-2 mb-5 btn btn-success btn-lg' onclick='toPurchaseHistory()'>Integratse</button></center>
             <script>
                 $("#selectExpense").select2();
                 $("#selectProject").select2();
@@ -265,6 +266,7 @@ if (isset($_SESSION['sessionAccessToken'])) {
 
         window.onload = function () {
             apiCall.getCompanyName();
+            $("#btnHistory").hide();
         }
 
         function viewPurchase(){
@@ -348,6 +350,7 @@ if (isset($_SESSION['sessionAccessToken'])) {
                                 //Check if All Request is Done
                                 if(i == integrateCheck.length - 1) {
                                     purchaseToQB (purchases,confirmJS);
+                                    console.log("IM DONE BTCHES");
                                 }
                             }
                         });
@@ -355,10 +358,7 @@ if (isset($_SESSION['sessionAccessToken'])) {
                 },
                 buttons: {
                     ok: {
-                        action: function () {/* 
-                            register(document.getElementById("btnRegister")); */
-                            /* 
-                            window.location.href = "purchase(SB).php"; */
+                        action: function () {
                             viewPurchase();
                         }
                     }
@@ -367,7 +367,8 @@ if (isset($_SESSION['sessionAccessToken'])) {
         }
         
         function purchaseToQB (purchases,confirmJS) {
-            for (let i = 0; i < purchases.length; i++) {
+        
+            for (let i = 0; i <= purchases.length; i++) {
                 //CREATE FORM
                 var frmPurchase = document.createElement("form");
                 //Create Fields
@@ -443,6 +444,50 @@ if (isset($_SESSION['sessionAccessToken'])) {
             } catch (error) {
                 return "";
             }
+        }
+
+        function history(){
+            $("#btnIntegrate").hide();
+            $("#btnHistory").show();
+        }
+
+        function toPurchaseHistory(){
+            $.confirm({
+                title: "Smallbuilders History",
+                columnClass: "medium",
+                theme: "modern",
+                content: "",
+                onOpenBefore: function () {
+                    this.showLoading();
+                    var confirmJS = this;
+                    var integrateCheck = document.querySelectorAll('.integrateCheck:checked');
+                    console.log("PURPOSE",integrateCheck);
+                    
+                    for (let i = 0; i < integrateCheck.length; i++) {
+                        var id = integrateCheck[i].value;
+                        console.log("lenggth",integrateCheck.length);
+
+                        $.ajax({
+                            method: "post",
+                            url: "purchaseHistory.php",
+                            dataType: "json",
+                            data: "id=" + id,
+                            success: function (data) {
+                                alert("ad");
+                                console.log(data);
+                            }
+                        });
+                        console.log("lenggthafter",integrateCheck.length);
+                    }
+                },
+                buttons: {
+                    ok: {
+                        action: function () {
+                            viewPurchase();
+                        }
+                    }
+                }
+            });
         }
     </script>
 </html>
