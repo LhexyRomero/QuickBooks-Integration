@@ -20,6 +20,8 @@ $invoice_no = $_POST["invoice_no"];
 $invoice_date = $_POST["invoice_date"];
 $due_date = $_POST["due_date"];
 $amount = $_POST["amount"];
+$account_id = $_POST["account_id"];
+$account_type = $_POST["account_type"];
 
 $dataService = DataService::Configure(array(
     'auth_mode' => 'oauth2',
@@ -47,8 +49,8 @@ $theResourceObj = Purchase::create([
         "Amount"=> "$amount", 
         "AccountBasedExpenseLineDetail"=> [
           "AccountRef"=> [
-            "name"=> "Meals and Entertainment", 
-            "value"=> "13"
+            "name"=> "$account_type", 
+            "value"=> "$account_id"
           ]
         ]
       ]
