@@ -188,7 +188,7 @@ if (isset($_SESSION['sessionAccessToken'])) {
                         $query = $connect->query($sql);
                         $option = "";
                         while($row = mysqli_fetch_array($query)) {
-                            $project_id = $row['id'];
+                            $project_id = $row['project_id'];
                             $project_name = $row['project_name'];
                             $option .= "<option value=".$project_id.">".$project_name."</option>";
                         }
@@ -206,7 +206,7 @@ if (isset($_SESSION['sessionAccessToken'])) {
                         $query = $connect->query($sql);
                         $option = "";
                         while($row = mysqli_fetch_array($query)) {
-                            $supplier_id = $row['id'];
+                            $supplier_id = $row['supplier_id'];
                             $supplier_name = $row['supplier_name'];
                             $option .= "<option value=".$supplier_id.">".$supplier_name."</option>";
                         }
@@ -277,8 +277,10 @@ if (isset($_SESSION['sessionAccessToken'])) {
                 data: data, 
                 success: function(data){
                     console.log(data);
+                    
                     $("#expense").html(data);
                     $("#QBtoSB").DataTable();
+                    $("#select_type").select2();
                 }
             });
         }
@@ -340,8 +342,8 @@ if (isset($_SESSION['sessionAccessToken'])) {
                             data: "id=" + id + "&access_token="+ access_token + "&refresh_token=" + refresh_token + "&realm_id=" + realm_id,
                             success: function (data) {
                                 //Add Customer to Array
-                                console.log("AJAX FOR getting data from DB",data);
                                 purchases.push(data);
+                                console.log("AJAX FOR getting data from DB",purchases);
 
                                 //Check if All Request is Done
                                 if(i == integrateCheck.length - 1) {
@@ -355,8 +357,9 @@ if (isset($_SESSION['sessionAccessToken'])) {
                     ok: {
                         action: function () {/* 
                             register(document.getElementById("btnRegister")); */
-                            
-                            window.location.href = "purchase(SB).php";
+                            /* 
+                            window.location.href = "purchase(SB).php"; */
+                            viewPurchase();
                         }
                     }
                 }
@@ -394,10 +397,23 @@ if (isset($_SESSION['sessionAccessToken'])) {
                 } catch (error) {
                     var amount = ""; 
                 }
+                var final_amount = parseFloat(amount).toFixed(2);
+                try {
+                    var account_id = convertNulltoEmpty(purchases[i][0].account_id)
+                }
+                catch {
+                    var account_id = "";
+                }
+                try {
+                    var account_type = convertNulltoEmpty(purchases[i][0].type);
+                }
+                catch (error) {
+                    var account_type = "";
+                }
+
                 var quickbooks_uid = purchases.quickbooks_uid;
 
-
-                frmPurchase.innerHTML = "<input name='id' value='"+id+"'><input name='invoice_date' value='"+invoice_date+"'><input name='due_date' value='"+due_date+"'><input name='invoice_no' values='"+invoice_no+"'><input name='amount' value='"+amount+"'>";
+                frmPurchase.innerHTML = "<input name='id' value='"+id+"'><input name='invoice_date' value='"+invoice_date+"'><input name='due_date' value='"+due_date+"'><input name='invoice_no' values='"+invoice_no+"'><input name='amount' value='"+final_amount+"'><input name='account_id' value='"+account_id+"'><input name='account_type' value='"+account_type+"'>";
                 
                 $.ajax({
                     method: "post",
