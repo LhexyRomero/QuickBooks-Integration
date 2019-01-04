@@ -368,7 +368,7 @@ if (isset($_SESSION['sessionAccessToken'])) {
         
         function purchaseToQB (purchases,confirmJS) {
         
-            for (let i = 0; i <= purchases.length; i++) {
+            for (let i = 0; i < purchases.length; i++) {
                 //CREATE FORM
                 var frmPurchase = document.createElement("form");
                 //Create Fields
@@ -470,15 +470,18 @@ if (isset($_SESSION['sessionAccessToken'])) {
                         $.ajax({
                             method: "post",
                             url: "purchaseHistory.php",
-                            dataType: "json",
-                            data: "id=" + id,
+                            data: "id="+id,
                             success: function (data) {
-                                alert("ad");
-                                console.log(data);
+
+                                if(i <= integrateCheck.length - 1) {
+                                    confirmJS.hideLoading();
+                                    confirmJS.setContent("Done");
+                                }
                             }
                         });
                         console.log("lenggthafter",integrateCheck.length);
                     }
+                    console.log("IM WORKING");
                 },
                 buttons: {
                     ok: {

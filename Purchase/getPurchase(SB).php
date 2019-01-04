@@ -53,12 +53,7 @@
         <td>". $row["invoice_date"]. "</td>
         <td>". $row["due_date"]. "</td>
         <td>". $row["invoice_attachment"]. "</td>
-        <td>
-            <select id='select_type' name='selected_expense' style='width: 200px;'>
-                <option value=". $row_option["account_type_id"] .">". $row["type"]. "</option>
-                ". $options ."
-            </select>
-        </td>
+        <td> -- </td>
         <td>". $row["amount"]. "</td>
         </tr>";
     }
