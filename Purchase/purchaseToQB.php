@@ -49,8 +49,8 @@ $theResourceObj = Purchase::create([
         "Amount"=> "$amount", 
         "AccountBasedExpenseLineDetail"=> [
           "AccountRef"=> [
-            "name"=> "$account_type", 
-            "value"=> "$account_id"
+            "name"=> "Utilities", 
+            "value"=> "24"
           ]
         ]
       ]

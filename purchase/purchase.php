@@ -213,7 +213,12 @@ if (isset($_SESSION['sessionAccessToken'])) {
                             } 
                             else
                             { 
-                                /* echo $purchase->AccountRef; */
+                                $account_id = json_encode(@$purchase->Line->AccountBasedExpenseLineDetail->AccountRef);
+                                $selected_sql = "SELECT * FROM _account_type_db WHERE account_id = $account_id";
+                                
+                                $option = $connect->query($selected_sql);
+                                $option_row = mysqli_fetch_array($option);
+
                                 echo "<tr>
                                 <td><input type='checkbox' class='form-control integrateCheck' onclick='countIntegrate()' value='".$purchase->Id."'></td>
                                 <td> --- </td>";
@@ -222,13 +227,9 @@ if (isset($_SESSION['sessionAccessToken'])) {
                                 echo "<td>". @$purchase->TxnDate. "</td>";
                                 echo "<td>". @$purchase->TxnDate. "</td>";
                                 echo "<td> --- </td>";
-                                echo "<td>
-                                        <select id='select_type' name='selected_expense' style='width: 200px;'>
-                                            <option value=". @$purchase->AccountRef .">". @$purchase->AccountRef->name ."</option>
-                                        </select>
-                                     </td>";
+                                echo "<td> --- </td>";
                                 echo "<td>". @$purchase->TotalAmt. "</td>";
-                                echo "</tr>"; 
+                                echo "</tr>";
                             } 
                         }
                     ?>
@@ -237,51 +238,10 @@ if (isset($_SESSION['sessionAccessToken'])) {
             <center><button id='btnIntegrate' class='mt-2 mb-5 btn btn-success btn-lg' onclick='integratePurchase()' disabled>Integrate</button></center>
             <script>
                 $("#QBtoSB").DataTable();         
-                $("#select_type").select2();
+                $('#select_types').select2();
             </script>
         </div>
         <hr style='clear: both'>
-        <!-- <div id="table2">
-            <br>
-            <h3 class='text-center'>Reconciled Customer</h3>
-            <br>
-            <table id='ReconciledCust'class='table table-striped'>
-                <thead>
-                    <tr>
-                        <td>Customer Name</td>
-                        <td>Customer Email</td>
-                        <td>Representative Name</td>
-                        <td>Customer Address</td>
-                        <td>Customer phone Number</td>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php
-                        //GET RECONCILED CUSTOMER
-                        require_once "../db_connect.php";
-
-                        $records = array();
-                        $sql = "SELECT * FROM _relationship_db_customers WHERE quickbooks_uid IS NOT NULL";
-
-                        $query = $connect->query($sql);
-
-                        while($row = mysqli_fetch_array($query)) {
-                            echo "<tr>
-                                <td>".$row["customer_name"]."</td>
-                                <td>".$row["customer_email"]."</td>
-                                <td>".$row["representative_name"] ." ". $row["representative_lname"] . "</td>
-                                <td>".$row["customer_address"]."</td>
-                                <td>Phone: ".$row["customer_phone"]."<br>Mobile: ".$row["customer_mobile"]. "<br>Fax: ".$row["customer_fax"]."</td>
-                            </tr>";
-                        }
-                        
-                    ?>
-                </tbody>         
-            </table>
-            <script>
-            $("#ReconciledCust").DataTable(); 
-            </script>
-        </div> -->
     <!-- <pre id="accessToken">
         <style="background-color:#efefef;overflow-x:scroll"><?php
     $displayString = isset($accessTokenJson) ? $accessTokenJson : "No Access Token Generated Yet";
