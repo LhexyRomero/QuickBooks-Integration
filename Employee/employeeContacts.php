@@ -106,7 +106,7 @@ else {
             this.getCompanyName = function() {
                 $.ajax({
                     type: "GET",
-                    url: "getCompanyName.php",
+                    url: "../getCompanyName.php",
                 }).done(function( msg ) {
                     $( '#orgName' ).html( msg );
                 });
@@ -116,7 +116,7 @@ else {
             this.getCompanyInfo = function() {
                 $.ajax({
                     type: "GET",
-                    url: "getCompanyInfo.php",
+                    url: "../getCompanyInfo.php",
                 }).done(function( msg ) {
                     $( '#apiCall' ).html( msg );
                 });
@@ -167,15 +167,17 @@ else {
         <div class="btn-group">
             <a href="#" class="btn btn-secondary active">Contacts</a>
             <a href="#" class="btn btn-secondary">Sales</a>
-            <a href="#" class="btn btn-secondary">Purchases</a>
+            <a href="../Purchase/purchase(SB).php" class="btn btn-secondary">Purchases</a>
             <a href="#" class="btn btn-secondary">Time Activity</a>
         </div>
         <br><br>
         
-        <div class="btn-group" id="customer">
-            <a href="#" class="btn btn-secondary" onclick="window.location.href='../Customer/customerContacts.php'" id='btnCustomers'>Customers</a>
-            <a href="#" class="btn btn-secondary  active" onclick="window.location.href='employeeContacts.php';" >Employees</a>
-            <a href="#" class="btn btn-secondary" onclick="window.location.href='../Supplier/vendorContacts.php';">Vendor</a>
+        <div id="contacts">
+            <div class="btn-group">
+                <a href="../Customer/customerContacts(SB).php" class="btn btn-secondary" id='btnCustomers'>Customers</a>
+                <a href="../Employee/employeeContacts(SB).php" class="btn btn-secondary active">Employees</a>
+                <a href="../Supplier/vendorContacts(SB).php" class="btn btn-secondary">Vendor</a>
+            </div>
         </div>
         <br>
         <br>
@@ -202,7 +204,7 @@ else {
                         require_once "../db_connect.php";
 
                         $quickbooks_uids = array();
-                        $sql = "SELECT quickbooks_uid FROM _relationship_db_employee";
+                        $sql = "SELECT quickbooks_uid FROM _relationship_db_employee WHERE client_id = ".$_SESSION["client_id"];
                     
                         $query = $connect->query($sql);
                     
@@ -253,7 +255,7 @@ else {
                         require_once "../db_connect.php";
 
                         $records = array();
-                        $sql = "SELECT * FROM _relationship_db_employee WHERE quickbooks_uid IS NOT NULL";
+                        $sql = "SELECT * FROM _relationship_db_employee WHERE quickbooks_uid IS NOT NULL AND client_id = ".$_SESSION["client_id"];
 
                         $query = $connect->query($sql);
 

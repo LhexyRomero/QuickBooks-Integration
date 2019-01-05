@@ -15,21 +15,21 @@
     $option = "SELECT * FROM `_account_type_db`";
 
     if($selected_expense>0){
-        $sql .= " AND expense_type = $selected_expense";   
+        $sql .= " AND `_relationship_db_purchase`.expense_type = $selected_expense";   
         echo $sql;
     }
 
     if($selected_project>0){
-        $sql .= " AND project_id = $selected_project";   
+        $sql .= " AND `_relationship_db_purchase`.project_id = $selected_project";   
     }
 
     if($selected_supplier>0){
-        $sql .= " AND supplier_subcontractor_id = $selected_supplier";   
+        $sql .= " AND `_relationship_db_purchase`.supplier_subcontractor_id = $selected_supplier";   
     }
 
     $query = $connect->query($sql);
     $result = $connect->query($option);
-    $rowcount=mysqli_num_rows($query); 
+    @$rowcount = mysqli_num_rows($query); 
 
     $output = "";
     $options = "";

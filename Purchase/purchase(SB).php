@@ -38,7 +38,12 @@ if (isset($_SESSION['sessionAccessToken'])) {
     $oauthLoginHelper = $dataService -> getOAuth2LoginHelper();
     $CompanyInfo = $dataService->getCompanyInfo();
 }
-
+else { 
+    echo "<script>
+        alert('Please Connect to Quickbooks');
+        window.location.href = '../index.php';
+    </script>";
+}
 
 ?>
 
@@ -155,7 +160,7 @@ if (isset($_SESSION['sessionAccessToken'])) {
     <br>
 
         <div class="btn-group">
-            <a href="#" class="btn btn-secondary">Contacts</a>
+            <a href="../Customer/customerContacts.php" class="btn btn-secondary">Contacts</a>
             <a href="#" class="btn btn-secondary">Sales</a>
             <a href="#" class="btn btn-secondary active">Purchases</a>
             <a href="#" class="btn btn-secondary">Time Activity</a>
@@ -164,7 +169,7 @@ if (isset($_SESSION['sessionAccessToken'])) {
         
         <div class="btn-group" id="customer">
             <a href="#" class="btn btn-secondary active" onclick="register(this)" id='btnRegister'>Register</a>
-            <a href="../Employee/employeeContacts.php" class="btn btn-secondary">History</a>
+            <a href="#" class="btn btn-secondary">History</a>
         </div>
         <br>
         <br>
@@ -359,7 +364,7 @@ if (isset($_SESSION['sessionAccessToken'])) {
                 buttons: {
                     ok: {
                         action: function () {
-                            viewPurchase();
+                            window.location.href = "purchase(SB).php";
                         }
                     }
                 }

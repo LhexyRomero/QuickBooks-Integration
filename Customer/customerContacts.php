@@ -115,7 +115,7 @@ else {
             this.getCompanyInfo = function() {
                 $.ajax({
                     type: "GET",
-                    url: "getCompanyInfo.php",
+                    url: "../getCompanyInfo.php",
                 }).done(function( msg ) {
                     $( '#apiCall' ).html( msg );
                 });
@@ -157,7 +157,7 @@ else {
                 echo "Status: <p style='color: red; display: inline'>Not Connected</p><br><br>";
                 echo "<a class='imgLink' href='#' onclick='oauth.loginPopup()'><img src='../views/C2QB_green_btn_lg_default.png' width='178' /></a>
                 <hr />";
-            }
+            } 
         ?>
     </div>
     <br>
@@ -165,15 +165,17 @@ else {
         <div class="btn-group">
             <a href="#" class="btn btn-secondary active">Contacts</a>
             <a href="#" class="btn btn-secondary">Sales</a>
-            <a href="#" class="btn btn-secondary">Purchases</a>
+            <a href="../Purchase/purchase(SB).php" class="btn btn-secondary">Purchases</a>
             <a href="#" class="btn btn-secondary">Time Activity</a>
         </div>
         <br><br>
         
-        <div class="btn-group" id="customer">
-            <a href="#" class="btn btn-secondary active" onclick="window.location.href='customerContacts.php'" id='btnCustomers'>Customers</a>
-            <a href="#" class="btn btn-secondary" onclick="window.location.href='../Employee/employeeContacts.php';" >Employees</a>
-            <a href="#" class="btn btn-secondary" onclick="window.location.href='../Supplier/vendorContacts.php';">Vendor</a>
+        <div id="contacts">
+            <div class="btn-group">
+                <a href="../Customer/customerContacts(SB).php" class="btn btn-secondary active" id='btnCustomers'>Customers</a>
+                <a href="../Employee/employeeContacts(SB).php" class="btn btn-secondary">Employees</a>
+                <a href="../Supplier/vendorContacts(SB).php" class="btn btn-secondary">Vendor</a>
+            </div>
         </div>
         <br>
         <br>
@@ -202,7 +204,7 @@ else {
                         require_once "../db_connect.php";
 
                         $quickbooks_uids = array();
-                        $sql = "SELECT quickbooks_uid FROM _relationship_db_customers";
+                        $sql = "SELECT quickbooks_uid FROM _relationship_db_customers WHERE client_id = ".$_SESSION["client_id"];
                     
                         $query = $connect->query($sql);
                     
@@ -215,7 +217,7 @@ else {
                         foreach($customerAll as $customer) {
                             if (in_array($customer->Id, $quickbooks_uids, TRUE)) 
                             { 
-                                //If Found Show
+                                //If Found DONT SHOW
                             } 
                             else
                             { 
@@ -258,7 +260,7 @@ else {
                         require_once "../db_connect.php";
 
                         $records = array();
-                        $sql = "SELECT * FROM _relationship_db_customers WHERE quickbooks_uid IS NOT NULL";
+                        $sql = "SELECT * FROM _relationship_db_customers WHERE quickbooks_uid IS NOT NULL AND client_id = ".$_SESSION["client_id"];
 
                         $query = $connect->query($sql);
 
@@ -299,7 +301,6 @@ else {
 
 
         window.onload = function () {
-            echo ""
             //GET COMPANY NAME
             apiCall.getCompanyName();
             //RETRIEVE

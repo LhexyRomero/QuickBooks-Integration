@@ -167,15 +167,17 @@ else {
         <div class="btn-group">
             <a href="#" class="btn btn-secondary active">Contacts</a>
             <a href="#" class="btn btn-secondary">Sales</a>
-            <a href="#" class="btn btn-secondary">Purchases</a>
+            <a href="../Purchase/purchase(SB).php" class="btn btn-secondary">Purchases</a>
             <a href="#" class="btn btn-secondary">Time Activity</a>
         </div>
         <br><br>
         
-        <div class="btn-group" id="vendor">
-            <a href="../Customer/customerContacts.php" class="btn btn-secondary" id='btnCustomer'>Customers</a>
-            <a href="../Employee/employeeContacts.php" class="btn btn-secondary">Employees</a>
-            <a href="#" class="btn btn-secondary active">Vendor</a>
+        <div id="contacts">
+            <div class="btn-group">
+                <a href="../Customer/customerContacts(SB).php" class="btn btn-secondary" id='btnCustomers'>Customers</a>
+                <a href="../Employee/employeeContacts(SB).php" class="btn btn-secondary">Employees</a>
+                <a href="../Supplier/vendorContacts(SB).php" class="btn btn-secondary active">Vendor</a>
+            </div>
         </div>
         <br>
         <br>
@@ -203,7 +205,7 @@ else {
                         require_once "../db_connect.php";
 
                         $quickbooks_uids = array();
-                        $sql = "SELECT * FROM _relationship_db_suppliers WHERE quickbooks_uid IS NULL";
+                        $sql = "SELECT * FROM _relationship_db_suppliers WHERE quickbooks_uid IS NULL AND client_id = ".$_SESSION["client_id"];
                     
                         $query = $connect->query($sql);
                     
@@ -247,7 +249,7 @@ else {
                         require_once "../db_connect.php";
 
                         $records = array();
-                        $sql = "SELECT * FROM _relationship_db_suppliers WHERE quickbooks_uid IS NOT NULL";
+                        $sql = "SELECT * FROM _relationship_db_suppliers WHERE quickbooks_uid IS NOT NULL AND client_id = ".$_SESSION["client_id"];
 
                         $query = $connect->query($sql);
 

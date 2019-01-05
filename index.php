@@ -175,15 +175,16 @@ else {
         <div class="btn-group">
             <a href="#" onclick="contacts(this)" class="btn btn-secondary">Contacts</a>
             <a href="#" class="btn btn-secondary">Sales</a>
-            <a href="Purchase/purchase.php" class="btn btn-secondary">Purchases</a>
+            <a href="Purchase/purchase(SB).php" class="btn btn-secondary">Purchases</a>
             <a href="#" class="btn btn-secondary">Time Activity</a>
         </div>
         <br><br>
-        
-        <div class="btn-group" style='display: none' id="contacts">
-            <a href="Customer/customerContacts.php" class="btn btn-secondary" id='btnCustomers'>Customers</a>
-            <a href="Employee/employeeContacts.php" class="btn btn-secondary">Employees</a>
-            <a href="#" class="btn btn-secondary">Supplier</a>
+        <div style='display: none' id="contacts">
+            <div class="btn-group">
+                <a href="Customer/customerContacts(SB).php" class="btn btn-secondary" id='btnCustomers'>Customers</a>
+                <a href="Employee/employeeContacts(SB).php" class="btn btn-secondary">Employees</a>
+                <a href="Supplier/vendorContacts(SB).php" class="btn btn-secondary">Vendor</a>
+            </div>
         </div>
         <br>
         <div id="table">
