@@ -68,10 +68,10 @@ if ($error) {
 }
 
 else {
-    // UPDATE QUICKBOOKS_UID IN DATABASE   
     $quickbooks_uid = $resultingObj->Id;
     
-    $sql = "UPDATE `_relationship_db_purchase` SET `quickbooks_uid` = '$quickbooks_uid' WHERE `_relationship_db_purchase`.`id` = $id";
+    //expense_type == 2 is moved
+    $sql = "UPDATE `_relationship_db_purchase` SET `quickbooks_uid` = '$quickbooks_uid', expense_type = 2, date_moved = CURRENT_TIMESTAMP WHERE `_relationship_db_purchase`.`id` = $id";
 
     if($connect->query($sql)) {
         echo "Success btich";
