@@ -165,8 +165,8 @@ if (isset($_SESSION['sessionAccessToken'])) {
         <br><br>
         
         <div class="btn-group" id="customer">
-            <a href="#" class="btn btn-secondary active" onclick="window.location.href='#'" id='btnCustomers'>Register</a>
-            <a href="#" class="btn btn-secondary" onclick="window.location.href='#';" >History</a>
+            <a href="#" class="btn btn-secondary active" id='btnCustomers'>Register</a>
+            <a href="purchaseIntegrated.php" class="btn btn-secondary" >History</a>
         </div>
         <br>
         <br>
