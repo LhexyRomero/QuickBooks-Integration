@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jan 03, 2019 at 09:07 AM
+-- Generation Time: Jan 05, 2019 at 03:30 PM
 -- Server version: 10.1.35-MariaDB
 -- PHP Version: 7.2.9
 
@@ -241,17 +241,29 @@ CREATE TABLE `_relationship_db_purchase` (
   `account_type_id` int(11) DEFAULT NULL,
   `amount` int(11) DEFAULT NULL,
   `expense_type` int(11) DEFAULT NULL,
-  `quickbooks_uid` int(11) DEFAULT NULL
+  `quickbooks_uid` int(11) DEFAULT NULL,
+  `date_moved` date NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
 -- Dumping data for table `_relationship_db_purchase`
 --
 
-INSERT INTO `_relationship_db_purchase` (`id`, `project_id`, `supplier_subcontractor_id`, `invoice_no`, `invoice_date`, `due_date`, `invoice_attachment`, `account_type_id`, `amount`, `expense_type`, `quickbooks_uid`) VALUES
-(1, 1, 2, 'hjklom', '2018-11-04', '2018-11-04', NULL, 94, 47777, 1, 196),
-(2, 1, 1, '', '2018-12-25', '2018-12-25', NULL, 103, 500, NULL, 201),
-(3, 3, 3, '', '2018-10-30', '2018-10-30', NULL, 17, 20, 1, 200);
+INSERT INTO `_relationship_db_purchase` (`id`, `project_id`, `supplier_subcontractor_id`, `invoice_no`, `invoice_date`, `due_date`, `invoice_attachment`, `account_type_id`, `amount`, `expense_type`, `quickbooks_uid`, `date_moved`) VALUES
+(1, 1, 2, 'hjklom', '2018-11-04', '2018-11-04', NULL, 94, 47777, 1, 196, '0000-00-00'),
+(2, 1, 1, '', '2018-12-25', '2018-12-25', NULL, 103, 500, 1, 201, '0000-00-00'),
+(3, 3, 3, '', '2018-10-30', '2018-10-30', NULL, 17, 20, 1, 200, '0000-00-00'),
+(4, 2, 5, '', '2019-01-02', '2019-01-02', NULL, 104, 10, 1, NULL, '0000-00-00'),
+(6, 4, 3, 'qwerty2', '2018-01-03', '2018-01-03', NULL, 101, 4590, 1, NULL, '0000-00-00'),
+(7, NULL, NULL, '', '2018-10-30', '2018-10-30', NULL, NULL, 1234, NULL, 171, '0000-00-00'),
+(8, NULL, NULL, '', '2019-01-02', '2019-01-02', NULL, NULL, 2450, NULL, 176, '0000-00-00'),
+(9, NULL, NULL, '', '2019-01-02', '2019-01-02', NULL, NULL, 10, NULL, 198, '0000-00-00'),
+(10, NULL, NULL, '', '2018-01-03', '2018-01-03', NULL, NULL, 4590, NULL, 203, '0000-00-00'),
+(11, NULL, NULL, '', '2018-01-03', '2018-01-03', NULL, NULL, 4590, NULL, 211, '0000-00-00'),
+(12, NULL, NULL, '', '2019-01-05', '2019-01-05', NULL, NULL, 2670, NULL, 178, '0000-00-00'),
+(13, NULL, NULL, '', '2019-01-02', '2019-01-02', NULL, NULL, 10, 2, 213, '2019-01-05'),
+(14, NULL, NULL, '', '2018-01-03', '2018-01-03', NULL, NULL, 4590, 2, 213, '2019-01-05'),
+(15, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2019-01-05');
 
 -- --------------------------------------------------------
 
@@ -397,7 +409,7 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `_account_type_db`
 --
 ALTER TABLE `_account_type_db`
-  MODIFY `account_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=26;
+  MODIFY `account_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=111;
 
 --
 -- AUTO_INCREMENT for table `_project_db`
@@ -421,7 +433,7 @@ ALTER TABLE `_relationship_db_employee`
 -- AUTO_INCREMENT for table `_relationship_db_purchase`
 --
 ALTER TABLE `_relationship_db_purchase`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
 
 --
 -- AUTO_INCREMENT for table `_relationship_db_suppliers`
