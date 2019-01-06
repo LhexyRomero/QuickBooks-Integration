@@ -1,3 +1,4 @@
+
 <?php
 
 require_once('../vendor/autoload.php');
@@ -37,7 +38,12 @@ if (isset($_SESSION['sessionAccessToken'])) {
     $oauthLoginHelper = $dataService -> getOAuth2LoginHelper();
     $CompanyInfo = $dataService->getCompanyInfo();
 }
-
+else { 
+    echo "<script>
+        alert('Please Connect to Quickbooks');
+        window.location.href = '../index.php';
+    </script>";
+}
 
 ?>
 
@@ -52,10 +58,10 @@ if (isset($_SESSION['sessionAccessToken'])) {
     <link href="https://cdn.datatables.net/1.10.18/css/dataTables.bootstrap4.min.css" rel="stylesheet">
     <script src="https://cdn.datatables.net/1.10.18/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.10.18/js/dataTables.bootstrap4.min.js"></script>
-
+    
     <script src="../public/js/select2.min.js"></script>
     <link href='../public/css/select2.min.css' rel='stylesheet' type='text/css'>
-    
+
     <script>
 
         var url = '<?php echo $authUrl; ?>';
@@ -123,9 +129,6 @@ if (isset($_SESSION['sessionAccessToken'])) {
                 });
             }
         }
-
-
-
         var oauth = new OAuthCode(url);
         var apiCall = new apiCall();
     </script>
@@ -157,7 +160,7 @@ if (isset($_SESSION['sessionAccessToken'])) {
     <br>
 
         <div class="btn-group">
-            <a href="#" class="btn btn-secondary">Contacts</a>
+            <a href="../Customer/customerContacts.php" class="btn btn-secondary">Contacts</a>
             <a href="#" class="btn btn-secondary">Sales</a>
             <a href="#" class="btn btn-secondary active">Purchases</a>
             <a href="#" class="btn btn-secondary">Time Activity</a>
@@ -165,89 +168,95 @@ if (isset($_SESSION['sessionAccessToken'])) {
         <br><br>
         
         <div class="btn-group" id="customer">
-            <a href="#" class="btn btn-secondary active" id='btnCustomers'>Register</a>
-            <a href="purchaseIntegrated.php" class="btn btn-secondary" >History</a>
+            <a href="#" class="btn btn-secondary active" onclick="register(this)" id='btnRegister'>Register</a>
+            <a href="purchaseIntegrated.php" class="btn btn-secondary">History</a>
         </div>
         <br>
         <br>
         <div id="table">
             <nav class='nav nav-tabs nav-justified'>
-                <a class='nav-item nav-link' href='purchase(SB).php'>Small Builders to Quickbooks</a>
-                <a class='nav-item nav-link active' href='#'>Quickbooks to Smallbuilders</a>
-            </nav>
+                <a class='nav-item nav-link active' href='#'>Small Builders to Quickbooks</a>
+                <a class='nav-item nav-link' href='purchase.php'>Quickbooks to Smallbuilders</a>
+            </nav><br>
+            <!-- Dropdown --> 
+            <form id="grpSelect">
+                <select id='selectExpense' name="selected_expense" style='width: 200px;'>
+                    <option value='0'>All Expenses</option>    
+                </select>
+
+                <select id='selectProject' name="selected_project" style='width: 200px;'>
+                    <option value='0'>All Project</option> 
+                    <?php
+                        require_once "../db_connect.php";
+                        $sql = "SELECT * FROM _project_db";
+
+                        $query = $connect->query($sql);
+                        $option = "";
+                        while($row = mysqli_fetch_array($query)) {
+                            $project_id = $row['project_id'];
+                            $project_name = $row['project_name'];
+                            $option .= "<option value=".$project_id.">".$project_name."</option>";
+                        }
+
+                        echo $option;
+                    ?>
+                </select>
+
+                <select id='selectSupplier' name="selected_supplier" style='width: 200px;'>
+                    <option value='0'>All Supplier</option> 
+                    <?php
+                        require_once "../db_connect.php";
+                        $sql = "SELECT * FROM _supplier_db";
+
+                        $query = $connect->query($sql);
+                        $option = "";
+                        while($row = mysqli_fetch_array($query)) {
+                            $supplier_id = $row['supplier_id'];
+                            $supplier_name = $row['supplier_name'];
+                            $option .= "<option value=".$supplier_id.">".$supplier_name."</option>";
+                        }
+
+                        echo $option;
+                    ?>
+                </select>
+            </form>
+            <button onclick="viewPurchase()" class="btn btn-sm btn-success"> View Records </button>
+
+            <div id='result'></div>
             <br>
             <table id='QBtoSB' class='table table-striped'>
                 <thead>
                     <tr>
-                        <td><input type='checkbox' onclick='checkAll(this);countIntegrate();'></td>
-                        <td>Project Name</td>
-                        <td>Supplier/Subcontractor</td>
-                        <td>Invoice No. </td>
-                        <td>Invoice Date </td>
-                        <td>Due Date </td>
-                        <td>Invoice Attachment</td>
-                        <td>Account type</td>
-                        <td>Amount</td>
+                        <th><input type='checkbox' onclick='checkAll(this);countIntegrate();'></th>
+                        <th>Project Name</th>
+                        <th>Supplier/Subcontractor</th>
+                        <th>Invoice No.</th>
+                        <th>Invoice Date</th>
+                        <th>Due Date</th>
+                        <th>Invoice Attachment</th>
+                        <th>Account type</th>
+                        <th>Amount</th>
                     </tr>
                 </thead>
-                <tbody>
-                    <?php
-                        //GET FIELDS THAT HAVE QUICKBOOKS UID
-                        require_once "../db_connect.php";
-
-                        $quickbooks_uids = array();
-                        $sql = "SELECT quickbooks_uid FROM _relationship_db_purchase";
-                    
-                        $query = $connect->query($sql);
-                    
-                        while($row = mysqli_fetch_array($query)) {
-                            array_push($quickbooks_uids,$row["quickbooks_uid"]);
-                        }
-
-                        //GET Quickbooks Records
-                        $allPurchase = $dataService->Query('SELECT * FROM Purchase');
-                        foreach($allPurchase as $purchase) {
-                            if (in_array($purchase->Id, $quickbooks_uids, TRUE)) 
-                            { 
-                                //If Found Show
-                            } 
-                            else
-                            { 
-                                $account_id = json_encode(@$purchase->Line->AccountBasedExpenseLineDetail->AccountRef);
-                                $selected_sql = "SELECT * FROM _account_type_db WHERE account_id = $account_id";
-                                
-                                $option = $connect->query($selected_sql);
-                                $option_row = mysqli_fetch_array($option);
-
-                                echo "<tr>
-                                <td><input type='checkbox' class='form-control integrateCheck' onclick='countIntegrate()' value='".$purchase->Id."'></td>
-                                <td> --- </td>";
-                                echo "<td> --- </td>";
-                                echo "<td>". @$purchase->DocNumber. "</td>";
-                                echo "<td>". @$purchase->TxnDate. "</td>";
-                                echo "<td>". @$purchase->TxnDate. "</td>";
-                                echo "<td> --- </td>";
-                                echo "<td> --- </td>";
-                                echo "<td>". @$purchase->TotalAmt. "</td>";
-                                echo "</tr>";
-                            } 
-                        }
-                    ?>
+                <tbody id="expense">
+                    <tr>
+                        <td colspan = '9'><center>No data available in table</center></td>
+                    </tr>
                 </tbody>
-            </table>
-            <center><button id='btnIntegrate' class='mt-2 mb-5 btn btn-success btn-lg' onclick='integratePurchase()' disabled>Integrate</button></center>
+            </table><br>
+            <div class='alert alert-primary'>
+                <input  type='radio' name="selectAction" value="1" class="integrateRadio" checked> Move the selected entries into my Quickbooks account. <br>
+                <input  type='radio' name="selectAction" value="0" class="integrateRadio" onclick="history()"> I do not want to move the selected items to Quickbooks. Move the selected items into Small Builders history.
+            </div>
+            <center><button id='btnIntegrate' class='mt-2 mb-5 btn btn-success btn-lg' onclick='integratePurchase()' disabled>Integrate</button>
+            <button id='btnHistory' class='mt-2 mb-5 btn btn-success btn-lg' onclick='toPurchaseHistory()'>Integratse</button></center>
             <script>
-                $("#QBtoSB").DataTable();         
-                $('#select_types').select2();
+                $("#selectExpense").select2();
+                $("#selectProject").select2();
+                $("#selectSupplier").select2();
             </script>
         </div>
         <hr style='clear: both'>
-    <!-- <pre id="accessToken">
-        <style="background-color:#efefef;overflow-x:scroll"><?php
-    $displayString = isset($accessTokenJson) ? $accessTokenJson : "No Access Token Generated Yet";
-    echo json_encode($displayString, JSON_PRETTY_PRINT); ?>
-    </pre> -->
-
 </div>
 </body>
     <script>
@@ -260,9 +269,27 @@ if (isset($_SESSION['sessionAccessToken'])) {
                                     echo $json["refresh_token"];?>";
         var realm_id = "<?php echo $accessToken->getRealmID(); ?>";
 
-
         window.onload = function () {
             apiCall.getCompanyName();
+            $("#btnHistory").hide();
+        }
+
+        function viewPurchase(){
+            
+            console.log($("#grpSelect").serialize());
+            var data = $("#grpSelect").serialize();
+            $.ajax({
+                method: "POST",
+                url: "getPurchase(SB).php",
+                data: data, 
+                success: function(data){
+                    console.log(data);
+                    
+                    $("#expense").html(data);
+                    $("#QBtoSB").DataTable();
+                    $("#select_type").select2();
+                }
+            });
         }
 
         function countIntegrate() {
@@ -275,10 +302,9 @@ if (isset($_SESSION['sessionAccessToken'])) {
             }
             if(checks == 0) {
                 document.getElementById("btnIntegrate").disabled = true;
+                return;
             }
-            else {
-                document.getElementById("btnIntegrate").disabled = false;
-            }
+            document.getElementById("btnIntegrate").disabled = false;
         }
 
         function checkAll(elem) {
@@ -297,17 +323,16 @@ if (isset($_SESSION['sessionAccessToken'])) {
 
         function integratePurchase() {
             $.confirm({
-                title: "Quickbooks to Smallbuilders",
+                title: "Smallbuilders to Quickbooks",
                 columnClass: "medium",
                 theme: "modern",
                 content: "",
                 onOpenBefore: function () {
                     //Add Loading 
                     this.showLoading();
-                    //PUT THIS TO VARIABLE
+                    //Get This
                     var confirmJS = this;
-
-                    //Collect all QuickBooks ids na nacheckan
+                    //Collect all QuickBooks ids
                     var integrateCheck = document.querySelectorAll('.integrateCheck:checked');
                     
                     //Quickbooks Array
@@ -316,84 +341,96 @@ if (isset($_SESSION['sessionAccessToken'])) {
                     //Retrieve Customer Info
                     for (let i = 0; i < integrateCheck.length; i++) {
                         var id = integrateCheck[i].value;
+                            //Pupunta sa Database Kunin ung Info
+                        $.ajax({
+                            method: "post",
+                            url: "readPurchase(SBid).php",
+                            dataType: "json",
+                            data: "id=" + id + "&access_token="+ access_token + "&refresh_token=" + refresh_token + "&realm_id=" + realm_id,
+                            success: function (data) {
+                                //Add Customer to Array
+                                purchases.push(data);
+                                console.log("AJAX FOR getting data from DB",purchases);
 
-                            //GET QUICKBOOKS RECORD USING ID
-                            $.ajax({
-                                method: "post",
-                                url: "readPurchase(id).php",
-                                data: "access_token="+ access_token + "&refresh_token=" + refresh_token + "&realm_id=" + realm_id + "&id=" + id,
-                                success: function (data) {
-                                    //Add Customer to Array
-                                    purchases.push(data);
-                                    console.log(purchases);
-
-                                    //Check if All Request is Done
-                                    if(i == integrateCheck.length - 1) {
-                                        customerToDB (purchases,confirmJS);
-                                    }
+                                //Check if All Request is Done
+                                if(i == integrateCheck.length - 1) {
+                                    purchaseToQB (purchases,confirmJS);
+                                    console.log("IM DONE BTCHES");
                                 }
-                            });
+                            }
+                        });
                     }
                 },
                 buttons: {
                     ok: {
                         action: function () {
-                            window.location.href = "purchase.php";
+                            window.location.href = "purchase(SB).php";
                         }
                     }
                 }
             });
         }
-
-        function customerToDB (purchases,confirmJS) {
+        
+        function purchaseToQB (purchases,confirmJS) {
+        
             for (let i = 0; i < purchases.length; i++) {
-                //PARSE JSON
-                var purchase = JSON.parse(purchases[i]);
-                //CHECK JSON
-                console.log(purchases);
                 //CREATE FORM
-                var frmCustomer = document.createElement("form");
+                var frmPurchase = document.createElement("form");
                 //Create Fields
 
                 try {
-                    var invoice_number = convertNulltoEmpty(purchase.DocNumber);
+                    var id = convertNulltoEmpty(purchases[i][0].id);
                 } catch (error) {
-                    var invoice_number = "";
+                    var id = "";
                 }
                 try {
-                    var invoice_date = convertNulltoEmpty(purchase.TxnDate);
+                    var invoice_date = convertNulltoEmpty(purchases[i][0].invoice_date);
                 } catch (error) {
                     var invoice_date = "";
                 }
                 try {
-                    var due_date = convertNulltoEmpty(purchase.TxnDate);
+                    var due_date = convertNulltoEmpty(purchases[i][0].due_date);
                 } catch (error) {
                     var due_date = "";
-                }  
+                }
                 try {
-                    var amount = convertNulltoEmpty(purchase.TotalAmt);
+                    var invoice_no = convertNulltoEmpty(purchases[i][0].invoice_no);
                 } catch (error) {
-                    var amount = "";
+                    var invoice_no = "";
+                }
+                try {
+                    var amount = convertNulltoEmpty(purchases[i][0].amount); 
+                } catch (error) {
+                    var amount = ""; 
+                }
+                var final_amount = parseFloat(amount).toFixed(2);
+                try {
+                    var account_id = convertNulltoEmpty(purchases[i][0].account_id)
+                }
+                catch {
+                    var account_id = "";
+                }
+                try {
+                    var account_type = convertNulltoEmpty(purchases[i][0].type);
+                }
+                catch (error) {
+                    var account_type = "";
                 }
 
-                //comment
-                var quickbooks_uid = purchase.Id;
-                console.log("ID",quickbooks_uid);
+                var quickbooks_uid = purchases.quickbooks_uid;
 
-                frmCustomer.innerHTML = "<input name='quickbooks_uid' value='"+quickbooks_uid+"'><input name='invoice_number' value='"+invoice_number+"'><input name='invoice_date' value='"+invoice_date+"'><input name='due_date' value='"+due_date+"'><input name='amount' value='"+amount+"'><input name='quickbooks_uid' value='"+quickbooks_uid+"";
+                frmPurchase.innerHTML = "<input name='id' value='"+id+"'><input name='invoice_date' value='"+invoice_date+"'><input name='due_date' value='"+due_date+"'><input name='invoice_no' values='"+invoice_no+"'><input name='amount' value='"+final_amount+"'><input name='account_id' value='"+account_id+"'><input name='account_type' value='"+account_type+"'>";
                 
-                console.log(frmCustomer);
-                //PASOK SA DB   
                 $.ajax({
                     method: "post",
-                    url: "purchaseToSB.php",
-                    data : $(frmCustomer).serialize(),
-                    success: function () {
-                        console.log("SUCCESS");
+                    url: "purchaseToQB.php",
+                    data: $(frmPurchase).serialize() +"&access_token="+ access_token + "&refresh_token=" + refresh_token + "&realm_id=" + realm_id,
+                    success: function (data) {
+                        console.log("SB to QB",data);
                     },
                 });
                 
-                //IF TAPOS NA MAGPASOK GAGAWING DONE UNG CONFIRM JS
+                //IF TAPOS LAHAT NG REQUEST
                 if(i == purchases.length - 1) {
                     confirmJS.hideLoading();
                     confirmJS.setContent("Done");
@@ -412,6 +449,53 @@ if (isset($_SESSION['sessionAccessToken'])) {
             } catch (error) {
                 return "";
             }
+        }
+
+        function history(){
+            $("#btnIntegrate").hide();
+            $("#btnHistory").show();
+        }
+
+        function toPurchaseHistory(){
+            $.confirm({
+                title: "Smallbuilders History",
+                columnClass: "medium",
+                theme: "modern",
+                content: "",
+                onOpenBefore: function () {
+                    this.showLoading();
+                    var confirmJS = this;
+                    var integrateCheck = document.querySelectorAll('.integrateCheck:checked');
+                    console.log("PURPOSE",integrateCheck);
+                    
+                    for (let i = 0; i < integrateCheck.length; i++) {
+                        var id = integrateCheck[i].value;
+                        console.log("lenggth",integrateCheck.length);
+
+                        $.ajax({
+                            method: "post",
+                            url: "purchaseHistory.php",
+                            data: "id="+id,
+                            success: function (data) {
+
+                                if(i <= integrateCheck.length - 1) {
+                                    confirmJS.hideLoading();
+                                    confirmJS.setContent("Done");
+                                }
+                            }
+                        });
+                        console.log("lenggthafter",integrateCheck.length);
+                    }
+                    console.log("IM WORKING");
+                },
+                buttons: {
+                    ok: {
+                        action: function () {
+                            viewPurchase();
+                        }
+                    }
+                }
+            });
         }
     </script>
 </html>
