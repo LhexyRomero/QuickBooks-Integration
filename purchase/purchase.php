@@ -375,6 +375,8 @@ if (isset($_SESSION['sessionAccessToken'])) {
                 } catch (error) {
                     var amount = "";
                 }
+
+                //comment
                 var quickbooks_uid = purchase.Id;
                 console.log("ID",quickbooks_uid);
 
