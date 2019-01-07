@@ -38,9 +38,9 @@ if (isset($_SESSION['sessionAccessToken'])) {
     $oauthLoginHelper = $dataService -> getOAuth2LoginHelper();
     $CompanyInfo = $dataService->getCompanyInfo();
 }
-else { 
+else {
     echo "<script>
-        alert('Please Connect to Quickbooks');
+        alert('Please Connect again to Quickbooks');
         window.location.href = '../index.php';
     </script>";
 }
@@ -50,6 +50,7 @@ else {
 <!DOCTYPE html>
 <html>
 <head>
+    <link href="../public/css/style.css" rel="stylesheet">
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" rel="stylesheet"
     integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.3.0/jquery-confirm.min.css">
@@ -158,7 +159,6 @@ else {
         ?>
     </div>
     <br>
-
         <div class="btn-group">
             <a href="../Customer/customerContacts.php" class="btn btn-secondary">Contacts</a>
             <a href="#" class="btn btn-secondary">Sales</a>
@@ -178,50 +178,55 @@ else {
                 <a class='nav-item nav-link active' href='#'>Small Builders to Quickbooks</a>
                 <a class='nav-item nav-link' href='purchase.php'>Quickbooks to Smallbuilders</a>
             </nav><br>
-            <!-- Dropdown --> 
-            <form id="grpSelect">
-                <select id='selectExpense' name="selected_expense" style='width: 200px;'>
-                    <option value='0'>All Expenses</option>    
-                </select>
+            <div class="row">
+                <div class ="col-md-6" style='padding-right:0px;'>
+                    <form id="grpSelect">
+                        <select id='selectExpense' name="selected_expense" style='width: 175px;'>
+                            <option value='0'>All Expenses</option>
+                            <option value='3'>Reconciled Expenses</option>    
+                        </select>
 
-                <select id='selectProject' name="selected_project" style='width: 200px;'>
-                    <option value='0'>All Project</option> 
-                    <?php
-                        require_once "../db_connect.php";
-                        $sql = "SELECT * FROM _project_db";
+                        <select id='selectProject' name="selected_project" style='width: 175px;'>
+                            <option value='0'>All Project</option> 
+                            <?php
+                                require_once "../db_connect.php";
+                                $sql = "SELECT * FROM _project_db";
 
-                        $query = $connect->query($sql);
-                        $option = "";
-                        while($row = mysqli_fetch_array($query)) {
-                            $project_id = $row['project_id'];
-                            $project_name = $row['project_name'];
-                            $option .= "<option value=".$project_id.">".$project_name."</option>";
-                        }
+                                $query = $connect->query($sql);
+                                $option = "";
+                                while($row = mysqli_fetch_array($query)) {
+                                    $project_id = $row['project_id'];
+                                    $project_name = $row['project_name'];
+                                    $option .= "<option value=".$project_id.">".$project_name."</option>";
+                                }
 
-                        echo $option;
-                    ?>
-                </select>
+                                echo $option;
+                            ?>
+                        </select>
 
-                <select id='selectSupplier' name="selected_supplier" style='width: 200px;'>
-                    <option value='0'>All Supplier</option> 
-                    <?php
-                        require_once "../db_connect.php";
-                        $sql = "SELECT * FROM _supplier_db";
+                        <select id='selectSupplier' name="selected_supplier" style='width: 175px;'>
+                            <option value='0'>All Supplier</option> 
+                            <?php
+                                require_once "../db_connect.php";
+                                $sql = "SELECT * FROM _supplier_db";
 
-                        $query = $connect->query($sql);
-                        $option = "";
-                        while($row = mysqli_fetch_array($query)) {
-                            $supplier_id = $row['supplier_id'];
-                            $supplier_name = $row['supplier_name'];
-                            $option .= "<option value=".$supplier_id.">".$supplier_name."</option>";
-                        }
+                                $query = $connect->query($sql);
+                                $option = "";
+                                while($row = mysqli_fetch_array($query)) {
+                                    $supplier_id = $row['supplier_id'];
+                                    $supplier_name = $row['supplier_name'];
+                                    $option .= "<option value=".$supplier_id.">".$supplier_name."</option>";
+                                }
 
-                        echo $option;
-                    ?>
-                </select>
-            </form>
-            <button onclick="viewPurchase()" class="btn btn-sm btn-success"> View Records </button>
-
+                                echo $option;
+                            ?>
+                        </select>
+                    </form>
+                </div>
+                <div class ="col-md-6" style='padding-left:0px;'>
+                    <button onclick="viewPurchase()" class="btn btn-sm btn-success"> View Records </button>
+                </div>
+            </div>
             <div id='result'></div>
             <br>
             <table id='QBtoSB' class='table table-striped'>
@@ -249,7 +254,7 @@ else {
                 <input  type='radio' name="selectAction" value="0" class="integrateRadio" onclick="history()"> I do not want to move the selected items to Quickbooks. Move the selected items into Small Builders history.
             </div>
             <center><button id='btnIntegrate' class='mt-2 mb-5 btn btn-success btn-lg' onclick='integratePurchase()' disabled>Integrate</button>
-            <button id='btnHistory' class='mt-2 mb-5 btn btn-success btn-lg' onclick='toPurchaseHistory()'>Integratse</button></center>
+            <button id='btnHistory' class='mt-2 mb-5 btn btn-success btn-lg' onclick='toPurchaseHistory()'>Integrate</button></center>
             <script>
                 $("#selectExpense").select2();
                 $("#selectProject").select2();
@@ -284,10 +289,8 @@ else {
                 data: data, 
                 success: function(data){
                     console.log(data);
-                    
                     $("#expense").html(data);
                     $("#QBtoSB").DataTable();
-                    $("#select_type").select2();
                 }
             });
         }
@@ -478,7 +481,7 @@ else {
                             data: "id="+id,
                             success: function (data) {
 
-                                if(i <= integrateCheck.length - 1) {
+                                if(i < integrateCheck.length - 1) {
                                     confirmJS.hideLoading();
                                     confirmJS.setContent("Done");
                                 }

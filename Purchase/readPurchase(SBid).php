@@ -15,7 +15,7 @@
         while($row = mysqli_fetch_array($query)) {
             array_push($records,$row);
         }
-        echo json_encode($records);
+        echo json_encode($records, JSON_PRETTY_PRINT);
     }
     
 ?>

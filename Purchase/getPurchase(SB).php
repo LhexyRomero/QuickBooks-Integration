@@ -11,20 +11,28 @@
             JOIN _supplier_db ON supplier_subcontractor_id = supplier_id 
             JOIN _account_type_db ON account_type_id = account_id 
             WHERE quickbooks_uid is NULL AND expense_type = 1 OR expense_type = 3";
+
+    $sql_ = "SELECT * FROM `_relationship_db_purchase` 
+            JOIN _project_db ON _relationship_db_purchase.project_id = _project_db.project_id 
+            JOIN _supplier_db ON supplier_subcontractor_id = supplier_id 
+            JOIN _account_type_db ON account_type_id = account_id 
+            WHERE quickbooks_uid is NULL";
     
     $option = "SELECT * FROM `_account_type_db`";
 
     if($selected_expense>0){
-        $sql .= " AND `_relationship_db_purchase`.expense_type = $selected_expense";   
-        echo $sql;
+        $sql_ .= " AND `_relationship_db_purchase`.expense_type = $selected_expense";   
+        $sql = $sql_;
     }
 
     if($selected_project>0){
-        $sql .= " AND `_relationship_db_purchase`.project_id = $selected_project";   
+        $sql_ .= " AND `_relationship_db_purchase`.project_id = $selected_project";   
+        $sql = $sql_;
     }
 
     if($selected_supplier>0){
-        $sql .= " AND `_relationship_db_purchase`.supplier_subcontractor_id = $selected_supplier";   
+        $sql_ .= " AND `_relationship_db_purchase`.supplier_subcontractor_id = $selected_supplier"; 
+        $sql = $sql_;  
     }
 
     $query = $connect->query($sql);
@@ -46,15 +54,20 @@
 
     while($row = mysqli_fetch_assoc($query)) {
         $output .= "<tr>
-        <td><input type='checkbox' class='form-control integrateCheck' onclick='countIntegrate()' value='".$row["id"]."'></td>
+        <td><center><input type='checkbox' class='form-control integrateCheck' onclick='countIntegrate()' value='".$row["id"]."'></td></center>
         <td>". $row["project_name"]. "</td>
         <td>". $row["supplier_name"]. "</td>
         <td>". $row["invoice_no"]. "</td>
         <td>". $row["invoice_date"]. "</td>
         <td>". $row["due_date"]. "</td>
         <td>". $row["invoice_attachment"]. "</td>
-        <td> -- </td>
-        <td>". $row["amount"]. "</td>
+        <td>
+            <select id='select_type' name='selected_expense' style='width: 150px;'>
+                <option value=". $row_option["account_type_id"] .">". $row["type"]. "</option>
+                ". $options ."
+            </select>
+        </td>
+        <td>". number_format($row["amount"],2) . "</td>
         </tr>";
     }
     
