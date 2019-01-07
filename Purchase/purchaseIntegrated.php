@@ -38,12 +38,20 @@ if (isset($_SESSION['sessionAccessToken'])) {
     $CompanyInfo = $dataService->getCompanyInfo();
 }
 
+else {
+    echo "<script>
+        alert('Please Connect again to Quickbooks');
+        window.location.href = '../index.php';
+    </script>";
+}
+
 
 ?>
 
 <!DOCTYPE html>
 <html>
 <head>
+    <link href="../public/css/style.css" rel="stylesheet">
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" rel="stylesheet"
     integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.3.0/jquery-confirm.min.css">
@@ -179,34 +187,52 @@ if (isset($_SESSION['sessionAccessToken'])) {
             <table id='QBtoSB' class='table table-striped'>
                 <thead>
                     <tr>
-                        <td>Project Name</td>
-                        <td>Supplier/Subcontractor</td>
-                        <td>Invoice No. </td>
-                        <td>Invoice Date </td>
-                        <td>Due Date </td>
-                        <td>Invoice Attachment</td>
-                        <td>Account type</td>
-                        <td>Amount</td>
-                        <td>Date Moved</td>
+                        <th>Project Name</th>
+                        <th>Supplier/Subcontractor</th>
+                        <th>Invoice No. </th>
+                        <th>Invoice Date </th>
+                        <th>Due Date </th>
+                        <th>Invoice Attachment</th>
+                        <th>Account type</th>
+                        <th>Amount</th>
+                        <th>Date Moved</th>
                     </tr>
                 </thead>
                 <tbody>
                     <?php
                         require_once "../db_connect.php";
 
-                        $sql = "SELECT * FROM `_relationship_db_purchase` WHERE `quickbooks_uid`IS NOT NULL AND expense_type <> 2";
+                        $sql = "SELECT * FROM `_relationship_db_purchase` 
+                                JOIN _project_db ON _relationship_db_purchase.project_id = _project_db.project_id 
+                                JOIN _supplier_db ON supplier_subcontractor_id = supplier_id 
+                                JOIN _account_type_db ON account_type_id = account_id 
+                                WHERE `quickbooks_uid`IS NOT NULL AND expense_type = 1";
+
+                        $option = "SELECT * FROM `_account_type_db`";
+
                         $query = $connect->query($sql);
-                    
+                        $result = $connect->query($option);
+
+                        $options = "";
+                        while($row_option = mysqli_fetch_array($result)){
+                            $options .= "<option value = ". $row_option["account_id"] ." > ".$row_option["type"]."</option>";
+                        }
+
                         while($row = mysqli_fetch_assoc($query)) {
                             echo "<tr>
-                                  <td>". $row["project_id"] ."</td>";
-                            echo "<td>". $row["supplier_subcontractor_id"] ."</td>";
+                                  <td>". $row["project_name"] ."</td>";
+                            echo "<td>". $row["supplier_name"] ."</td>";
                             echo "<td>". $row["invoice_no"] ."</td>";
                             echo "<td>". $row["invoice_date"] ."</td>";
                             echo "<td>". $row["due_date"] ."</td>";
                             echo "<td>". $row["invoice_attachment"] ."</td>";
-                            echo "<td>". $row["account_type_id"] ."</td>";
-                            echo "<td>". $row["amount"] ."</td>";
+                            echo "<td>
+                                    <select id='select_type' name='selected_expense' style='width: 150px;'>
+                                        <option value=". $row_option["account_type_id"] .">". $row["type"]. "</option>
+                                        ". $options ."
+                                    </select>
+                                </td>";
+                            echo "<td>". number_format($row["amount"],2) ."</td>";
                             echo "<td>". $row["date_moved"] ."</td>";
                             echo "</tr>";
                         }

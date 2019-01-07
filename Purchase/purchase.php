@@ -37,13 +37,19 @@ if (isset($_SESSION['sessionAccessToken'])) {
     $oauthLoginHelper = $dataService -> getOAuth2LoginHelper();
     $CompanyInfo = $dataService->getCompanyInfo();
 }
-
+else {
+    echo "<script>
+        alert('Please Connect again to Quickbooks');
+        window.location.href = '../index.php';
+    </script>";
+}
 
 ?>
 
 <!DOCTYPE html>
 <html>
 <head>
+    <link href="../public/css/style.css" rel="stylesheet">
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" rel="stylesheet"
     integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.3.0/jquery-confirm.min.css">
@@ -51,11 +57,7 @@ if (isset($_SESSION['sessionAccessToken'])) {
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.3.0/jquery-confirm.min.js"></script>
     <link href="https://cdn.datatables.net/1.10.18/css/dataTables.bootstrap4.min.css" rel="stylesheet">
     <script src="https://cdn.datatables.net/1.10.18/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.datatables.net/1.10.18/js/dataTables.bootstrap4.min.js"></script>
-
-    <script src="../public/js/select2.min.js"></script>
-    <link href='../public/css/select2.min.css' rel='stylesheet' type='text/css'>
-    
+    <script src="https://cdn.datatables.net/1.10.18/js/dataTables.bootstrap4.min.js"></script>    
     <script>
 
         var url = '<?php echo $authUrl; ?>';
@@ -179,15 +181,15 @@ if (isset($_SESSION['sessionAccessToken'])) {
             <table id='QBtoSB' class='table table-striped'>
                 <thead>
                     <tr>
-                        <td><input type='checkbox' onclick='checkAll(this);countIntegrate();'></td>
-                        <td>Project Name</td>
-                        <td>Supplier/Subcontractor</td>
-                        <td>Invoice No. </td>
-                        <td>Invoice Date </td>
-                        <td>Due Date </td>
-                        <td>Invoice Attachment</td>
-                        <td>Account type</td>
-                        <td>Amount</td>
+                        <th><input type='checkbox' onclick='checkAll(this);countIntegrate();'></th>
+                        <th>Project Name</th>
+                        <th>Supplier/Subcontractor</th>
+                        <th>Invoice No. </th>
+                        <th>Invoice Date </th>
+                        <th>Due Date </th>
+                        <th>Invoice Attachment</th>
+                        <th>Account type</th>
+                        <th>Amount</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -220,7 +222,7 @@ if (isset($_SESSION['sessionAccessToken'])) {
                                 $option_row = mysqli_fetch_array($option);
 
                                 echo "<tr>
-                                <td><input type='checkbox' class='form-control integrateCheck' onclick='countIntegrate()' value='".$purchase->Id."'></td>
+                                <td><center><input type='checkbox' class='form-control integrateCheck' onclick='countIntegrate()' value='".$purchase->Id."'></center></td>
                                 <td> --- </td>";
                                 echo "<td> --- </td>";
                                 echo "<td>". @$purchase->DocNumber. "</td>";
@@ -238,7 +240,6 @@ if (isset($_SESSION['sessionAccessToken'])) {
             <center><button id='btnIntegrate' class='mt-2 mb-5 btn btn-success btn-lg' onclick='integratePurchase()' disabled>Integrate</button></center>
             <script>
                 $("#QBtoSB").DataTable();         
-                $('#select_types').select2();
             </script>
         </div>
         <hr style='clear: both'>
@@ -388,8 +389,8 @@ if (isset($_SESSION['sessionAccessToken'])) {
                     method: "post",
                     url: "purchaseToSB.php",
                     data : $(frmCustomer).serialize(),
-                    success: function () {
-                        console.log("SUCCESS");
+                    success: function (data) {
+                        console.log(data);
                     },
                 });
                 
