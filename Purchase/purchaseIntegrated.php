@@ -165,7 +165,7 @@ else {
     <br>
 
         <div class="btn-group">
-            <a href="#" class="btn btn-secondary">Contacts</a>
+            <a href="../Customer/customerContacts(SB).php" class="btn btn-secondary">Contacts</a>
             <a href="#" class="btn btn-secondary">Sales</a>
             <a href="#" class="btn btn-secondary active">Purchases</a>
             <a href="#" class="btn btn-secondary">Time Activity</a>
