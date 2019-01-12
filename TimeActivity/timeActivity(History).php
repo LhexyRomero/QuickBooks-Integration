@@ -1,17 +1,16 @@
-
 <?php
 
-require_once(__DIR__ . '/vendor/autoload.php');
+require_once('../vendor/autoload.php');
 use QuickBooksOnline\API\DataService\DataService;
 
-$config = include('config.php');
+$config = include('../config.php');
 
 session_start();
 if(isset($_SESSION["client_id"])) {
     //Has Session
 }
 else {
-    header('Location:login.php');
+    header('Location:../login.php');
 }
 
 $dataService = DataService::Configure(array(
@@ -20,7 +19,7 @@ $dataService = DataService::Configure(array(
     'ClientSecret' =>  $config['client_secret'],
     'RedirectURI' => $config['oauth_redirect_uri'],
     'scope' => $config['oauth_scope'],
-    'baseUrl' => "development"
+    'baseUrl' => "Development"
 ));
 
 $OAuth2LoginHelper = $dataService->getOAuth2LoginHelper();
@@ -44,8 +43,11 @@ if (isset($_SESSION['sessionAccessToken'])) {
     $oauthLoginHelper = $dataService -> getOAuth2LoginHelper();
     $CompanyInfo = $dataService->getCompanyInfo();
 }
-else {
-    echo "";
+else { 
+    echo "<script>
+        alert('Please Connect to Quickbooks');
+        window.location.href = '../index.php';
+    </script>";
 }
 
 
@@ -63,17 +65,6 @@ else {
     <script src="https://cdn.datatables.net/1.10.18/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.10.18/js/dataTables.bootstrap4.min.js"></script>
     <script>
-        //SHOW CONTACTS 
-        function contacts(elem) {
-            var validateToken = "<?php if(isset($_SESSION['sessionAccessToken'])) echo '1'; else echo '0'; ?>";
-            if(validateToken == "1") {
-                elem.classList.add("active");
-                document.getElementById("contacts").style.display = "block";
-            }
-            else {
-                alert("Please Connect to Quickbooks");
-            }
-        }
 
         var url = '<?php echo $authUrl; ?>';
 
@@ -114,7 +105,7 @@ else {
             this.getCompanyName = function() {
                 $.ajax({
                     type: "GET",
-                    url: "getCompanyName.php",
+                    url: "../getCompanyName.php",
                 }).done(function( msg ) {
                     $( '#orgName' ).html( msg );
                 });
@@ -124,7 +115,7 @@ else {
             this.getCompanyInfo = function() {
                 $.ajax({
                     type: "GET",
-                    url: "getCompanyInfo.php",
+                    url: "../getCompanyInfo.php",
                 }).done(function( msg ) {
                     $( '#apiCall' ).html( msg );
                 });
@@ -140,7 +131,6 @@ else {
                 });
             }
         }
-
 
 
         var oauth = new OAuthCode(url);
@@ -161,37 +151,73 @@ else {
             if(isset($accessTokenJson)) {
                 echo "Status: <p style='color: green; display: inline'>Connected</p><br>";
                 echo "Organisation: <p id='orgName' style='display: inline'></p><br>";
-                echo "<a href='logout.php'><img src='disconnect.png'></a>";
+                echo "<a href='../logout.php'><img src='../disconnect.png'></a>";
             }
             else {
                 echo "Status: <p style='color: red; display: inline'>Not Connected</p><br><br>";
-                echo "<a class='imgLink' href='#' onclick='oauth.loginPopup()'><img src='views/C2QB_green_btn_lg_default.png' width='178' /></a>
+                echo "<a class='imgLink' href='#' onclick='oauth.loginPopup()'><img src='../views/C2QB_green_btn_lg_default.png' width='178' /></a>
                 <hr />";
-            }
+            } 
         ?>
     </div>
     <br>
 
         <div class="btn-group">
-            <a href="#" onclick="contacts(this)" class="btn btn-secondary">Contacts</a>
-            <a href="Sales/sales.php" class="btn btn-secondary">Sales</a>
-            <a href="Purchase/purchase(SB).php" class="btn btn-secondary">Purchases</a>
-            <a href="TimeActivity/timeActivity.php" class="btn btn-secondary">Time Activity</a>
+            <a href="../Customer/customerContacts.php" class="btn btn-secondary">Contacts</a>
+            <a href="#" class="btn btn-secondary">Sales</a>
+            <a href="../Purchase/purchase(SB).php" class="btn btn-secondary">Purchases</a>
+            <a href="#" class="btn btn-secondary active">Time Activity</a>
         </div>
         <br><br>
-        <div style='display: none' id="contacts">
+        
+        <div id="contacts">
             <div class="btn-group">
-                <a href="Customer/customerContacts(SB).php" class="btn btn-secondary" id='btnCustomers'>Customers</a>
-                <a href="Employee/employeeContacts(SB).php" class="btn btn-secondary">Employees</a>
-                <a href="Supplier/vendorContacts(SB).php" class="btn btn-secondary">Vendor</a>
+                <a href="timeActivity.php" class="btn btn-secondary" id='btnCustomers'>Register</a>
+                <a href="#" class="btn btn-secondary active">History</a>
             </div>
         </div>
         <br>
+        <br>
         <div id="table">
-            <!-- table views -->
-        </div>
+            <br>
+            <table id='QBtoSB' class='table table-striped'>
+                <thead>
+                    <tr>
+                        <td>Employee Name</td>
+                        <td>Project Name</td>
+                        <td>Cost Centre</td>
+                        <td>Date Worked</td>                     
+                        <td>Total Paid Hours</td>
+                        <td>Date Moved</td>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php
+                        require_once "../db_connect.php";
 
-        
+                        $records = array();
+                        $sql = "SELECT * FROM _relationship_db_timesheet inner JOIN _relationship_db_employee on _relationship_db_timesheet.employee_id = _relationship_db_employee.id WHERE _relationship_db_employee.quickbooks_uid IS NOT NULL AND _relationship_db_timesheet.quickbooks_uid IS NOT NULL AND _relationship_db_timesheet.client_id = ".$_SESSION["client_id"];
+
+                        $query = $connect->query($sql);
+
+                        while($row = mysqli_fetch_array($query)) {
+                            echo "<tr>
+                                <td>".$row["employee_name"]. " ".$row["employee_lastname"]."</td>
+                                <td>".$row["project_name"]."</td>
+                                <td>".$row["cost_centre"]."</td>
+                                <td>".$row["date_worked"]."</td>
+                                <td>".$row["total_paid_hours"]."</td>
+                                <td>".$row["date_moved"]."</td>
+                            </tr>";
+                        }
+                    ?>
+                </tbody> 
+            </table>
+            <button id='btnIntegrate' class='mt-2 mb-5 float-right btn btn-success btn-lg' onclick='integrateTime()' disabled>Integrate</button>
+            <script>            
+                $("#QBtoSB").DataTable();         
+            </script>
+        </div>
     <!-- <pre id="accessToken">
         <style="background-color:#efefef;overflow-x:scroll"><?php
     $displayString = isset($accessTokenJson) ? $accessTokenJson : "No Access Token Generated Yet";
@@ -214,7 +240,8 @@ else {
         window.onload = function () {
             //GET COMPANY NAME
             apiCall.getCompanyName();
+            //RETRIEVE
+            //customer();
         }
-
     </script>
 </html>
