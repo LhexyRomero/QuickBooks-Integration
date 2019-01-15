@@ -159,7 +159,7 @@ else {
         <br>
         <br>
         <div id="table">
-            <form method="post">
+            <form method="get">
                 <div class="row">
                     <div class ="col-md-3" style='padding-right:0px;'>
                             <select name='selected_invoice' style='width: 250px;'>
@@ -190,56 +190,93 @@ else {
                     <?php
                         require_once "../db_connect.php";
                         
-                        if(isset($_POST["submitButton"])){
-
-                            $selected_invoice =  $_POST["selected_invoice"];
+                        if(isset($_GET["submitButton"])){
+                            
+                            $selected_invoice =  $_GET["selected_invoice"];
                             $quickbooks_uids = array();
                             $sql = "SELECT quickbooks_uid FROM _relationship_db_purchase";
-                            $sql_sales = "SELECT * FROM `_relationship_db_sales` 
-                                    JOIN _project_db ON _relationship_db_sales.project_id = _project_db.project_id
-                                    WHERE account_type = $selected_invoice";
-
+                            $sql_sales = "SELECT * FROM `_relationship_db_sales` JOIN _project_db 
+                                        ON _relationship_db_sales.project_id = _project_db.project_id 
+                                        WHERE invoice_type = $selected_invoice AND quickbooks_uid IS NULL";
+                            $sql_customers = "SELECT id, customer_name, quickbooks_uid FROM `_relationship_db_customers` WHERE quickbooks_uid IS NOT NULL AND customer_name IS NOT NULL";
+                            
                             $query = $connect->query($sql);
                             $sales_query = $connect->query($sql_sales);
+                            $allCustomers = $connect->query($sql_customers);
 
                             while($row = mysqli_fetch_array($query)) {
                                 array_push($quickbooks_uids,$row["quickbooks_uid"]);
                             }
 
-                            $customer_options = "";
-                            $allCustomers = $dataService->Query('SELECT * FROM Customer');
+                            $customer_options = array();
                             
-                            foreach($allCustomers as $customer) {
-                                if (in_array($customer->Id, $quickbooks_uids, TRUE)) 
-                                { 
-                                } 
-                                else
-                                { 
-                                    $customer_options .= "<option value ='".$customer->Id."'>".$customer->DisplayName."</option>";
-                                } 
+                            while($customer = mysqli_fetch_assoc($allCustomers)){                                 
+                                $customer_option = "<option value='".$customer["quickbooks_uid"]."'>".$customer["customer_name"]."</option>";
+                                array_push($customer_options,$customer_option);
                             }
 
                             $output = "";
                             while($row = mysqli_fetch_assoc($sales_query)) {
-                                $output .= "<tr>
-                                    <td><center><input type='checkbox' class='form-control integrateCheck' onclick='countIntegrate()' value='".$row["id"]."'></td></center>
-                                    <td>". $row["project_name"]. "</td>
-                                    <td><select>". $customer_options. "</select></td>
-                                    <td>". $row["invoice_no"]. "</td>
-                                    <td>". $row["invoice_date"]. "</td>
-                                    <td>". $row["due_date"]. "</td>
-                                    <td></td>
-                                    <td>". number_format($row["total_amount"],2). "</td>
-                                </tr>";
+                            
+                                if($row["customer_id"] == ""){
+                                    $output .= "<tr class='sales' id = '".$row["id"]."'>
+                                        <td><center><input type='checkbox' id='check_no".$row["id"]."' name='unable' class='form-control integrateCheck' onclick='countIntegrate()' value='".$row["id"]."'></td></center>
+                                        <td>". $row["project_name"]. "</td>
+                                        <td><select id='selected_customer_a' onchange='updateCustomer(".$row["id"].",1)'>    
+                                                <option value ='0' hidden> --- Select Customer --- </option>
+                                                    ". selectCustomer($row["customer_id"],$customer_options). "
+                                                </select>
+                                            </td>
+                                            <td>". $row["invoice_no"]. "</td>
+                                            <td>". $row["invoice_date"]. "</td>
+                                            <td>". $row["due_date"]. "</td>
+                                            <td></td>
+                                            <td>". number_format($row["total_amount"],2). "</td>
+                                        </tr>";
+                                }
+                                else {
+                                    
+                                $output .= "<tr class='sales' id = '".$row["id"]."'>
+                                        <td><center><input type='checkbox' class='form-control integrateCheck' onclick='countIntegrate()' value='".$row["id"]."'></td></center>
+                                        <td>". $row["project_name"]. "</td>
+                                        <td><select id='selected_customer_b".$row["id"]."' onchange='updateCustomer(".$row["id"].",2)'>   
+                                               ". selectCustomer($row["customer_id"],$customer_options)  ." 
+                                            </select>
+                                            </td>
+                                            <td>". $row["invoice_no"]. "</td>
+                                            <td>". $row["invoice_date"]. "</td>
+                                            <td>". $row["due_date"]. "</td>
+                                            <td></td>
+                                            <td>". number_format($row["total_amount"],2). "</td>
+                                        </tr>";
+                                }
+                            }
+                            echo $output;
                             }
 
-                            echo $output;
+                            function selectCustomer($id,$customer_options) {
+                                $options = "";
+                                for ($i=0; $i < sizeof($customer_options); $i++) {
+                                    if (strpos($customer_options[$i], $id) !== false) {
+                                        //REPLACE value='id' to value='id' selected
+                                        $value = "value='".$id."'";
+                                        $replacedValue = $value . " selected";
+                                        //REPLACE IT
+                                        $options .= str_replace($value,$replacedValue,$customer_options[$i]);
+                                    }
+                                    //IF D NAHANAP
+                                    else {
+                                        $options .= $customer_options[$i];
+                                    }
+
+                                }
+                                return $options;
                             }
                     ?>
                     </tbody>
                 </table>
             </form>
-            <center><button id='btnIntegrate' class='mt-2 mb-5 btn btn-success btn-lg' onclick='integratePurchase()' disabled>Integrate</button></center>
+            <center><button id='btnIntegrate' class='mt-2 mb-5 btn btn-success btn-lg' onclick='integrateSales()' disabled>Integrate</button></center>
             <script>
                 $("#SBtoQB").DataTable();         
             </script>
@@ -266,23 +303,32 @@ else {
 
         window.onload = function () {
             apiCall.getCompanyName();
+            checkBox();
         }
 
-       /*  function viewSales() {
-            
-            var data = $("#selected_invoice").val();
+        function checkBox(id) {    
+            $("input[name=unable]").attr('disabled', true); 
+        }
+
+        function updateCustomer(id,type){
+            if (type == 1 ){
+                customer_id = $("#selected_customer_a").val();
+            }
+
+            else {
+                customer_id = $("#selected_customer_b"+id).val();
+            }
             $.ajax({
                 method: "POST",
-                url: "getSales.php",
-                data: "access_token="+ access_token + "&refresh_token=" + refresh_token + "&realm_id=" + realm_id +"&selected_invoice="+ data, 
+                url: "updateCustomer.php",
+                data: '&id='+id +'&customer_id='+customer_id,
                 success: function(data){
-                    console.log(data);
-                    $("#sales").html(data);
-                    $("#SBtoQB").DataTable();
+                    $("#check_no"+id).attr('disabled', false); 
+                    $("#check_no"+id).attr( 'checked', true );
+                    countIntegrate();
                 }
             });
-
-        } */
+        }
 
         function countIntegrate() {
             var integrateCheck = document.getElementsByClassName("integrateCheck");
@@ -314,110 +360,143 @@ else {
             }
         }
 
-        function integratePurchase() {
+        function integrateSales() {
+            
+            var invoice_global = "<?php echo $selected_invoice ?>";
+            console.log(invoice_global,"THE SELECTED");
             $.confirm({
-                title: "Quickbooks to Smallbuilders",
+                title: "Smallbuilders to Quickbooks",
                 columnClass: "medium",
                 theme: "modern",
                 content: "",
                 onOpenBefore: function () {
-                    //Add Loading 
                     this.showLoading();
-                    //PUT THIS TO VARIABLE
+                    
                     var confirmJS = this;
-
-                    //Collect all QuickBooks ids na nacheckan
                     var integrateCheck = document.querySelectorAll('.integrateCheck:checked');
                     
-                    //Quickbooks Array
-                    var purchases = [];
+                    var sales = [];
 
-                    //Retrieve Customer Info
                     for (let i = 0; i < integrateCheck.length; i++) {
                         var id = integrateCheck[i].value;
+                    
+                        $.ajax({
+                            method: "post",
+                            url: "readSales(SBid).php",
+                            dataType: "json",
+                            data: "id=" + id + "&access_token="+ access_token + "&refresh_token=" + refresh_token + "&realm_id=" + realm_id,
+                            success: function (data) {
+                                sales.push(data);
+                                console.log("AJAX FOR getting data from DB",sales);
 
-                            //GET QUICKBOOKS RECORD USING ID
-                            $.ajax({
-                                method: "post",
-                                url: "readPurchase(id).php",
-                                data: "access_token="+ access_token + "&refresh_token=" + refresh_token + "&realm_id=" + realm_id + "&id=" + id,
-                                success: function (data) {
-                                    //Add Customer to Array
-                                    purchases.push(data);
-                                    console.log(purchases);
-
-                                    //Check if All Request is Done
-                                    if(i == integrateCheck.length - 1) {
-                                        customerToDB (purchases,confirmJS);
-                                    }
+                                if(i == integrateCheck.length - 1) {
+                                    SalestoQB (sales,confirmJS,invoice_global); 
                                 }
-                            });
+                            }
+                        });
                     }
                 },
                 buttons: {
                     ok: {
                         action: function () {
-                            window.location.href = "purchase.php";
+                            window.location.href = "/quickbooks-integration/Sales/sales.php?selected_invoice="+invoice_global+"&submitButton";
                         }
                     }
                 }
             });
         }
-
-        function customerToDB (purchases,confirmJS) {
-            for (let i = 0; i < purchases.length; i++) {
-                //PARSE JSON
-                var purchase = JSON.parse(purchases[i]);
-                //CHECK JSON
-                console.log(purchases);
-                //CREATE FORM
-                var frmCustomer = document.createElement("form");
-                //Create Fields
+        
+        function SalestoQB (sales,confirmJS,type) {
+            console.log(sales.length);
+            
+            for (let i = 0; i < sales.length; i++) {
+                
+                var frmSales = document.createElement("form");
 
                 try {
-                    var invoice_number = convertNulltoEmpty(purchase.DocNumber);
+                    var deposit = convertNulltoEmpty(sales[i][0].deposit);
                 } catch (error) {
-                    var invoice_number = "";
+                    var deposit = "";
                 }
+
                 try {
-                    var invoice_date = convertNulltoEmpty(purchase.TxnDate);
+                    var project_type = convertNulltoEmpty(sales[i][0].project_type);
+                } catch (error) {
+                    var project_type = "";
+                }
+
+                try {
+                    var project_name = convertNulltoEmpty(sales[i][0].project_name);
+                } catch (error) {
+                    var project_name = "";
+                }
+
+                try {
+                    var id = convertNulltoEmpty(sales[i][0].id);
+                } catch (error) {
+                    var id = "";
+                }
+
+                try {
+                    var due_date = convertNulltoEmpty(sales[i][0].due_date);
+                } catch (error) {
+                    var due_date = "";
+                }
+
+                try {
+                    var invoice_date = convertNulltoEmpty(sales[i][0].invoice_date);
                 } catch (error) {
                     var invoice_date = "";
                 }
+
                 try {
-                    var due_date = convertNulltoEmpty(purchase.TxnDate);
+                    var invoice_no = convertNulltoEmpty(sales[i][0].invoice_no);
                 } catch (error) {
-                    var due_date = "";
-                }  
-                try {
-                    var amount = convertNulltoEmpty(purchase.TotalAmt);
-                } catch (error) {
-                    var amount = "";
+                    var invoice_no = "";
                 }
 
-                //comment
-                var quickbooks_uid = purchase.Id;
-                console.log("ID",quickbooks_uid);
+                try {
+                    var customer_id = convertNulltoEmpty(sales[i][0].customer_id);
+                } catch (error) {
+                    var customer_id = "";
+                }
 
-                frmCustomer.innerHTML = "<input name='quickbooks_uid' value='"+quickbooks_uid+"'><input name='invoice_number' value='"+invoice_number+"'><input name='invoice_date' value='"+invoice_date+"'><input name='due_date' value='"+due_date+"'><input name='amount' value='"+amount+"'><input name='quickbooks_uid' value='"+quickbooks_uid+"";
+                try {
+                    var total_amount = convertNulltoEmpty(sales[i][0].total_amount);
+                } catch (error) {
+                    var total_amount = "";
+                }
+
+                frmSales.innerHTML = "<input name='total_amount' value='"+total_amount+"'><input name='deposit' value='"+deposit+"'><input name='project_name' value='"+project_name+"'><input name='project_type' value='"+project_type+"'><input name='id' value='"+id+"'><input name='invoice_date' value='"+invoice_date+"'><input name='due_date' value='"+due_date+"'><input name='invoice_no' value='"+invoice_no+"'><input name='customer_id' value='"+customer_id+"'>";
                 
-                console.log(frmCustomer);
-                //PASOK SA DB   
-                $.ajax({
+                if (type == 2){
+                    $.ajax({
+                        method: "post",
+                        url: "unregisteredSalesToQB.php",
+                        data: $(frmSales).serialize() +"&access_token="+ access_token + "&refresh_token=" + refresh_token + "&realm_id=" + realm_id,
+                        success: function (data) {
+                            console.log("SB to QB",data);
+                        },
+                    });
+                }
+                
+                else {
+                    $.ajax({
                     method: "post",
-                    url: "purchaseToSB.php",
-                    data : $(frmCustomer).serialize(),
+                    url: "registeredSalesToQB.php",
+                    data: $(frmSales).serialize() +"&access_token="+ access_token + "&refresh_token=" + refresh_token + "&realm_id=" + realm_id,
                     success: function (data) {
-                        console.log(data);
+                        console.log("SB to QB",data);
+                        console.log("REGISTRE");
                     },
                 });
+                }
                 
-                //IF TAPOS NA MAGPASOK GAGAWING DONE UNG CONFIRM JS
-                if(i == purchases.length - 1) {
+                if(i == sales.length - 1) {
                     confirmJS.hideLoading();
                     confirmJS.setContent("Done");
                 }
-            }
+            } 
         }
 
         function convertNulltoEmpty(str) {
