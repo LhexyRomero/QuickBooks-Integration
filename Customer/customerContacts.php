@@ -366,7 +366,7 @@ else {
                             //GET QUICKBOOKS RECORD USING ID
                             $.ajax({
                                 method: "post",
-                                url: "readCustomer(id).php",
+                                url: "customersToSB.php",
                                 data: "access_token="+ access_token + "&refresh_token=" + refresh_token + "&realm_id=" + realm_id + "&id=" + id,
                                 success: function (data) {
                                     if(data == "Success") {
@@ -394,87 +394,6 @@ else {
                     }
                 }
             });
-        }
-
-        function customerToDB (customers,confirmJS) {
-            for (let i = 0; i < customers.length; i++) {
-                //PARSE JSON
-                var customer = JSON.parse(customers[i]);
-                //CHECK JSON
-                console.log(customer);
-                //CREATE FORM
-                var frmCustomer = document.createElement("form");
-                //Create Fields
-
-                //REPRESENTATIVE NAME
-                var representative_name = convertNulltoEmpty(customer.GivenName);
-                //REPRESENTATIVE LAST NAME
-                var representative_lname = convertNulltoEmpty(customer.FamilyName);
-                //CUSTOMER NAME
-                var customer_name = convertNulltoEmpty(customer.DisplayName);   
-                //ADDRESS LINE1
-                try {
-                    var customer_address = convertNulltoEmpty(customer.BillAddr.Line1);
-                } catch (error) {
-                    var customer_address = "";
-                }
-                //CITY
-                try {
-                    var customer_city = convertNulltoEmpty(customer.BillAddr.City);
-                } catch (error) {
-                    var customer_city = "";
-                }
-                //COUNTRY
-                try {
-                    var customer_country = convertNulltoEmpty(customer.BillAddr.Country);
-                } catch (error) {
-                    var customer_country = "";
-                }  
-                //CUSTOMER EMAIL
-                try {
-                    var customer_email = convertNulltoEmpty(customer.PrimaryEmailAddr.Address);
-                } catch (error) {
-                    var customer_email = "";
-                }
-                //PHONE
-                try {
-                    var customer_phone = convertNulltoEmpty(customer.PrimaryPhone.FreeFormNumber);
-                } catch (error) {
-                    var customer_phone = "";
-                }
-                //MOBILE
-                try {
-                    var customer_mobile = convertNulltoEmpty(customer.Mobile.FreeFormNumber);
-                } catch (error) {
-                    var customer_mobile = "";
-                }
-                //FAX
-                try {
-                    var customer_fax = convertNulltoEmpty(customer.Fax.FreeFormNumber); 
-                } catch (error) {
-                    var customer_fax = ""; 
-                }
-                var quickbooks_uid = convertNulltoEmpty(customer.Id);
-
-
-                frmCustomer.innerHTML = "<input name='customer_name' value='"+customer_name+"'><input name='customer_address' value='"+customer_address+", "+customer_city+", "+customer_country+"'><input name='customer_email' value='"+customer_email+"'><input name='customer_phone' value='"+customer_phone+"'><input name='customer_mobile' value='"+customer_mobile+"'><input name='customer_fax' value='"+customer_fax+"'><input name='quickbooks_uid' value='"+quickbooks_uid+"'><input name='representative_name' value='"+representative_name+"'><input name='representative_lname' value='"+representative_lname+"'>";
-                
-                //PASOK SA DB   
-                $.ajax({
-                    method: "post",
-                    url: "customersToSB.php",
-                    data : $(frmCustomer).serialize(),
-                    success: function () {
-                        //NAPASOK
-                    },
-                });
-                
-                //IF TAPOS NA MAGPASOK GAGAWING DONE UNG CONFIRM JS
-                if(i == customers.length - 1) {
-                    confirmJS.hideLoading();
-                    confirmJS.setContent("Done");
-                }
-            }
         }
 
         function convertNulltoEmpty(str) {

@@ -331,32 +331,39 @@ else {
         function integrateCustomer() {
             $.confirm({
                 title: "Smallbuilders to Quickbooks",
-                columnClass: "medium",
+                columnClass: "large",
                 theme: "modern",
-                content: "",
+                content: "<table class='table'><tr><th>Customer Name</th><th>Customer Email</th><th>Representative Name</th><th>Status</th></tr></table>",
                 onOpenBefore: function () {
-                    //Add Loading 
-                    this.showLoading();
                     //Get This
                     var confirmJS = this;
                     //Collect all QuickBooks ids
                     var integrateCheck = document.querySelectorAll('.integrateCheck:checked');
-                    
-                    //Quickbooks Array
-                    var customers = [];
 
                     //Retrieve Customer Info
                     for (let i = 0; i < integrateCheck.length; i++) {
                         var id = integrateCheck[i].value;
-                            //Pupunta sa Database Kunin ung Info
+                        var id = integrateCheck[i].value;
+                        var customer_name = integrateCheck[i].parentNode.parentNode.childNodes[3].innerHTML;
+                        var customer_email = integrateCheck[i].parentNode.parentNode.childNodes[4].innerHTML;
+                        var rep_name = integrateCheck[i].parentNode.parentNode.childNodes[5].innerHTML;
+                        var customer_address = integrateCheck[i].parentNode.parentNode.childNodes[6].innerHTML;
+                        var customer_phone = integrateCheck[i].parentNode.parentNode.childNodes[7].innerHTML;
+
+                        confirmJS.$content.find('table').append("<tr><td>"+customer_name+"</td><td>"+customer_email+"</td><td>"+rep_name+"</td><td id='inte"+id+"'><p style='color: blue'>Integrating</p></td></tr>");
+
+                            //Integrate
                             $.ajax({
                                 method: "post",
-                                url: "readCustomer(SBid).php",
-                                dataType: "json",
+                                url: "customersToQB.php",
                                 data: "id=" + id + "&access_token="+ access_token + "&refresh_token=" + refresh_token + "&realm_id=" + realm_id,
                                 success: function (data) {
-                                    //Add Customer to Array
-                                    customers.push(data);
+                                    if(data == "Success") {
+                                        confirmJS.$content.find('#inte'+ getUrlParameter(this.data,"id") ).html("<p style='color: green'>Integrated</p>");   
+                                    }
+                                    else {
+                                        confirmJS.$content.find('#inte'+ getUrlParameter(this.data,"id") ).html("<p style='color: red'>Failed</p>");   
+                                    }
 
                                     //Check if All Request is Done
                                     if(i == integrateCheck.length - 1) {
@@ -369,75 +376,11 @@ else {
                 buttons: {
                     ok: {
                         action: function () {
-                            customer(document.getElementById("btnCustomers"));
+                            window.location.href = "customerContacts(SB).php";
                         }
                     }
                 }
             });
-        }
-        function customerToQB (customers,confirmJS) {
-            for (let i = 0; i < customers.length; i++) {
-                //CREATE FORM
-                var frmCustomer = document.createElement("form");
-                //Create Fields
-
-                //CUSTOMER ID
-                var id = customers[i][0].id;
-                //REPRESENTATIVE NAME
-                var representative_name = convertNulltoEmpty(customers[i][0].representative_name);
-                //REPRESENTATIVE LAST NAME
-                var representative_lname = convertNulltoEmpty(customers[i][0].representative_lname);
-                //CUSTOMER NAME
-                var customer_name = convertNulltoEmpty(customers[i][0].customer_name);   
-                //ADDRESS LINE1
-                try {
-                    var customer_address = convertNulltoEmpty(customers[i][0].customer_address);
-                } catch (error) {
-                    var customer_address = "";
-                }
-                //CUSTOMER EMAIL
-                try {
-                    var customer_email = convertNulltoEmpty(customers[i][0].customer_email);
-                } catch (error) {
-                    var customer_email = "";
-                }
-                //PHONE
-                try {
-                    var customer_phone = convertNulltoEmpty(customers[i][0].customer_phone);
-                } catch (error) {
-                    var customer_phone = "";
-                }
-                //MOBILE
-                try {
-                    var customer_mobile = convertNulltoEmpty(customers[i][0].customer_mobile);
-                } catch (error) {
-                    var customer_mobile = "";
-                }
-                //FAX
-                try {
-                    var customer_fax = convertNulltoEmpty(customers[i][0].customer_fax); 
-                } catch (error) {
-                    var customer_fax = ""; 
-                }
-
-
-                frmCustomer.innerHTML = "<input name='id' value='"+id+"'><input name='customer_name' value='"+customer_name+"'><input name='customer_address' value='"+customer_address+"'><input name='customer_email' values='"+customer_email+"'><input name='customer_phone' value='"+customer_phone+"'><input name='customer_mobile' value='"+customer_mobile+"'><input name='customer_fax' value='"+customer_fax+"'><input name='representative_name' value='"+representative_name+"'><input name='representative_lname' value='"+representative_lname+"'>";
-                
-                $.ajax({
-                    method: "post",
-                    url: "customersToQB.php",
-                    data: $(frmCustomer).serialize() +"&access_token="+ access_token + "&refresh_token=" + refresh_token + "&realm_id=" + realm_id,
-                    success: function (data) {
-                        console.log(data);
-                    },
-                });
-                
-                //IF TAPOS LAHAT NG REQUEST
-                if(i == customers.length - 1) {
-                    confirmJS.hideLoading();
-                    confirmJS.setContent("Done");
-                }
-            }
         }
 
         function convertNulltoEmpty(str) {
@@ -452,5 +395,20 @@ else {
                 return "";
             }
         }
+
+        var getUrlParameter = function getUrlParameter(getURL,sParam) {
+            var sPageURL = getURL,
+                sURLVariables = sPageURL.split('&'),
+                sParameterName,
+                i;
+
+            for (i = 0; i < sURLVariables.length; i++) {
+                sParameterName = sURLVariables[i].split('=');
+
+                if (sParameterName[0] === sParam) {
+                    return sParameterName[1] === undefined ? true : decodeURIComponent(sParameterName[1]);
+                }
+            }
+        };
     </script>
 </html>
