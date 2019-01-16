@@ -168,7 +168,7 @@ else {
             <a href="#" class="btn btn-secondary active">Contacts</a>
             <a href="#" class="btn btn-secondary">Sales</a>
             <a href="#" class="btn btn-secondary">Purchases</a>
-            <a href="#" class="btn btn-secondary">Time Activity</a>
+            <a href="../TimeActivity/timeActivity.php" class="btn btn-secondary">Timesheet</a>
         </div>
         <br><br>
         

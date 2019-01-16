@@ -166,7 +166,7 @@ else {
             <a href="#" class="btn btn-secondary active">Contacts</a>
             <a href="#" class="btn btn-secondary">Sales</a>
             <a href="../Purchase/purchase(SB).php" class="btn btn-secondary">Purchases</a>
-            <a href="#" class="btn btn-secondary">Time Activity</a>
+            <a href="../TimeActivity/timeActivity.php" class="btn btn-secondary">Timesheet</a>
         </div>
         <br><br>
         
@@ -340,12 +340,10 @@ else {
         function integrateCustomer() {
             $.confirm({
                 title: "Quickbooks to Smallbuilders",
-                columnClass: "medium",
+                columnClass: "large",
                 theme: "modern",
-                content: "",
+                content: "<table class='table'><tr><th>Customer Name</th><th>Customer Email</th><th>Representative Name</th><th>Status</th></tr></table>",
                 onOpenBefore: function () {
-                    //Add Loading 
-                    this.showLoading();
                     //PUT THIS TO VARIABLE
                     var confirmJS = this;
 
@@ -353,11 +351,17 @@ else {
                     var integrateCheck = document.querySelectorAll('.integrateCheck:checked');
                     
                     //Quickbooks Array
-                    var customers = [];
 
                     //Retrieve Customer Info
                     for (let i = 0; i < integrateCheck.length; i++) {
                         var id = integrateCheck[i].value;
+                        var customer_name = integrateCheck[i].parentNode.parentNode.childNodes[3].innerHTML;
+                        var customer_email = integrateCheck[i].parentNode.parentNode.childNodes[4].innerHTML;
+                        var rep_name = integrateCheck[i].parentNode.parentNode.childNodes[5].innerHTML;
+                        var customer_address = integrateCheck[i].parentNode.parentNode.childNodes[6].innerHTML;
+                        var customer_phone = integrateCheck[i].parentNode.parentNode.childNodes[7].innerHTML;
+
+                        confirmJS.$content.find('table').append("<tr><td>"+customer_name+"</td><td>"+customer_email+"</td><td>"+rep_name+"</td><td id='inte"+id+"'><p style='color: blue'>Integrating</p></td></tr>");
 
                             //GET QUICKBOOKS RECORD USING ID
                             $.ajax({
@@ -365,13 +369,18 @@ else {
                                 url: "readCustomer(id).php",
                                 data: "access_token="+ access_token + "&refresh_token=" + refresh_token + "&realm_id=" + realm_id + "&id=" + id,
                                 success: function (data) {
-                                    //Add Customer to Array
-                                    customers.push(data);
-
+                                    if(data == "Success") {
+                                        confirmJS.$content.find('#inte'+ getUrlParameter(this.data,"id") ).html("<p style='color: green'>Integrated</p>");   
+                                    }
+                                    else {
+                                        confirmJS.$content.find('#inte'+ getUrlParameter(this.data,"id") ).html("<p style='color: red'>Failed</p>");   
+                                    }
 
                                     //Check if All Request is Done
                                     if(i == integrateCheck.length - 1) {
-                                        customerToDB (customers,confirmJS);
+                                        $( document ).ajaxStop(function(){
+                                            confirmJS.buttons.ok.enable();
+                                        });
                                     }
                                 }
                             });
@@ -480,5 +489,20 @@ else {
                 return "";
             }
         }
+
+        var getUrlParameter = function getUrlParameter(getURL,sParam) {
+            var sPageURL = getURL,
+                sURLVariables = sPageURL.split('&'),
+                sParameterName,
+                i;
+
+            for (i = 0; i < sURLVariables.length; i++) {
+                sParameterName = sURLVariables[i].split('=');
+
+                if (sParameterName[0] === sParam) {
+                    return sParameterName[1] === undefined ? true : decodeURIComponent(sParameterName[1]);
+                }
+            }
+        };
     </script>
 </html>

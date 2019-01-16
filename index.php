@@ -176,7 +176,7 @@ else {
             <a href="#" onclick="contacts(this)" class="btn btn-secondary">Contacts</a>
             <a href="Sales/sales.php" class="btn btn-secondary">Sales</a>
             <a href="Purchase/purchase(SB).php" class="btn btn-secondary">Purchases</a>
-            <a href="TimeActivity/timeActivity.php" class="btn btn-secondary">Time Activity</a>
+            <a href="TimeActivity/timeActivity.php" class="btn btn-secondary">Timesheet</a>
         </div>
         <br><br>
         <div style='display: none' id="contacts">

@@ -39,6 +39,7 @@ $sql = "SELECT _relationship_db_employee.quickbooks_uid,_relationship_db_employe
 $query = $connect->query($sql);
 
 while($row = mysqli_fetch_array($query)) {
+    $time =  convertTime($row["total_paid_hours"]);
     // echo $row["employee_name"];
     // echo $row["employee_lastname"];
     // echo $row["total_paid_hours"];
@@ -63,7 +64,8 @@ while($row = mysqli_fetch_array($query)) {
             "value" => "",
             "name" => ""
         ],            
-        "Hours" => $row["total_paid_hours"],
+        "Hours" => $time[0],
+        "Minutes" => $time[1],
         "TxnDate" => $row["date_worked"],
         "BillableStatus" => "NotBillable",
         "Taxable" => false,
@@ -91,4 +93,24 @@ while($row = mysqli_fetch_array($query)) {
         }
     }
 }
+
+function convertTime($dec)
+{
+    $time = array();
+    // start by converting to seconds
+    $seconds = ($dec * 3600);
+    // we're given hours, so let's get those the easy way
+    $hours = floor($dec);
+    // since we've "calculated" hours, let's remove them from the seconds variable
+    $seconds -= $hours * 3600;
+    // calculate minutes left
+    $minutes = floor($seconds / 60);
+    // remove those from seconds as well
+    $seconds -= $minutes * 60;
+    // return the time formatted HH:MM:SS
+    array_push($time,$hours);
+    array_push($time,$minutes);
+    return $time;
+}
+
 ?>
