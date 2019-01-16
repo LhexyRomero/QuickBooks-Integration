@@ -162,7 +162,7 @@ else {
             <form method="get">
                 <div class="row">
                     <div class ="col-md-3" style='padding-right:0px;'>
-                            <select name='selected_invoice' style='width: 250px;'>
+                            <select id="invoice_type" name='selected_invoice' style='width: 250px;'>
                                 <option value ='0' hidden>--- Select Invoice Type ---</option>
                                 <option value='1'>Registered Invoices</option>
                                 <option value='2'>Unregistered Invoices</option>    
@@ -222,7 +222,7 @@ else {
                                     $output .= "<tr class='sales' id = '".$row["id"]."'>
                                         <td><center><input type='checkbox' id='check_no".$row["id"]."' name='unable' class='form-control integrateCheck' onclick='countIntegrate()' value='".$row["id"]."'></td></center>
                                         <td>". $row["project_name"]. "</td>
-                                        <td><select id='selected_customer_a' onchange='updateCustomer(".$row["id"].",1)'>    
+                                        <td><select id='selected_customer_a".$row["id"]."' onchange='updateCustomer(".$row["id"].",1)'>    
                                                 <option value ='0' hidden> --- Select Customer --- </option>
                                                     ". selectCustomer($row["customer_id"],$customer_options). "
                                                 </select>
@@ -300,10 +300,10 @@ else {
                                     echo $json["refresh_token"];?>";
         var realm_id = "<?php echo $accessToken->getRealmID(); ?>";
 
-
         window.onload = function () {
             apiCall.getCompanyName();
-            checkBox();
+            var selected_ = "<?php echo $selected_invoice ?>";
+            $("#invoice_type option[value='"+selected_+"']").attr("selected",true);
         }
 
         function checkBox(id) {    
@@ -312,7 +312,7 @@ else {
 
         function updateCustomer(id,type){
             if (type == 1 ){
-                customer_id = $("#selected_customer_a").val();
+                customer_id = $("#selected_customer_a"+id).val();
             }
 
             else {
@@ -361,7 +361,6 @@ else {
         }
 
         function integrateSales() {
-            
             var invoice_global = "<?php echo $selected_invoice ?>";
             console.log(invoice_global,"THE SELECTED");
             $.confirm({
@@ -476,25 +475,32 @@ else {
                         data: $(frmSales).serialize() +"&access_token="+ access_token + "&refresh_token=" + refresh_token + "&realm_id=" + realm_id,
                         success: function (data) {
                             console.log("SB to QB",data);
+
+                            if(i == sales.length - 1) {
+                                confirmJS.hideLoading();
+                                confirmJS.setContent("Done");
+                                confirmJS.buttons.ok.enable();
+                            }
                         },
                     });
                 }
                 
                 else {
                     $.ajax({
-                    method: "post",
-                    url: "registeredSalesToQB.php",
-                    data: $(frmSales).serialize() +"&access_token="+ access_token + "&refresh_token=" + refresh_token + "&realm_id=" + realm_id,
-                    success: function (data) {
-                        console.log("SB to QB",data);
-                        console.log("REGISTRE");
-                    },
-                });
-                }
-                
-                if(i == sales.length - 1) {
-                    confirmJS.hideLoading();
-                    confirmJS.setContent("Done");
+                        method: "post",
+                        url: "registeredSalesToQB.php",
+                        data: $(frmSales).serialize() +"&access_token="+ access_token + "&refresh_token=" + refresh_token + "&realm_id=" + realm_id,
+                        success: function (data) {
+                            console.log("SB to QB",data);
+                            console.log("REGISTRE");
+
+                            if(i == sales.length - 1) {
+                                confirmJS.hideLoading();
+                                confirmJS.setContent("Done");
+                                confirmJS.buttons.ok.enable();
+                            }
+                        }
+                    });
                 }
             } 
         }
