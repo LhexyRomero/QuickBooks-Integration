@@ -289,106 +289,6 @@ else {
             //employee();
         }
 
-        function employee() {
-            document.getElementById("table").innerHTML = "Loading...";
-            $.ajax({
-                type: "post",
-                dataType: "json",
-                url: "readEmployees(SB).php",
-                data: "access_token="+ access_token + "&refresh_token=" + refresh_token + "&realm_id=" + realm_id,
-                success: function (data) {
-                    console.log(data);
-                    //CONSTRUCT TABLE
-                    var tblCustomer = document.createElement("table");
-                    tblCustomer.setAttribute("class","table table-stripe");
-                    var thead = document.createElement("thead");
-                    thead.innerHTML = "<tr><th><input type='checkbox' class='form-control' onclick='checkAll(this);countIntegrate();'></th></th><th>Employee Name</th><th>Email Address</th><th>Contact No.</th></tr>";
-                    var tbody = document.createElement("tbody");
-
-                    //LOOP TABLE
-                    for (let i = 0; i < data.length; i++) {
-                        var row = tbody.insertRow(-1);
-                        var cell0 = row.insertCell(-1);
-                        var cell1 = row.insertCell(-1);
-                        var cell2 = row.insertCell(-1);
-                        var cell5 = row.insertCell(-1);
-                        
-                        var fname = (data[i].employee_name) ?  data[i].employee_name : "";
-                        var lname = (data[i].employee_lastname) ? data[i].employee_lastname : "";
-                        
-                        
-                        //CHECK EMAIL
-                        try {
-                            var email = data[i].employee_email;
-                        } catch (error) {
-                            var email = "";
-                        }
-                        
-                        //CHECK PHONE
-                        try {
-                            var phone = "Phone: " + data[i].employee_phone + "<br>";
-                        } catch (error) {
-                            var phone = "";
-                        }
-
-                        //CHECK PHONE NUMBER
-
-                        try {
-                            var mobile = "Mobile: " + data[i].employee_mobile + "<br>";
-                        } catch (error) {
-                            var mobile = "";
-                        }
-
-                        //CHECK FAX
-
-                        var fax = (data[i].employee_fax) ? "Fax: "+ data[i].employee_fax + "<br>" : "";
-
-                        
-                        cell0.innerHTML = "<input type='checkbox' class='form-control integrateCheck' onclick='countIntegrate()' value="+data[i].id +">";
-                        cell1.innerHTML = fname + " " + lname;
-                        cell2.innerHTML = email;
-                        cell5.innerHTML = phone + mobile + fax;
-                        
-                    }
-
-                    tblCustomer.appendChild(thead);
-                    tblCustomer.appendChild(tbody);
-
-                    document.getElementById("table").innerHTML = "";
-
-                    //CREATE ALERT
-                    var alertCard = document.createElement("div");
-                    alertCard.setAttribute("class","alert alert-warning");
-                    alertCard.innerHTML = "Below Contacts are those Employees that exist in your QuickBooks account but didn't exist in your Small Builders account."
-                    document.getElementById("table").appendChild(alertCard);
-
-                    //CREATE QUICKBOOKS TO SMALL BUILDERS
-                    var selection = document.createElement("nav");
-                    selection.setAttribute("class",'nav nav-tabs nav-justified');
-                    selection.innerHTML = "<a class='nav-item nav-link active' href='#'>Small Builders to Quickbooks</a>"+
-                        "<a class='nav-item nav-link' href='employeeContacts.php'>Quickbooks to Smallbuilders</a>";
-                        
-                    document.getElementById("table").appendChild(selection);
-
-                    document.getElementById("table").appendChild(tblCustomer);
-                    
-                    //Make table as Datable
-                    $(tblCustomer).DataTable();
-
-                    //CREATE INTEGRATE BUTTON
-                    var btnIntegrate = document.createElement("button");
-                    btnIntegrate.setAttribute("id", "btnIntegrate");
-                    btnIntegrate.setAttribute("class", "mt-2 mb-5 float-right btn btn-success btn-lg");
-                    btnIntegrate.disabled = true;
-                    btnIntegrate.innerHTML = "Integrate";
-                    btnIntegrate.onclick = function () {
-                        integrateEmployee();
-                    };
-                    document.getElementById("table").appendChild(btnIntegrate);
-                }
-            });
-        }
-
         function countIntegrate() {
             //VALIDATE TO ENABLE INTEGRATE BUTTON
             var integrateCheck = document.getElementsByClassName("integrateCheck");
@@ -423,44 +323,52 @@ else {
         function integrateEmployee() {
             $.confirm({
                 title: "Quickbooks to Smallbuilders",
-                columnClass: "medium",
+                columnClass: "large",
                 theme: "modern",
-                content: "",
+                content: "<table class='table'><tr><th>Employee Name</th><th>Email Address</th><th>Contact No.</th><th>Status</th></tr></table>",
                 onOpenBefore: function () {
-                    //Add Loading 
-                    this.showLoading();
                     //Get This
                     var confirmJS = this;
 
                     //Collect all Check QuickBooks ids
                     var integrateCheck = document.querySelectorAll('.integrateCheck:checked');
-                    
-                    //Quickbooks Array
-                    var employees = [];
+
 
                     //Retrieve Customer Info
                     for (let i = 0; i < integrateCheck.length; i++) {
                         var id = integrateCheck[i].value;
-                            //Pupunta sa Quickbooks info
-                            $.ajax({
-                                method: "post",
-                                url: "readEmployee(SBid).php",
-                                data: "access_token="+ access_token + "&refresh_token=" + refresh_token + "&realm_id=" + realm_id + "&id=" + id,
-                                success: function (data) {
-                                    //Add Customer to Array
-                                    employees.push(data);
-                                    //Check if All Request is Done
-                                    if(i == integrateCheck.length - 1) {
-                                        employeeToQB (employees,confirmJS);
+                        var employee_name = integrateCheck[i].parentNode.parentNode.childNodes[2].innerHTML;
+                        var employee_email = integrateCheck[i].parentNode.parentNode.childNodes[3].innerHTML;
+                        var employee_contact = integrateCheck[i].parentNode.parentNode.childNodes[4].innerHTML;
+                        confirmJS.$content.find('table').append("<tr><td>"+employee_name+"</td><td>"+employee_email+"</td><td>"+employee_contact+"</td><td id='inte"+id+"'><p style='color: blue'>Integrating</p></td></tr>");  
+                        //Pupunta sa Quickbooks info
+                        $.ajax({
+                            method: "post",
+                            url: "employeesToQB.php",
+                            data: "access_token="+ access_token + "&refresh_token=" + refresh_token + "&realm_id=" + realm_id + "&id=" + id,
+                            success: function (data) {
+
+                                if(data == "Success") {
+                                        confirmJS.$content.find('#inte'+ getUrlParameter(this.data,"id") ).html("<p style='color: green'>Integrated</p>");
                                     }
+                                else {
+                                    confirmJS.$content.find('#inte'+ getUrlParameter(this.data,"id") ).html("<p style='color: red'>Failed</p>");
                                 }
-                            });
+
+                                //Check if All Request is Done
+                                if(i == integrateCheck.length - 1) {
+                                    $( document ).ajaxStop(function(){
+                                        confirmJS.buttons.ok.enable();
+                                    });
+                                }
+                            }
+                        });
                     }
                 },
                 buttons: {
                     ok: {
                         action: function () {
-                            employee();
+                            window.location.href = "employeeContacts(SB).php";
                         }
                     }
                 }
@@ -572,5 +480,20 @@ else {
                 return "";
             }
         }
+
+        var getUrlParameter = function getUrlParameter(getURL,sParam) {
+            var sPageURL = getURL,
+                sURLVariables = sPageURL.split('&'),
+                sParameterName,
+                i;
+
+            for (i = 0; i < sURLVariables.length; i++) {
+                sParameterName = sURLVariables[i].split('=');
+
+                if (sParameterName[0] === sParam) {
+                    return sParameterName[1] === undefined ? true : decodeURIComponent(sParameterName[1]);
+                }
+            }
+        };
     </script>
 </html>

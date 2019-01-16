@@ -367,7 +367,9 @@ else {
 
                                     //Check if All Request is Done
                                     if(i == integrateCheck.length - 1) {
-                                        customerToQB (customers,confirmJS);
+                                        $( document ).ajaxStop(function(){
+                                            confirmJS.buttons.ok.enable();
+                                        });
                                     }
                                 }
                             });

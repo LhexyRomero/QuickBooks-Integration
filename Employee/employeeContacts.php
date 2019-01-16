@@ -338,32 +338,40 @@ else {
                 title: "Quickbooks to Smallbuilders",
                 columnClass: "medium",
                 theme: "modern",
-                content: "",
+                content: "<table class='table'><tr><th>Employee Name</th><th>Email Address</th><th>Contact No.</th><th>Status</th></tr></table>",
                 onOpenBefore: function () {
-                    //Add Loading 
-                    this.showLoading();
                     //Get This
                     var confirmJS = this;
                     //Collect all QuickBooks ids
                     var integrateCheck = document.querySelectorAll('.integrateCheck:checked');
-                    
-                    //Quickbooks Array
-                    var employees = [];
 
                     //Retrieve Customer Info
                     for (let i = 0; i < integrateCheck.length; i++) {
                         var id = integrateCheck[i].value;
+                        var employee_name = integrateCheck[i].parentNode.parentNode.childNodes[2].innerHTML;
+                        var employee_email = integrateCheck[i].parentNode.parentNode.childNodes[3].innerHTML;
+                        var employee_contact = integrateCheck[i].parentNode.parentNode.childNodes[4].innerHTML;
+                        confirmJS.$content.find('table').append("<tr><td>"+employee_name+"</td><td>"+employee_email+"</td><td>"+employee_contact+"</td><td id='inte"+id+"'><p style='color: blue'>Integrating</p></td></tr>");
+
                             //Pupunta sa Quickbooks info
                             $.ajax({
                                 method: "post",
-                                url: "readEmployee(id).php",
+                                url: "employeesToSB.php",
                                 data: "access_token="+ access_token + "&refresh_token=" + refresh_token + "&realm_id=" + realm_id + "&id=" + id,
                                 success: function (data) {
-                                    //Add Customer to Array
-                                    employees.push(data);
+                                    if(data == "Success") {
+                                        confirmJS.$content.find('#inte'+ getUrlParameter(this.data,"id") ).html("<p style='color: green'>Integrated</p>");
+                                    }
+                                    else {
+                                        confirmJS.$content.find('#inte'+ getUrlParameter(this.data,"id") ).html("<p style='color: red'>Failed</p>");
+                                    }
+                                       
+
                                     //Check if All Request is Done
                                     if(i == integrateCheck.length - 1) {
-                                        employeeToDB (employees,confirmJS);
+                                        $( document ).ajaxStop(function(){
+                                            confirmJS.buttons.ok.enable();
+                                        });
                                     }
                                 }
                             });
@@ -378,98 +386,6 @@ else {
                 }
             });
         }
-        function employeeToDB (employees,confirmJS) {
-            for (let i = 0; i < employees.length; i++) {
-                //PARSE JSON
-                var employee = JSON.parse(employees[i]);
-                //CHECK JSON
-                console.log(employee);
-                //CREATE FORM
-                var frmEmployee = document.createElement("form");
-                //Create Fields
-
-                //EMPLOYEE ID
-                var employee_number = convertNulltoEmpty(employee.EmployeeNumber);
-                
-                //EMPLOYEE NAME
-                var employee_name = convertNulltoEmpty(employee.GivenName);
-                //EMPLOYEE LAST NAME
-                var employee_lname = convertNulltoEmpty(employee.FamilyName);
-                //BIRTHDAY
-                var employee_birthday = convertNulltoEmpty(employee.BirthDate);
-                //EMPLOYEE START DATE = 
-                var employee_startdate = convertNulltoEmpty(employee.HiredDate);
-                //EMPLOYEE POSTAL CODE
-                try {
-                    var employee_address_postcode = convertNulltoEmpty(employee.PrimaryAddr.PostalCode);
-                } catch (error) {
-                    var employee_address_postcode = "";
-                }
-                //ADDRESS LINE 1
-                try {
-                    var employee_address_line1 = convertNulltoEmpty(employee.PrimaryAddr.Line1);
-                } catch (error) {
-                    var employee_address_line1 = "";
-                }
-                //STATE
-                try {
-                    var employee_address_suburb = convertNulltoEmpty(employee.PrimaryAddr.City);
-                } catch (error) {
-                    var employee_address_suburb = "";
-                }
-                //COUNTRY
-                try {
-                    var employee_address_country = convertNulltoEmpty(employee.PrimaryAddr.Country);
-                } catch (error) {
-                    var employee_address_country = "";
-                }  
-                //CUSTOMER EMAIL
-                try {
-                    var employee_email = convertNulltoEmpty(employee.PrimaryEmailAddr.Address);
-                } catch (error) {
-                    var employee_email = "";
-                }
-                //PHONE
-                try {
-                    var employee_phone = convertNulltoEmpty(employee.PrimaryPhone.FreeFormNumber);
-                } catch (error) {
-                    var employee_phone = "";
-                }
-                //MOBILE
-                try {
-                    var employee_mobile = convertNulltoEmpty(employee.Mobile.FreeFormNumber);
-                } catch (error) {
-                    var employee_mobile = "";
-                }
-                //FAX
-                try {
-                    var employee_fax = convertNulltoEmpty(employee.Fax.FreeFormNumber); 
-                } catch (error) {
-                    var employee_fax = ""; 
-                }
-                var quickbooks_uid = convertNulltoEmpty(employee.Id);
-                
-
-                frmEmployee.innerHTML = "<input name='employee_name' value='"+employee_name+"'><input name='employee_lname' value='"+employee_lname+"'><input name='employee_address' value='"+employee_address_line1+ ", " + employee_address_suburb + ", " + employee_address_country+"'><input name='employee_address_line1' value='"+employee_address_line1+"'><input name='employee_address_postcode' value='"+employee_address_postcode+"'><input name='employee_address_suburb' value='"+employee_address_suburb+"'><input name='employee_birthday' value='"+employee_birthday+"'><input name='employee_address_country' value='"+employee_address_country+"'><input name='employee_startdate' value='"+employee_startdate+"'><input name='employee_email' value='"+employee_email+"'><input name='employee_phone' value='"+employee_phone+"'><input name='employee_mobile' value='"+employee_mobile+"'><input name='employee_fax' value='"+employee_fax+"'><input name='employee_number' value='"+employee_number+"'><input name='quickbooks_uid' value='"+quickbooks_uid+"'>";
-
-                //alert($(frmEmployee).serialize());
-                
-                $.ajax({
-                    method: "post",
-                    url: "employeesToSB.php",
-                    data : $(frmEmployee).serialize(),
-                    success: function () {
-                        
-                    },
-                });
-                
-                //IF TAPOS LAHAT NG REQUEST
-                if(i == employees.length - 1) {
-                    confirmJS.hideLoading();
-                    confirmJS.setContent("Done");
-                }
-            }
-        }
 
         function convertNulltoEmpty(str) {
             try {
@@ -483,5 +399,20 @@ else {
                 return "";
             }
         }
+
+        var getUrlParameter = function getUrlParameter(getURL,sParam) {
+            var sPageURL = getURL,
+                sURLVariables = sPageURL.split('&'),
+                sParameterName,
+                i;
+
+            for (i = 0; i < sURLVariables.length; i++) {
+                sParameterName = sURLVariables[i].split('=');
+
+                if (sParameterName[0] === sParam) {
+                    return sParameterName[1] === undefined ? true : decodeURIComponent(sParameterName[1]);
+                }
+            }
+        };
     </script>
 </html>
