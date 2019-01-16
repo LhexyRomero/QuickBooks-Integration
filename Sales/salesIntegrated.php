@@ -199,90 +199,36 @@ else {
                         $sql = "SELECT * FROM `_relationship_db_sales` JOIN _project_db 
                                 ON _relationship_db_sales.project_id = _project_db.project_id 
                                 WHERE quickbooks_uid IS NOT NULL";
-                        $sql_customers = "SELECT id, customer_name, quickbooks_uid FROM `_relationship_db_customers` WHERE quickbooks_uid IS NOT NULL AND customer_name IS NOT NULL";
-
+                        
                         $query = $connect->query($sql);
-                        $allCustomers = $connect->query($sql_customers);
-
-                        $customer_options = array();
-                            
-                        while($customer = mysqli_fetch_assoc($allCustomers)){                                 
-                            $customer_option = "<option value='".$customer["quickbooks_uid"]."'>".$customer["customer_name"]."</option>";
-                            array_push($customer_options,$customer_option);
-                        }
-
+                        
                         while($row = mysqli_fetch_assoc($query)) {
+                            
+                            $sql_customers = "SELECT customer_name FROM `_relationship_db_customers` WHERE quickbooks_uid = ".$row["customer_id"]."";
+                            $allCustomers = $connect->query($sql_customers);
+                            $name = mysqli_fetch_array($allCustomers);
+
                             echo "<tr>
                                   <td>". $row["project_name"] ."</td>";
-                            echo "<td><select id='selected_customer'>   
-                                        ". selectCustomer($row["customer_id"],$customer_options)  ." 
-                                     </select>
+                            echo "<td> ". $name[0]."
                                   </td>";
                             echo "<td>". $row["invoice_no"] ."</td>";
                             echo "<td>". $row["invoice_date"] ."</td>";
                             echo "<td>". $row["due_date"] ."</td>";
-                            echo "<td>
-                                    <select id='select_type' name='selected_expense' style='width: 150px;'>
-                                        <option value=".$row["account_type"]."selected> Sales </option>
-                                        <option>Interest Income</option>
-                                        <option>Other Revenue </option>
-                                    </select>
-                                </td>";
+                            echo "<td>Sales</td>";
                             echo "<td>". number_format($row["total_amount"],2) ."</td>";
                             echo "<td>". $row["date_moved"] ."</td>";
                             echo "</tr>";
                         }
-
-                        function selectCustomer($id,$customer_options) {
-                            $options = "";
-                            for ($i=0; $i < sizeof($customer_options); $i++) {
-                                if (strpos($customer_options[$i], $id) !== false) {
-                                    //REPLACE value='id' to value='id' selected
-                                    $value = "value='".$id."'";
-                                    $replacedValue = $value . " selected";
-                                    //REPLACE IT
-                                    $options .= str_replace($value,$replacedValue,$customer_options[$i]);
-                                }
-                                //IF D NAHANAP
-                                else {
-                                    $options .= $customer_options[$i];
-                                }
-
-                            }
-                            return $options;
-                        }
                     ?>
                 </tbody>
             </table>
-            <center><button id='btnIntegrate' class='mt-2 mb-5 btn btn-success btn-lg' onclick='integratePurchase()' disabled>Integrate</button></center>
-            <script>
+           <script>
                 $("#QBtoSB").DataTable();         
                 $('#select_types').select2();
             </script>
         </div>
         <hr style='clear: both'>
-    <!-- <pre id="accessToken">
-        <style="background-color:#efefef;overflow-x:scroll"><?php
-    $displayString = isset($accessTokenJson) ? $accessTokenJson : "No Access Token Generated Yet";
-    echo json_encode($displayString, JSON_PRETTY_PRINT); ?>
-    </pre> -->
-
 </div>
 </body>
-    <script>
-        //TOKENS and IDs
-        var access_token = "<?php $json = json_encode($accessTokenJson, JSON_PRETTY_PRINT);; 
-                                    $json = json_decode($json, true);
-                                    echo $json["access_token"];?>";
-        var refresh_token = "<?php $json = json_encode($accessTokenJson, JSON_PRETTY_PRINT);; 
-                                    $json = json_decode($json, true);
-                                    echo $json["refresh_token"];?>";
-        var realm_id = "<?php echo $accessToken->getRealmID(); ?>";
-
-
-        window.onload = function () {
-            apiCall.getCompanyName();
-        }
-        
-    </script>
 </html>
