@@ -187,7 +187,6 @@ else {
                         <th>Invoice No. </th>
                         <th>Invoice Date </th>
                         <th>Due Date </th>
-                        <th>Invoice Attachment</th>
                         <th>Account type</th>
                         <th>Amount</th>
                     </tr>
@@ -198,12 +197,21 @@ else {
                         require_once "../db_connect.php";
 
                         $quickbooks_uids = array();
-                        $sql = "SELECT quickbooks_uid FROM _relationship_db_purchase";
-                    
+                        $sql = "SELECT quickbooks_uid FROM tbl_expensesheet";
+                        $sql_account = "SELECT * FROM _account_type_db";
+
                         $query = $connect->query($sql);
-                    
+                        $allAccount = $connect->query($sql_account);
+
+                        $account_options = array();
+
                         while($row = mysqli_fetch_array($query)) {
                             array_push($quickbooks_uids,$row["quickbooks_uid"]);
+                        }
+
+                        while($account = mysqli_fetch_assoc($allAccount)) {
+                            $account_option = "<option value='".$account["account_id"]."'>".$account["type"]."</option>";
+                            array_push($account_options,$account_option);
                         }
 
                         //GET Quickbooks Records
@@ -211,28 +219,43 @@ else {
                         foreach($allPurchase as $purchase) {
                             if (in_array($purchase->Id, $quickbooks_uids, TRUE)) 
                             { 
-                                //If Found Show
                             } 
                             else
-                            { 
-                                $account_id = json_encode(@$purchase->Line->AccountBasedExpenseLineDetail->AccountRef);
-                                $selected_sql = "SELECT * FROM _account_type_db WHERE account_id = $account_id";
+                            {
+                                $account_id = @$purchase->Line->AccountBasedExpenseLineDetail->AccountRef;
                                 
-                                $option = $connect->query($selected_sql);
-                                $option_row = mysqli_fetch_array($option);
-
                                 echo "<tr>
                                 <td><center><input type='checkbox' class='form-control integrateCheck' onclick='countIntegrate()' value='".$purchase->Id."'></center></td>
-                                <td> --- </td>";
+                                <td>".@$purchase->Line->AccountBasedExpenseLineDetail->Description."</td>";
                                 echo "<td> --- </td>";
                                 echo "<td>". @$purchase->DocNumber. "</td>";
                                 echo "<td>". @$purchase->TxnDate. "</td>";
                                 echo "<td>". @$purchase->TxnDate. "</td>";
-                                echo "<td> --- </td>";
-                                echo "<td> --- </td>";
+                                echo "<td>
+                                        <select name='type' id='selected_type".$purchase->Id."'>
+                                            ".selectAccount($account_id,$account_options)."
+                                        </select>
+                                    </td>";
                                 echo "<td>". @$purchase->TotalAmt. "</td>";
                                 echo "</tr>";
                             } 
+                        }
+
+                        function selectAccount($id, $account_options) {
+                            $options = "<option value='0' hidden> --- Select Account Type --- </option>";
+                            for ($i=0; $i < sizeof($account_options); $i++) { 
+                                if(strpos($account_options[$i], $id) !== false) {
+                                    
+                                    $value = "value='".$id."'";
+                                    $replacedValue = $value . " selected";
+
+                                    $options .= str_replace($value,$replacedValue,$account_options[$i]);
+                                }
+                                else {
+                                    $options .= $account_options[$i];
+                                }
+                            }
+                            return $options;
                         }
                     ?>
                 </tbody>
@@ -277,7 +300,7 @@ else {
             if(checks == 0) {
                 document.getElementById("btnIntegrate").disabled = true;
             }
-            else {
+            else {  
                 document.getElementById("btnIntegrate").disabled = false;
             }
         }
@@ -301,22 +324,21 @@ else {
                 title: "Quickbooks to Smallbuilders",
                 columnClass: "large",
                 theme: "modern",
-                content: "<table class='table'><tr><th>Project Name</th><th>Supplier/Subcontractor</th><th>Invoice No.</th><th>Invoice Date</th><th>Amount</th><th>Status</th></tr></table>",
+                content: "<table class='table'><tr><th>Project Name</th><th>Supplier/Subcontractor</th><th>Invoice No.</th><th>Invoice Date</th><th>Account Type</th><th>Amount</th><th>Status</th></tr></table>",
                 onOpenBefore: function () {
                     var confirmJS = this;
                     var integrateCheck = document.querySelectorAll('.integrateCheck:checked');
                     
                     for (let i = 0; i < integrateCheck.length; i++) {
                         var id = integrateCheck[i].value;
-
-                        console.log(id);
-                       var project_name = integrateCheck[i].parentNode.parentNode.parentNode.childNodes[3].innerHTML;
-                       var supplier = integrateCheck[i].parentNode.parentNode.parentNode.childNodes[4].innerHTML;
-                       var invoice_no = integrateCheck[i].parentNode.parentNode.parentNode.childNodes[5].innerHTML;
-                       var invoice_date = integrateCheck[i].parentNode.parentNode.parentNode.childNodes[6].innerHTML;
-                       var amount = integrateCheck[i].parentNode.parentNode.parentNode.childNodes[7].innerHTML;
+                        var project_name = integrateCheck[i].parentNode.parentNode.parentNode.childNodes[3].innerHTML;
+                        var supplier = integrateCheck[i].parentNode.parentNode.parentNode.childNodes[4].innerHTML;
+                        var invoice_no = integrateCheck[i].parentNode.parentNode.parentNode.childNodes[5].innerHTML;
+                        var invoice_date = integrateCheck[i].parentNode.parentNode.parentNode.childNodes[6].innerHTML;
+                        var account_type = integrateCheck[i].parentNode.parentNode.parentNode.childNodes[8].innerHTML;
+                        var amount = integrateCheck[i].parentNode.parentNode.parentNode.childNodes[9].innerHTML;
                         
-                        confirmJS.$content.find('table').append("<tr><td>"+project_name+"</td><td>"+supplier+"</td><td>"+invoice_no+"</td><td>"+invoice_date+"</td><td>"+amount+"</td><td id='inte"+id+"'><p style='color: blue'>Integrating</p></td></tr>");
+                        confirmJS.$content.find('table').append("<tr><td>"+project_name+"</td><td>"+supplier+"</td><td>"+invoice_no+"</td><td>"+invoice_date+"</td><td>"+account_type+"</td><td>"+amount+"</td><td id='inte"+id+"'><p style='color: blue'>Integrating</p></td></tr>");
                             //GET QUICKBOOKS RECORD USING ID
                             $.ajax({
                                 method: "post",

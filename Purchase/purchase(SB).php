@@ -1,13 +1,8 @@
-
 <?php
-
 require_once('../vendor/autoload.php');
 use QuickBooksOnline\API\DataService\DataService;
-
 $config = include('../config.php');
-
 session_start();
-
 $dataService = DataService::Configure(array(
     'auth_mode' => 'oauth2',
     'ClientID' => $config['client_id'],
@@ -16,17 +11,12 @@ $dataService = DataService::Configure(array(
     'scope' => $config['oauth_scope'],
     'baseUrl' => "Development"
 ));
-
 $OAuth2LoginHelper = $dataService->getOAuth2LoginHelper();
 $authUrl = $OAuth2LoginHelper->getAuthorizationCodeURL();
-
-
 // Store the url in PHP Session Object;
 $_SESSION['authUrl'] = $authUrl;
-
 //set the access token using the auth object
 if (isset($_SESSION['sessionAccessToken'])) {
-
     $accessToken = $_SESSION['sessionAccessToken'];
     $accessTokenJson = array('token_type' => 'bearer',
         'access_token' => $accessToken->getAccessToken(),
@@ -44,7 +34,6 @@ else {
         window.location.href = '../index.php';
     </script>";
 }
-
 ?>
 
 <!DOCTYPE html>
@@ -64,12 +53,8 @@ else {
     <link href='../public/css/select2.min.css' rel='stylesheet' type='text/css'>
 
     <script>
-
         var url = '<?php echo $authUrl; ?>';
-
         var OAuthCode = function(url) {
-
-
             //SHOW LOGIN WINDOW
             this.loginPopup = function (parameter) {
                 this.loginPopupUri(parameter);
@@ -77,15 +62,12 @@ else {
             
             //CREATE LOGIN WINDOW
             this.loginPopupUri = function (parameter) {
-
                 // Launch Popup
                 var parameters = "location=1,width=800,height=650";
                 parameters += ",left=" + (screen.width - 800) / 2 + ",top=" + (screen.height - 650) / 2;
-
                 var win = window.open(url, 'connectPopup', parameters);
                 var pollOAuth = window.setInterval(function () {
                     try {
-
                         if (win.document.URL.indexOf("code") != -1) {
                             window.clearInterval(pollOAuth);
                             win.close();
@@ -97,9 +79,7 @@ else {
                 }, 100);
             }
         }
-
         var apiCall = function() {
-
             //GET COMPANY NAME
             this.getCompanyName = function() {
                 $.ajax({
@@ -126,7 +106,6 @@ else {
                     type: "POST",
                     url: "refreshToken.php",
                 }).done(function( msg ) {
-
                 });
             }
         }
@@ -191,7 +170,6 @@ else {
                             <?php
                                 require_once "../db_connect.php";
                                 $sql = "SELECT * FROM _project_db";
-
                                 $query = $connect->query($sql);
                                 $option = "";
                                 while($row = mysqli_fetch_array($query)) {
@@ -199,7 +177,6 @@ else {
                                     $project_name = $row['project_name'];
                                     $option .= "<option value=".$project_id.">".$project_name."</option>";
                                 }
-
                                 echo $option;
                             ?>
                         </select>
@@ -209,7 +186,6 @@ else {
                             <?php
                                 require_once "../db_connect.php";
                                 $sql = "SELECT * FROM _supplier_db";
-
                                 $query = $connect->query($sql);
                                 $option = "";
                                 while($row = mysqli_fetch_array($query)) {
@@ -217,7 +193,6 @@ else {
                                     $supplier_name = $row['supplier_name'];
                                     $option .= "<option value=".$supplier_id.">".$supplier_name."</option>";
                                 }
-
                                 echo $option;
                             ?>
                         </select>
@@ -238,7 +213,6 @@ else {
                         <th>Invoice No.</th>
                         <th>Invoice Date</th>
                         <th>Due Date</th>
-                        <th>Invoice Attachment</th>
                         <th>Account type</th>
                         <th>Amount</th>
                     </tr>
@@ -273,12 +247,10 @@ else {
                                     $json = json_decode($json, true);
                                     echo $json["refresh_token"];?>";
         var realm_id = "<?php echo $accessToken->getRealmID(); ?>";
-
         window.onload = function () {
             apiCall.getCompanyName();
             $("#btnHistory").hide();
         }
-
         function viewPurchase(){
             
             console.log($("#grpSelect").serialize());
@@ -294,7 +266,6 @@ else {
                 }
             });
         }
-
         function countIntegrate() {
             var integrateCheck = document.getElementsByClassName("integrateCheck");
             var checks = 0;
@@ -309,7 +280,6 @@ else {
             }
             document.getElementById("btnIntegrate").disabled = false;
         }
-
         function checkAll(elem) {
             var integrateCheck = document.getElementsByClassName("integrateCheck");
             if(elem.checked == true) {
@@ -323,7 +293,6 @@ else {
                 }
             }
         }
-
         function integratePurchase() {
             $.confirm({
                 title: "Smallbuilders to Quickbooks",
@@ -338,26 +307,22 @@ else {
                     //Retrieve Customer Info
                     for (let i = 0; i < integrateCheck.length; i++) {
                         var id = integrateCheck[i].value;
-
                         var project_name = integrateCheck[i].parentNode.parentNode.parentNode.childNodes[3].innerHTML;
                         var supplier = integrateCheck[i].parentNode.parentNode.parentNode.childNodes[5].innerHTML;
                         var invoice_no = integrateCheck[i].parentNode.parentNode.parentNode.childNodes[7].innerHTML;
                         var invoice_date = integrateCheck[i].parentNode.parentNode.parentNode.childNodes[9].innerHTML;
                         var due_date = integrateCheck[i].parentNode.parentNode.parentNode.childNodes[11].innerHTML;
-                        var amount = integrateCheck[i].parentNode.parentNode.parentNode.childNodes[17].innerHTML;
+                        //13 account type
+                        var amount = integrateCheck[i].parentNode.parentNode.parentNode.childNodes[15].innerHTML;
+
                        
                         confirmJS.$content.find('table').append("<tr><td>"+project_name+"</td><td>"+supplier+"</td><td>"+invoice_no+"</td><td>"+invoice_date+"</td><td>"+amount+"</td><td id='inte"+id+"'><p style='color: blue'>Integrating</p></td></tr>");
-                        //Pupunta sa Database Kunin ung Info
-                        var frmPurchase = document.createElement("form");
-                
-                        frmPurchase.innerHTML = "<input name='id' value='"+id+"'><input name='invoice_date' value='"+invoice_date+"'><input name='due_date' value='"+due_date+"'><input name='invoice_no' value='"+invoice_no+"'><input name='amount' value='"+amount+"'>";
-                
+                        
                         $.ajax({
                             method: "post",
                             url: "purchaseToQB.php",    
-                            data: $(frmPurchase).serialize() + "&access_token="+ access_token + "&refresh_token=" + refresh_token + "&realm_id=" + realm_id,
+                            data:"&id="+ id +"&access_token="+ access_token + "&refresh_token=" + refresh_token + "&realm_id=" + realm_id,
                             success: function (data) {
-
                                 if(data == "Success") {
                                     console.log(data,"DITO SKO");
                                     confirmJS.$content.find('#inte'+ getUrlParameter(this.data,"id") ).html("<p style='color: green'>Integrated</p>");   
@@ -366,7 +331,6 @@ else {
                                     console.log(data);
                                     confirmJS.$content.find('#inte'+ getUrlParameter(this.data,"id") ).html("<p style='color: red'>Failed</p>");   
                                 }
-
                                 if(i == integrateCheck.length - 1) {
                                     $( document ).ajaxStop(function(){
                                         confirmJS.buttons.ok.enable();
@@ -398,12 +362,10 @@ else {
                 return "";
             }
         }
-
         function history(){
             $("#btnIntegrate").hide();
             $("#btnHistory").show();
         }
-
         function toPurchaseHistory(){
             $.confirm({
                 title: "Smallbuilders History",
@@ -419,13 +381,11 @@ else {
                     for (let i = 0; i < integrateCheck.length; i++) {
                         var id = integrateCheck[i].value;
                         console.log("lenggth",integrateCheck.length);
-
                         $.ajax({
                             method: "post",
                             url: "purchaseHistory.php",
                             data: "id="+id,
                             success: function (data) {
-
                                 if(i < integrateCheck.length - 1) {
                                     confirmJS.hideLoading();
                                     confirmJS.setContent("Done");
@@ -445,16 +405,13 @@ else {
                 }
             });
         }
-
         var getUrlParameter = function getUrlParameter(getURL,sParam) {
             var sPageURL = getURL,
                 sURLVariables = sPageURL.split('&'),
                 sParameterName,
                 i;
-
             for (i = 0; i < sURLVariables.length; i++) {
                 sParameterName = sURLVariables[i].split('=');
-
                 if (sParameterName[0] === sParam) {
                     return sParameterName[1] === undefined ? true : decodeURIComponent(sParameterName[1]);
                 }
