@@ -161,7 +161,7 @@ else {
     <br>
         <div class="btn-group">
             <a href="../Customer/customerContacts.php" class="btn btn-secondary">Contacts</a>
-            <a href="#" class="btn btn-secondary">Sales</a>
+            <a href="../Sales/sales.php" class="btn btn-secondary">Sales</a>
             <a href="#" class="btn btn-secondary active">Purchases</a>
             <a href="#" class="btn btn-secondary">Time Activity</a>
         </div>
@@ -327,38 +327,50 @@ else {
         function integratePurchase() {
             $.confirm({
                 title: "Smallbuilders to Quickbooks",
-                columnClass: "medium",
+                columnClass: "large",
                 theme: "modern",
-                content: "",
+                content: "<table class='table'><tr><th>Project Name</th><th>Supplier/Subcontractor</th><th>Invoice No.</th><th>Invoice Date</th><th>Amount</th><th>Status</th></tr></table>",
                 onOpenBefore: function () {
-                    //Add Loading 
-                    this.showLoading();
-                    //Get This
                     var confirmJS = this;
                     //Collect all QuickBooks ids
                     var integrateCheck = document.querySelectorAll('.integrateCheck:checked');
                     
-                    //Quickbooks Array
-                    var purchases = [];
-
                     //Retrieve Customer Info
                     for (let i = 0; i < integrateCheck.length; i++) {
                         var id = integrateCheck[i].value;
-                            //Pupunta sa Database Kunin ung Info
+
+                        var project_name = integrateCheck[i].parentNode.parentNode.parentNode.childNodes[3].innerHTML;
+                        var supplier = integrateCheck[i].parentNode.parentNode.parentNode.childNodes[5].innerHTML;
+                        var invoice_no = integrateCheck[i].parentNode.parentNode.parentNode.childNodes[7].innerHTML;
+                        var invoice_date = integrateCheck[i].parentNode.parentNode.parentNode.childNodes[9].innerHTML;
+                        var due_date = integrateCheck[i].parentNode.parentNode.parentNode.childNodes[11].innerHTML;
+                        var amount = integrateCheck[i].parentNode.parentNode.parentNode.childNodes[17].innerHTML;
+                       
+                        confirmJS.$content.find('table').append("<tr><td>"+project_name+"</td><td>"+supplier+"</td><td>"+invoice_no+"</td><td>"+invoice_date+"</td><td>"+amount+"</td><td id='inte"+id+"'><p style='color: blue'>Integrating</p></td></tr>");
+                        //Pupunta sa Database Kunin ung Info
+                        var frmPurchase = document.createElement("form");
+                
+                        frmPurchase.innerHTML = "<input name='id' value='"+id+"'><input name='invoice_date' value='"+invoice_date+"'><input name='due_date' value='"+due_date+"'><input name='invoice_no' value='"+invoice_no+"'><input name='amount' value='"+amount+"'>";
+                
                         $.ajax({
                             method: "post",
-                            url: "readPurchase(SBid).php",
-                            dataType: "json",
-                            data: "id=" + id + "&access_token="+ access_token + "&refresh_token=" + refresh_token + "&realm_id=" + realm_id,
+                            url: "purchaseToQB.php",    
+                            data: $(frmPurchase).serialize() + "&access_token="+ access_token + "&refresh_token=" + refresh_token + "&realm_id=" + realm_id,
                             success: function (data) {
-                                //Add Customer to Array
-                                purchases.push(data);
-                                console.log("AJAX FOR getting data from DB",purchases);
 
-                                //Check if All Request is Done
+                                if(data == "Success") {
+                                    console.log(data,"DITO SKO");
+                                    confirmJS.$content.find('#inte'+ getUrlParameter(this.data,"id") ).html("<p style='color: green'>Integrated</p>");   
+                                }
+                                else {
+                                    console.log(data);
+                                    confirmJS.$content.find('#inte'+ getUrlParameter(this.data,"id") ).html("<p style='color: red'>Failed</p>");   
+                                }
+
                                 if(i == integrateCheck.length - 1) {
-                                    purchaseToQB (purchases,confirmJS);
-                                    console.log("IM DONE BTCHES");
+                                    $( document ).ajaxStop(function(){
+                                        confirmJS.buttons.ok.enable();
+                                    });
                                 }
                             }
                         });
@@ -374,73 +386,6 @@ else {
             });
         }
         
-        function purchaseToQB (purchases,confirmJS) {
-        
-            for (let i = 0; i < purchases.length; i++) {
-                //CREATE FORM
-                var frmPurchase = document.createElement("form");
-                //Create Fields
-
-                try {
-                    var id = convertNulltoEmpty(purchases[i][0].id);
-                } catch (error) {
-                    var id = "";
-                }
-                try {
-                    var invoice_date = convertNulltoEmpty(purchases[i][0].invoice_date);
-                } catch (error) {
-                    var invoice_date = "";
-                }
-                try {
-                    var due_date = convertNulltoEmpty(purchases[i][0].due_date);
-                } catch (error) {
-                    var due_date = "";
-                }
-                try {
-                    var invoice_no = convertNulltoEmpty(purchases[i][0].invoice_no);
-                } catch (error) {
-                    var invoice_no = "";
-                }
-                try {
-                    var amount = convertNulltoEmpty(purchases[i][0].amount); 
-                } catch (error) {
-                    var amount = ""; 
-                }
-                var final_amount = parseFloat(amount).toFixed(2);
-                try {
-                    var account_id = convertNulltoEmpty(purchases[i][0].account_id)
-                }
-                catch {
-                    var account_id = "";
-                }
-                try {
-                    var account_type = convertNulltoEmpty(purchases[i][0].type);
-                }
-                catch (error) {
-                    var account_type = "";
-                }
-
-                var quickbooks_uid = purchases.quickbooks_uid;
-
-                frmPurchase.innerHTML = "<input name='id' value='"+id+"'><input name='invoice_date' value='"+invoice_date+"'><input name='due_date' value='"+due_date+"'><input name='invoice_no' values='"+invoice_no+"'><input name='amount' value='"+final_amount+"'><input name='account_id' value='"+account_id+"'><input name='account_type' value='"+account_type+"'>";
-                
-                $.ajax({
-                    method: "post",
-                    url: "purchaseToQB.php",
-                    data: $(frmPurchase).serialize() +"&access_token="+ access_token + "&refresh_token=" + refresh_token + "&realm_id=" + realm_id,
-                    success: function (data) {
-                        console.log("SB to QB",data);
-                    },
-                });
-                
-                //IF TAPOS LAHAT NG REQUEST
-                if(i == purchases.length - 1) {
-                    confirmJS.hideLoading();
-                    confirmJS.setContent("Done");
-                }
-            }
-        }
-
         function convertNulltoEmpty(str) {
             try {
                 if(str == null ){
@@ -500,5 +445,20 @@ else {
                 }
             });
         }
+
+        var getUrlParameter = function getUrlParameter(getURL,sParam) {
+            var sPageURL = getURL,
+                sURLVariables = sPageURL.split('&'),
+                sParameterName,
+                i;
+
+            for (i = 0; i < sURLVariables.length; i++) {
+                sParameterName = sURLVariables[i].split('=');
+
+                if (sParameterName[0] === sParam) {
+                    return sParameterName[1] === undefined ? true : decodeURIComponent(sParameterName[1]);
+                }
+            }
+        };
     </script>
 </html>

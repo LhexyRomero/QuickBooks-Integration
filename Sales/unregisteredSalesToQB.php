@@ -16,70 +16,78 @@ require_once "../db_connect.php";
 
 //POST
 $id = $_POST["id"];
-$invoice_no = $_POST["invoice_no"];
-$invoice_date = $_POST["invoice_date"];
-$due_date = $_POST["due_date"];
-$customer_id = $_POST["customer_id"];
-$total_amount = $_POST["total_amount"];
-$deposit_amount = $_POST["deposit"];
-$project_name = $_POST["project_name"];
-$project_type = $_POST["project_type"];
 
-$description = $project_type.":".$project_name;
+$sql = "SELECT * FROM `_relationship_db_sales` JOIN _project_db 
+        ON _relationship_db_sales.project_id = _project_db.project_id 
+        WHERE id = $id";
 
-$dataService = DataService::Configure(array(
-    'auth_mode' => 'oauth2',
-    'ClientID' => $config['client_id'],
-    'ClientSecret' =>  $config['client_secret'],
-    'RedirectURI' => $config['oauth_redirect_uri'],
-    'accessTokenKey' => $accessTokenKey,
-    'refreshTokenKey' => $refreshTokenKey,
-    'QBORealmID' => $realmId,
-    'baseUrl' => "Development"
-));
+$query = $connect->query($sql);
 
-$dataService->setLogLocation("/Users/hlu2/Desktop/newFolderForLog");
-$dataService->throwExceptionOnError(true);
- 
-$theResourceObj = Invoice::create([  
-      "Line"=> [
-        [
-          "Amount"=> "$total_amount",
-          "Description"=> "$description",
-          "DetailType"=> "SalesItemLineDetail",
-          "SalesItemLineDetail"=> [
-            "ItemRef"=> [
-              "value"=> "1",
-              "name"=> "Services"
+while($row = mysqli_fetch_array($query)) {
+
+  $invoice_no = $row["invoice_no"];
+  $invoice_date = $row["invoice_date"];
+  $due_date = $row["due_date"];
+  $customer_id = $row["customer_id"];
+  $total_amount = $row["total_amount"];
+  $project_name = $row["project_name"];
+  $project_type = $row["project_type"];
+
+  $description = $project_type.":".$project_name;
+
+  $dataService = DataService::Configure(array(
+      'auth_mode' => 'oauth2',
+      'ClientID' => $config['client_id'],
+      'ClientSecret' =>  $config['client_secret'],
+      'RedirectURI' => $config['oauth_redirect_uri'],
+      'accessTokenKey' => $accessTokenKey,
+      'refreshTokenKey' => $refreshTokenKey,
+      'QBORealmID' => $realmId,
+      'baseUrl' => "Development"
+  ));
+
+  $dataService->setLogLocation("/Users/hlu2/Desktop/newFolderForLog");
+  $dataService->throwExceptionOnError(true);
+  
+  $theResourceObj = Invoice::create([  
+        "Line"=> [
+          [
+            "Amount"=> "$total_amount",
+            "Description"=> "$description",
+            "DetailType"=> "SalesItemLineDetail",
+            "SalesItemLineDetail"=> [
+              "ItemRef"=> [
+                "value"=> "1",
+                "name"=> "Services"
+              ]
             ]
           ]
-        ]
-      ],
-      "CustomerRef"=> [
-        "value"=> "$customer_id"
-      ],
-    "DocNumber"=> "$invoice_no",
-    "TxnDate"=> "$invoice_date",
-    "DueDate"=> "$due_date"
-]);
+        ],
+        "CustomerRef"=> [
+          "value"=> "$customer_id"
+        ],
+      "DocNumber"=> "$invoice_no",
+      "TxnDate"=> "$invoice_date",
+      "DueDate"=> "$due_date"
+  ]);
 
-$resultingObj = $dataService->Add($theResourceObj);
-$error = $dataService->getLastError();
-if ($error) {
-    echo "The Status code is: " . $error->getHttpStatusCode() . "\n";
-    echo "The Helper message is: " . $error->getOAuthHelperError() . "\n";
-    echo "The Response message is: " . $error->getResponseBody() . "\n";
+  $resultingObj = $dataService->Add($theResourceObj);
+  $error = $dataService->getLastError();
+  if ($error) {
+      echo "The Status code is: " . $error->getHttpStatusCode() . "\n";
+      echo "The Helper message is: " . $error->getOAuthHelperError() . "\n";
+      echo "The Response message is: " . $error->getResponseBody() . "\n";
+  }
+
+  else {
+      $quickbooks_uid = $resultingObj->Id;
+      $sql = "UPDATE `_relationship_db_sales` SET `quickbooks_uid` = '$quickbooks_uid', date_moved = CURRENT_TIMESTAMP WHERE `id` = $id";
+
+      if($connect->query($sql)) {
+          echo "Success";
+      }
+      else {
+          //
+      }
+  } 
 }
-
-else {
-    $quickbooks_uid = $resultingObj->Id;
-    //invoice_type == 3 is moved
-    $sql = "UPDATE `_relationship_db_sales` SET `quickbooks_uid` = '$quickbooks_uid', date_moved = CURRENT_TIMESTAMP WHERE `id` = $id";
-
-    if($connect->query($sql)) {
-        echo "Success btich";
-    }
-    else {
-        //
-    }
-} 

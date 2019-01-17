@@ -182,7 +182,6 @@ else {
                             <th>Invoice No. </th>
                             <th>Invoice Date </th>
                             <th>Due Date </th>
-                            <th>Account type</th>
                             <th><center>Amount <br><label class="text">(Inc. of GST, if applicable)</label></center></th>
                         </tr>
                     </thead>
@@ -230,7 +229,6 @@ else {
                                             <td>". $row["invoice_no"]. "</td>
                                             <td>". $row["invoice_date"]. "</td>
                                             <td>". $row["due_date"]. "</td>
-                                            <td></td>
                                             <td>". number_format($row["total_amount"],2). "</td>
                                         </tr>";
                                 }
@@ -240,13 +238,12 @@ else {
                                         <td><center><input type='checkbox' class='form-control integrateCheck' onclick='countIntegrate()' value='".$row["id"]."'></td></center>
                                         <td>". $row["project_name"]. "</td>
                                         <td><select id='selected_customer_b".$row["id"]."' onchange='updateCustomer(".$row["id"].",2)'>   
-                                               ". selectCustomer($row["customer_id"],$customer_options)  ." 
+                                                ". selectCustomer($row["customer_id"],$customer_options)  ." 
                                             </select>
                                             </td>
                                             <td>". $row["invoice_no"]. "</td>
                                             <td>". $row["invoice_date"]. "</td>
                                             <td>". $row["due_date"]. "</td>
-                                            <td></td>
                                             <td>". number_format($row["total_amount"],2). "</td>
                                         </tr>";
                                 }
@@ -304,10 +301,10 @@ else {
             apiCall.getCompanyName();
             var selected_ = "<?php echo $selected_invoice ?>";
             $("#invoice_type option[value='"+selected_+"']").attr("selected",true);
+            $("input[name=unable]").attr('disabled', true); 
         }
 
         function checkBox(id) {    
-            $("input[name=unable]").attr('disabled', true); 
         }
 
         function updateCustomer(id,type){
@@ -362,37 +359,75 @@ else {
 
         function integrateSales() {
             var invoice_global = "<?php echo $selected_invoice ?>";
-            console.log(invoice_global,"THE SELECTED");
+
             $.confirm({
                 title: "Smallbuilders to Quickbooks",
-                columnClass: "medium",
+                columnClass: "large",
                 theme: "modern",
-                content: "",
+                content: "<table class='table'><tr><th>Project Name</th><th>Customer Name</th><th>Invoice No.</th><th>Invoice Date</th><th>Amount</th><th>Status</th></tr></table>",
                 onOpenBefore: function () {
-                    this.showLoading();
-                    
+
                     var confirmJS = this;
                     var integrateCheck = document.querySelectorAll('.integrateCheck:checked');
                     
-                    var sales = [];
-
                     for (let i = 0; i < integrateCheck.length; i++) {
                         var id = integrateCheck[i].value;
-                    
-                        $.ajax({
-                            method: "post",
-                            url: "readSales(SBid).php",
-                            dataType: "json",
-                            data: "id=" + id + "&access_token="+ access_token + "&refresh_token=" + refresh_token + "&realm_id=" + realm_id,
-                            success: function (data) {
-                                sales.push(data);
-                                console.log("AJAX FOR getting data from DB",sales);
+                        var project_name = integrateCheck[i].parentNode.parentNode.parentNode.childNodes[3].innerHTML;
+                        var customer_name = integrateCheck[i].parentNode.parentNode.parentNode.childNodes[5].innerHTML;
+                        var invoice_no = integrateCheck[i].parentNode.parentNode.parentNode.childNodes[7].innerHTML;
+                        var invoice_date = integrateCheck[i].parentNode.parentNode.parentNode.childNodes[9].innerHTML;
+                        var amount = integrateCheck[i].parentNode.parentNode.parentNode.childNodes[13].innerHTML;
+                        
+                        confirmJS.$content.find('table').append("<tr><td>"+project_name+"</td><td>"+customer_name+"</td><td>"+invoice_no+"</td><td>"+invoice_date+"</td><td>"+amount+"</td><td id='inte"+id+"'><p style='color: blue'>Integrating</p></td></tr>")
+                        
+                        if(invoice_global == 1){
+                            $.ajax({
+                                method: "post",
+                                url: "registeredSalesToQB.php",
+                                data:  "id=" + id + "&access_token="+ access_token + "&refresh_token=" + refresh_token + "&realm_id=" + realm_id,
+                                success: function (data) {
+                                    if(data == "Success") {
+                                        console.log("LEKI");
+                                        confirmJS.$content.find('#inte'+ getUrlParameter(this.data,"id") ).html("<p style='color: green'>Integrated</p>");   
+                                    }
+                                    else {
+                                        confirmJS.$content.find('#inte'+ getUrlParameter(this.data,"id") ).html("<p style='color: red'>Failed</p>");   
+                                    }
 
-                                if(i == integrateCheck.length - 1) {
-                                    SalestoQB (sales,confirmJS,invoice_global); 
+                                    if(i == integrateCheck.length - 1) {
+                                        $( document ).ajaxStop(function(){
+                                            confirmJS.buttons.ok.enable();
+                                        });
+                                    }
+                                    
                                 }
-                            }
-                        });
+                            });
+                        }
+                        else {
+                            $.ajax({
+                                method: "post",
+                                url: "unregisteredSalesToQB.php",
+                                data: "id=" + id + "&access_token="+ access_token + "&refresh_token=" + refresh_token + "&realm_id=" + realm_id,
+                                success: function (data) {
+
+                                    if(data == "Success") {
+                                        console.log(data,"DITO SKO");
+                                        confirmJS.$content.find('#inte'+ getUrlParameter(this.data,"id") ).html("<p style='color: green'>Integrated</p>");   
+                                    }
+                                    else {
+                                        console.log(data);
+                                        confirmJS.$content.find('#inte'+ getUrlParameter(this.data,"id") ).html("<p style='color: red'>Failed</p>");   
+                                    }
+
+                                    if(i == integrateCheck.length - 1) {
+                                        $( document ).ajaxStop(function(){
+                                            confirmJS.buttons.ok.enable();
+                                        });
+                                    }
+                                    
+                                }
+                            });
+                        }
                     }
                 },
                 buttons: {
@@ -405,106 +440,6 @@ else {
             });
         }
         
-        function SalestoQB (sales,confirmJS,type) {
-            console.log(sales.length);
-            
-            for (let i = 0; i < sales.length; i++) {
-                
-                var frmSales = document.createElement("form");
-
-                try {
-                    var deposit = convertNulltoEmpty(sales[i][0].deposit);
-                } catch (error) {
-                    var deposit = "";
-                }
-
-                try {
-                    var project_type = convertNulltoEmpty(sales[i][0].project_type);
-                } catch (error) {
-                    var project_type = "";
-                }
-
-                try {
-                    var project_name = convertNulltoEmpty(sales[i][0].project_name);
-                } catch (error) {
-                    var project_name = "";
-                }
-
-                try {
-                    var id = convertNulltoEmpty(sales[i][0].id);
-                } catch (error) {
-                    var id = "";
-                }
-
-                try {
-                    var due_date = convertNulltoEmpty(sales[i][0].due_date);
-                } catch (error) {
-                    var due_date = "";
-                }
-
-                try {
-                    var invoice_date = convertNulltoEmpty(sales[i][0].invoice_date);
-                } catch (error) {
-                    var invoice_date = "";
-                }
-
-                try {
-                    var invoice_no = convertNulltoEmpty(sales[i][0].invoice_no);
-                } catch (error) {
-                    var invoice_no = "";
-                }
-
-                try {
-                    var customer_id = convertNulltoEmpty(sales[i][0].customer_id);
-                } catch (error) {
-                    var customer_id = "";
-                }
-
-                try {
-                    var total_amount = convertNulltoEmpty(sales[i][0].total_amount);
-                } catch (error) {
-                    var total_amount = "";
-                }
-
-                frmSales.innerHTML = "<input name='total_amount' value='"+total_amount+"'><input name='deposit' value='"+deposit+"'><input name='project_name' value='"+project_name+"'><input name='project_type' value='"+project_type+"'><input name='id' value='"+id+"'><input name='invoice_date' value='"+invoice_date+"'><input name='due_date' value='"+due_date+"'><input name='invoice_no' value='"+invoice_no+"'><input name='customer_id' value='"+customer_id+"'>";
-                
-                if (type == 2){
-                    $.ajax({
-                        method: "post",
-                        url: "unregisteredSalesToQB.php",
-                        data: $(frmSales).serialize() +"&access_token="+ access_token + "&refresh_token=" + refresh_token + "&realm_id=" + realm_id,
-                        success: function (data) {
-                            console.log("SB to QB",data);
-
-                            if(i == sales.length - 1) {
-                                confirmJS.hideLoading();
-                                confirmJS.setContent("Done");
-                                confirmJS.buttons.ok.enable();
-                            }
-                        },
-                    });
-                }
-                
-                else {
-                    $.ajax({
-                        method: "post",
-                        url: "registeredSalesToQB.php",
-                        data: $(frmSales).serialize() +"&access_token="+ access_token + "&refresh_token=" + refresh_token + "&realm_id=" + realm_id,
-                        success: function (data) {
-                            console.log("SB to QB",data);
-                            console.log("REGISTRE");
-
-                            if(i == sales.length - 1) {
-                                confirmJS.hideLoading();
-                                confirmJS.setContent("Done");
-                                confirmJS.buttons.ok.enable();
-                            }
-                        }
-                    });
-                }
-            } 
-        }
-
         function convertNulltoEmpty(str) {
             try {
                 if(str == null ){
@@ -515,6 +450,21 @@ else {
                 }
             } catch (error) {
                 return "";
+            }
+        }
+
+        var getUrlParameter = function getUrlParameter(getURL,sParam) {
+            var sPageURL = getURL,
+                sURLVariables = sPageURL.split('&'),
+                sParameterName,
+                i;
+
+            for (i = 0; i < sURLVariables.length; i++) {
+                sParameterName = sURLVariables[i].split('=');
+
+                if (sParameterName[0] === sParam) {
+                    return sParameterName[1] === undefined ? true : decodeURIComponent(sParameterName[1]);
+                }
             }
         }
     </script>

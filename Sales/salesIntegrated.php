@@ -187,7 +187,6 @@ else {
                         <th>Invoice No. </th>
                         <th>Invoice Date </th>
                         <th>Due Date </th>
-                        <th>Account type</th>
                         <th><center>Amount <br><label class="text">(Inc. of GST, if applicable)</label></center></th>
                         <th>Date Moved</th>
                     </tr>
@@ -215,7 +214,6 @@ else {
                             echo "<td>". $row["invoice_no"] ."</td>";
                             echo "<td>". $row["invoice_date"] ."</td>";
                             echo "<td>". $row["due_date"] ."</td>";
-                            echo "<td>Sales</td>";
                             echo "<td>". number_format($row["total_amount"],2) ."</td>";
                             echo "<td>". $row["date_moved"] ."</td>";
                             echo "</tr>";

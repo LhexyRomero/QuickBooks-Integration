@@ -1,21 +1,61 @@
 <?php
+require "../vendor/autoload.php";
+
+
+use QuickBooksOnline\API\DataService\DataService;
+use QuickBooksOnline\API\Core\Http\Serialization\XmlObjectSerializer;
+use QuickBooksOnline\API\Facades\Customer;
+
+// Prep Data Services
+$config = include('../config.php');
+//Get Token
+$accessTokenKey = $_POST["access_token"];
+$refreshTokenKey = $_POST["refresh_token"];
+$realmId = $_POST["realm_id"];
+$id = $_POST["id"];
+
+$dataService = DataService::Configure(array(
+    'auth_mode' => 'oauth2',
+    'ClientID' => $config['client_id'],
+    'ClientSecret' =>  $config['client_secret'],
+    'RedirectURI' => $config['oauth_redirect_uri'],
+    'accessTokenKey' => $accessTokenKey,
+    'refreshTokenKey' => $refreshTokenKey,
+    'QBORealmID' => $realmId,
+    'baseUrl' => "Development"
+));
+
+$dataService->setLogLocation("/Users/hlu2/Desktop/newFolderForLog");
+$dataService->throwExceptionOnError(true);
+$purchase = $dataService->FindbyId('purchase', $id);
+$error = $dataService->getLastError();
+if ($error) {
+    echo "The Status code is: " . $error->getHttpStatusCode() . "\n";
+    echo "The Helper message is: " . $error->getOAuthHelperError() . "\n";
+    echo "The Response message is: " . $error->getResponseBody() . "\n";
+}
+else {
+    // echo "Created Id={$customer->Id}. Reconstructed response body:\n\n";
+    // $xmlBody = XmlObjectSerializer::getPostXmlFromArbitraryEntity($customer , $urlResource);
+    // echo $xmlBody . "\n";
     require_once "../db_connect.php";
-
+    
     if(!empty($_POST)) {
-        $invoice_number = $_POST['invoice_number'];
-        $invoice_date = $_POST['invoice_date'];
-        $due_date = $_POST['due_date'];
-        $amount = $_POST['amount'];
-        $quickbooks_uid = $_POST['quickbooks_uid'];
-
+        $invoice_number = @$purchase->DocNumber;
+        $invoice_date = @$purchase->TxnDate;
+        $due_date = @$purchase->TxnDate;
+        $amount = @$purchase->TotalAmt;
+        $quickbooks_uid = @$purchase->Id;
+        
         $sql = "INSERT INTO `_relationship_db_purchase` (`project_id`, `supplier_subcontractor_id`, `account_type_id`,`invoice_no`, `invoice_date`, `due_date`, `amount`, `quickbooks_uid` ,`expense_type`,`date_moved`) VALUES (1,2,98,'$invoice_number', '$invoice_date', '$due_date', '$amount', '$quickbooks_uid', 1, CURRENT_TIMESTAMP)";
-
-        echo $sql;
+        
         if($connect->query($sql)) {
-            echo "BOBO";
+            echo "Success";
         }
         else {
-            echo mysqli_error($sql);
+            echo("Error description: " . mysqli_error($connect));
+            echo $sql;
         }
     }
+}
 ?>
