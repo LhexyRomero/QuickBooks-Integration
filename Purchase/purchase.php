@@ -299,38 +299,41 @@ else {
         function integratePurchase() {
             $.confirm({
                 title: "Quickbooks to Smallbuilders",
-                columnClass: "medium",
+                columnClass: "large",
                 theme: "modern",
-                content: "",
+                content: "<table class='table'><tr><th>Project Name</th><th>Supplier/Subcontractor</th><th>Invoice No.</th><th>Invoice Date</th><th>Amount</th><th>Status</th></tr></table>",
                 onOpenBefore: function () {
-                    //Add Loading 
-                    this.showLoading();
-                    //PUT THIS TO VARIABLE
                     var confirmJS = this;
-
-                    //Collect all QuickBooks ids na nacheckan
                     var integrateCheck = document.querySelectorAll('.integrateCheck:checked');
                     
-                    //Quickbooks Array
-                    var purchases = [];
-
-                    //Retrieve Customer Info
                     for (let i = 0; i < integrateCheck.length; i++) {
                         var id = integrateCheck[i].value;
 
+                        console.log(id);
+                       var project_name = integrateCheck[i].parentNode.parentNode.parentNode.childNodes[3].innerHTML;
+                       var supplier = integrateCheck[i].parentNode.parentNode.parentNode.childNodes[4].innerHTML;
+                       var invoice_no = integrateCheck[i].parentNode.parentNode.parentNode.childNodes[5].innerHTML;
+                       var invoice_date = integrateCheck[i].parentNode.parentNode.parentNode.childNodes[6].innerHTML;
+                       var amount = integrateCheck[i].parentNode.parentNode.parentNode.childNodes[7].innerHTML;
+                        
+                        confirmJS.$content.find('table').append("<tr><td>"+project_name+"</td><td>"+supplier+"</td><td>"+invoice_no+"</td><td>"+invoice_date+"</td><td>"+amount+"</td><td id='inte"+id+"'><p style='color: blue'>Integrating</p></td></tr>");
                             //GET QUICKBOOKS RECORD USING ID
                             $.ajax({
                                 method: "post",
-                                url: "readPurchase(id).php",
+                                url: "purchaseToSB.php",
                                 data: "access_token="+ access_token + "&refresh_token=" + refresh_token + "&realm_id=" + realm_id + "&id=" + id,
                                 success: function (data) {
-                                    //Add Customer to Array
-                                    purchases.push(data);
-                                    console.log(purchases);
+                                    if(data == "Success") {
+                                        confirmJS.$content.find('#inte'+ getUrlParameter(this.data,"id") ).html("<p style='color: green'>Integrated</p>");   
+                                    }
+                                    else {
+                                        confirmJS.$content.find('#inte'+ getUrlParameter(this.data,"id") ).html("<p style='color: red'>Failed</p>");   
+                                    }
 
-                                    //Check if All Request is Done
                                     if(i == integrateCheck.length - 1) {
-                                        customerToDB (purchases,confirmJS);
+                                        $( document ).ajaxStop(function(){
+                                            confirmJS.buttons.ok.enable();
+                                        });
                                     }
                                 }
                             });
@@ -346,62 +349,6 @@ else {
             });
         }
 
-        function customerToDB (purchases,confirmJS) {
-            for (let i = 0; i < purchases.length; i++) {
-                //PARSE JSON
-                var purchase = JSON.parse(purchases[i]);
-                //CHECK JSON
-                console.log(purchases);
-                //CREATE FORM
-                var frmCustomer = document.createElement("form");
-                //Create Fields
-
-                try {
-                    var invoice_number = convertNulltoEmpty(purchase.DocNumber);
-                } catch (error) {
-                    var invoice_number = "";
-                }
-                try {
-                    var invoice_date = convertNulltoEmpty(purchase.TxnDate);
-                } catch (error) {
-                    var invoice_date = "";
-                }
-                try {
-                    var due_date = convertNulltoEmpty(purchase.TxnDate);
-                } catch (error) {
-                    var due_date = "";
-                }  
-                try {
-                    var amount = convertNulltoEmpty(purchase.TotalAmt);
-                } catch (error) {
-                    var amount = "";
-                }
-
-                //comment
-                var quickbooks_uid = purchase.Id;
-                console.log("ID",quickbooks_uid);
-
-                frmCustomer.innerHTML = "<input name='quickbooks_uid' value='"+quickbooks_uid+"'><input name='invoice_number' value='"+invoice_number+"'><input name='invoice_date' value='"+invoice_date+"'><input name='due_date' value='"+due_date+"'><input name='amount' value='"+amount+"'><input name='quickbooks_uid' value='"+quickbooks_uid+"";
-                
-                console.log(frmCustomer);
-                //PASOK SA DB   
-                $.ajax({
-                    method: "post",
-                    url: "purchaseToSB.php",
-                    data : $(frmCustomer).serialize(),
-                    success: function (data) {
-                        console.log(data);
-                    },
-                });
-                
-                //IF TAPOS NA MAGPASOK GAGAWING DONE UNG CONFIRM JS
-                if(i == purchases.length - 1) {
-                    confirmJS.hideLoading();
-                    confirmJS.setContent("Done");
-                }
-            }
-        }
-
         function convertNulltoEmpty(str) {
             try {
                 if(str == null ){
@@ -412,6 +359,21 @@ else {
                 }
             } catch (error) {
                 return "";
+            }
+        }
+
+        var getUrlParameter = function getUrlParameter(getURL,sParam) {
+            var sPageURL = getURL,
+                sURLVariables = sPageURL.split('&'),
+                sParameterName,
+                i;
+
+            for (i = 0; i < sURLVariables.length; i++) {
+                sParameterName = sURLVariables[i].split('=');
+
+                if (sParameterName[0] === sParam) {
+                    return sParameterName[1] === undefined ? true : decodeURIComponent(sParameterName[1]);
+                }
             }
         }
     </script>
