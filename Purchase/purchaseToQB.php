@@ -17,20 +17,20 @@ require_once "../db_connect.php";
 //POST
 $id = $_POST["id"];
 
-$sql = "SELECT * FROM `_relationship_db_purchase` 
-        JOIN _project_db ON _relationship_db_purchase.project_id = _project_db.project_id 
-        JOIN _supplier_db ON supplier_subcontractor_id = supplier_id 
+$sql = "SELECT * FROM `tbl_expensesheet` 
+        JOIN _supplier_db ON tbl_expensesheet.supplier_id = _supplier_db.supplier_id 
         JOIN _account_type_db ON account_type_id = account_id 
-        WHERE _relationship_db_purchase.id = $id";
-
+        WHERE tbl_expensesheet.id = $id";
 
 $query = $connect->query($sql);
     
 while($row = mysqli_fetch_array($query)) {
-    $invoice_no = $_POST["invoice_no"];
-    $invoice_date = $_POST["invoice_date"];
-    $due_date = $_POST["due_date"];
-    $amount = $_POST["amount"];
+    $invoice_no = $row["invoice_number"];
+    $invoice_date = $row["purchase_date"];
+    $due_date = $row["due_date"];
+    $amount = $row["total_amount"];
+    $account_id = $row["account_type_id"];
+    $project_name = $row["project_name"];
 
     $total = str_replace(",", "", $amount);
 
@@ -55,12 +55,12 @@ while($row = mysqli_fetch_array($query)) {
             ],
             "PaymentType"=> "CreditCard",
             "Line"=> [
+                "Description"=> "$project_name",
                 "Amount"=> "$total",
                 "DetailType"=> "AccountBasedExpenseLineDetail",
                 "AccountBasedExpenseLineDetail"=> [
                     "AccountRef"=> [
-                        "name"=> "Utilities",
-                        "value"=> "24"
+                        "value"=> "$account_id"
                     ]
                 ]
             ],
@@ -80,7 +80,7 @@ while($row = mysqli_fetch_array($query)) {
         $quickbooks_uid = $resultingObj->Id;
         
         //expense_type == 2 is moved
-        $sql = "UPDATE `_relationship_db_purchase` SET `quickbooks_uid` = '$quickbooks_uid', expense_type = 2, date_moved = CURRENT_TIMESTAMP WHERE `_relationship_db_purchase`.`id` = $id";
+        $sql = "UPDATE `tbl_expensesheet` SET `quickbooks_uid` = '$quickbooks_uid', date_transferred_to_quickbooks = CURRENT_TIMESTAMP, transferred_to_quickbooks='yes' WHERE `tbl_expensesheet`.`id` = $id";
 
         if($connect->query($sql)) {
             echo "Success";

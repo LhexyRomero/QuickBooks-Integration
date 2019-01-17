@@ -2,7 +2,7 @@
     require_once "../db_connect.php";
     
     $id =  $_POST["id"];
-    $sql = "UPDATE `_relationship_db_purchase` SET `expense_type` = 2 WHERE `_relationship_db_purchase`.`id` = $id";
+    $sql = "UPDATE `tbl_expensesheet` SET date_transferred_to_quickbooks = CURRENT_TIMESTAMP, transferred_to_quickbooks='yes' WHERE `tbl_expensesheet`.`id` = $id";
     $query = $connect->query($sql);
     
     if($query) {

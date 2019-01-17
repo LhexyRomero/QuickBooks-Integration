@@ -193,7 +193,7 @@ else {
                             
                             $selected_invoice =  $_GET["selected_invoice"];
                             $quickbooks_uids = array();
-                            $sql = "SELECT quickbooks_uid FROM _relationship_db_purchase";
+                            $sql = "SELECT quickbooks_uid FROM _relationship_db_sales";
                             $sql_sales = "SELECT * FROM `_relationship_db_sales` JOIN _project_db 
                                         ON _relationship_db_sales.project_id = _project_db.project_id 
                                         WHERE invoice_type = $selected_invoice AND quickbooks_uid IS NULL";
@@ -206,7 +206,7 @@ else {
                             while($row = mysqli_fetch_array($query)) {
                                 array_push($quickbooks_uids,$row["quickbooks_uid"]);
                             }
-
+ 
                             $customer_options = array();
                             
                             while($customer = mysqli_fetch_assoc($allCustomers)){                                 
@@ -234,7 +234,7 @@ else {
                                 }
                                 else {
                                     
-                                $output .= "<tr class='sales' id = '".$row["id"]."'>
+                                    $output .= "<tr class='sales' id = '".$row["id"]."'>
                                         <td><center><input type='checkbox' class='form-control integrateCheck' onclick='countIntegrate()' value='".$row["id"]."'></td></center>
                                         <td>". $row["project_name"]. "</td>
                                         <td><select id='selected_customer_b".$row["id"]."' onchange='updateCustomer(".$row["id"].",2)'>   
@@ -303,10 +303,7 @@ else {
             $("#invoice_type option[value='"+selected_+"']").attr("selected",true);
             $("input[name=unable]").attr('disabled', true); 
         }
-
-        function checkBox(id) {    
-        }
-
+        
         function updateCustomer(id,type){
             if (type == 1 ){
                 customer_id = $("#selected_customer_a"+id).val();
