@@ -11,12 +11,20 @@ class ComposerStaticInitf8bc857975ff90d7b470aea9f7834c0c
         array (
             'QuickBooksOnline\\API\\' => 21,
         ),
+        'P' => 
+        array (
+            'PHPMailer\\PHPMailer\\' => 20,
+        ),
     );
 
     public static $prefixDirsPsr4 = array (
         'QuickBooksOnline\\API\\' => 
         array (
             0 => __DIR__ . '/..' . '/quickbooks/v3-php-sdk/src',
+        ),
+        'PHPMailer\\PHPMailer\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/phpmailer/phpmailer/src',
         ),
     );
 

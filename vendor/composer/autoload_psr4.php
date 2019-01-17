@@ -7,4 +7,5 @@ $baseDir = dirname($vendorDir);
 
 return array(
     'QuickBooksOnline\\API\\' => array($vendorDir . '/quickbooks/v3-php-sdk/src'),
+    'PHPMailer\\PHPMailer\\' => array($vendorDir . '/phpmailer/phpmailer/src'),
 );

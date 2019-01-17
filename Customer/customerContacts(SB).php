@@ -329,58 +329,161 @@ else {
         }
 
         function integrateCustomer() {
+            //Add Loading
             $.confirm({
-                title: "Smallbuilders to Quickbooks",
-                columnClass: "large",
-                theme: "modern",
-                content: "<table class='table'><tr><th>Customer Name</th><th>Customer Email</th><th>Representative Name</th><th>Status</th></tr></table>",
                 onOpenBefore: function () {
-                    //Get This
-                    var confirmJS = this;
-                    //Collect all QuickBooks ids
-                    var integrateCheck = document.querySelectorAll('.integrateCheck:checked');
+                    this.showLoading()
+                }
+            });
 
-                    //Retrieve Customer Info
-                    for (let i = 0; i < integrateCheck.length; i++) {
-                        var id = integrateCheck[i].value;
-                        var id = integrateCheck[i].value;
-                        var customer_name = integrateCheck[i].parentNode.parentNode.childNodes[3].innerHTML;
-                        var customer_email = integrateCheck[i].parentNode.parentNode.childNodes[4].innerHTML;
-                        var rep_name = integrateCheck[i].parentNode.parentNode.childNodes[5].innerHTML;
-                        var customer_address = integrateCheck[i].parentNode.parentNode.childNodes[6].innerHTML;
-                        var customer_phone = integrateCheck[i].parentNode.parentNode.childNodes[7].innerHTML;
+            //Collect All Integrate Checks
+            var integrateCheck = document.querySelectorAll('.integrateCheck:checked');
 
-                        confirmJS.$content.find('table').append("<tr><td>"+customer_name+"</td><td>"+customer_email+"</td><td>"+rep_name+"</td><td id='inte"+id+"'><p style='color: blue'>Integrating</p></td></tr>");
+            //Create a Table (this table will be put on SB to QB successful Message)
+            var tbl = document.createElement("table");
+            var header = tbl.createTHead();
+            header.innerHTML = "<th>Customer Name</th><th>Customer Email</th><th>Representative Name</th><th>Customer Adress</th><th>Customer Phone</th>";
 
-                            //Integrate
-                            $.ajax({
-                                method: "post",
-                                url: "customersToQB.php",
-                                data: "id=" + id + "&access_token="+ access_token + "&refresh_token=" + refresh_token + "&realm_id=" + realm_id,
-                                success: function (data) {
-                                    if(data == "Success") {
-                                        confirmJS.$content.find('#inte'+ getUrlParameter(this.data,"id") ).html("<p style='color: green'>Integrated</p>");   
-                                    }
-                                    else {
-                                        confirmJS.$content.find('#inte'+ getUrlParameter(this.data,"id") ).html("<p style='color: red'>Failed</p>");   
-                                    }
+            //Integrate All Checks
+            var body = tbl.createTBody();
+            for (let i = 0; i < integrateCheck.length; i++) {
+                //Insert A Row
+                var record = tbl.insertRow(-1);
 
-                                    //Check if All Request is Done
-                                    if(i == integrateCheck.length - 1) {
-                                        $( document ).ajaxStop(function(){
-                                            confirmJS.buttons.ok.enable();
-                                        });
-                                    }
-                                }
-                            });
-                    }
-                },
-                buttons: {
-                    ok: {
-                        action: function () {
-                            window.location.href = "customerContacts(SB).php";
+                //Get Checked Record
+                var id = integrateCheck[i].value;
+                var customer_name = integrateCheck[i].parentNode.parentNode.childNodes[3].innerHTML;
+                var customer_email = integrateCheck[i].parentNode.parentNode.childNodes[4].innerHTML;
+                var rep_name = integrateCheck[i].parentNode.parentNode.childNodes[5].innerHTML;
+                var customer_address = integrateCheck[i].parentNode.parentNode.childNodes[6].innerHTML;
+                var customer_phone = integrateCheck[i].parentNode.parentNode.childNodes[7].innerHTML;
+                
+                //Add Record to Table
+                body.innerHTML += "<tr id='tr"+id+"'><td>"+customer_name+"</td><td>"+customer_email+"</td><td>"+rep_name+"</td><td>"+customer_address+"</td><td>"+customer_phone+"</td></tr>";
+
+                $.ajax({
+                    method: "post",
+                    url: "customersToQB.php",
+                    data: "id=" + id + "&access_token="+ access_token + "&refresh_token=" + refresh_token + "&realm_id=" + realm_id,
+                    success: function (data) {
+                        if(data == "Success") {
+                            //DO NOT DELETE RECORD  
+                        }
+                        else {
+                            //DELETE RECORD IF FAILED TO INTEGRATE
+                            $(tbl).find("#tr" + getUrlParameter(this.data,"id")).remove();
                         }
                     }
+                });
+                $(document).one("ajaxStop", function() {
+                    sendEmail(tbl.innerHTML);
+                });
+            }
+            
+
+            //Send to Email if successfull integration
+
+            //Redirect to new Page
+
+            // $.confirm({
+            //     title: "Smallbuilders to Quickbooks",
+            //     columnClass: "large",
+            //     theme: "modern",
+            //     content: "<table class='table'><tr><th>Customer Name</th><th>Customer Email</th><th>Representative Name</th><th>Customer Adress</th><th>Customer Phone</th></tr></table>",
+            //     onOpenBefore: function () {
+            //         //Get This
+            //         var confirmJS = this;
+            //         //Collect all QuickBooks ids
+            //         var integrateCheck = document.querySelectorAll('.integrateCheck:checked');
+
+            //         //Retrieve Customer Info
+            //         for (let i = 0; i < integrateCheck.length; i++) {
+            //             var id = integrateCheck[i].value;
+            //             var id = integrateCheck[i].value;
+            //             var customer_name = integrateCheck[i].parentNode.parentNode.childNodes[3].innerHTML;
+            //             var customer_email = integrateCheck[i].parentNode.parentNode.childNodes[4].innerHTML;
+            //             var rep_name = integrateCheck[i].parentNode.parentNode.childNodes[5].innerHTML;
+            //             var customer_address = integrateCheck[i].parentNode.parentNode.childNodes[6].innerHTML;
+            //             var customer_phone = integrateCheck[i].parentNode.parentNode.childNodes[7].innerHTML;
+
+                        
+            //             confirmJS.$content.find('table').append("<tr><td>"+customer_name+"</td><td>"+customer_email+"</td><td>"+rep_name+"</td><td>"+customer_address+"</td>"+customer_phone+"<td></td></tr>");
+                        
+            //                 //Integrate
+            //                 $.ajax({
+            //                     method: "post",
+            //                     url: "customersToQB.php",
+            //                     data: "id=" + id + "&access_token="+ access_token + "&refresh_token=" + refresh_token + "&realm_id=" + realm_id,
+            //                     success: function (data) {
+            //                         if(data == "Success") {
+            //                             confirmJS.$content.find('#inte'+ getUrlParameter(this.data,"id") ).html("<p style='color: green'>Integrated</p>");   
+            //                         }
+            //                         else {
+            //                             confirmJS.$content.find('#inte'+ getUrlParameter(this.data,"id") ).html("<p style='color: red'>Failed</p>");   
+            //                         }
+            //                     }
+            //                 });
+            //         }
+            //         $(document).one("ajaxStop", function() {
+            //             var integrateTable = confirmJS.$content.find('table').html();
+            //             sendEmail(integrateTable);
+            //             confirmJS.buttons.ok.show();
+            //         });
+            //     },
+            //     buttons: {
+            //         ok: {
+            //             action: function () {
+            //                 window.location.href = "customerContacts(SB).php";
+            //             },
+            //             isHidden: true,
+            //         }
+            //     }
+            // });
+        }
+        function sendEmail(tblContent) {
+            //Generate Table
+            var tbl = document.createElement("table");
+            tbl.innerHTML = tblContent;
+            //DO NOT CONTINUE IF THERE ARE NO SUCCESSFUL INTEGRATION
+            if (tbl.getElementsByTagName("tbody")[0].innerHTML == "") {
+                alert("No Integration were successful.");
+                window.location.href = "customerContacts(SB).php";
+                return;
+            }
+            //Add Style to every th 
+            var th = tbl.getElementsByTagName("th");
+            var td = tbl.getElementsByTagName("td");
+            //Loop to th
+            for (let i = 0; i < th.length; i++) {
+                th[i].setAttribute("style","border:solid 1px #ccc; text-align:center; padding: 4px 0px 4px 7px;");  
+            }
+            //Loop to td
+            for (let i = 0; i < td.length; i++) {
+                td[i].setAttribute("style","border:solid 1px #ccc; text-align:center; padding: 4px 0px 4px 7px;");
+            }
+            //Add Subject
+            var subj = "Small Builders Customer successfully added to Quickbooks Contacts";
+            //Add Description
+            var desc = "You have successfully automated your Small Builders Customer details into your Quickbooks account. These customers are now available in your Quickbooks Contacts with the following details.";
+            //Send Email
+            //Change Message Into
+            $.ajax({
+                method: "post",
+                url: "../sendMail.php",
+                data: "tblcontent=" + tbl.innerHTML + "&subj="+ subj + "&desc=" + desc,
+                success: function (data) {
+                    //Change Whole Body InnerHTML
+                    var body = document.getElementsByTagName("body")[0];
+                    body.innerHTML = `<div class="mt-5 card col-md-8 offset-2" style='background: #FCFCFC; padding: 20px 20px 20px 20px;'>
+                        <p style='color: green'>Success! A copy of your submission has been emailed to you.</p>
+                        
+                        <table class='table table-striped'>`+tblContent+`</table>
+                        
+                        <br>
+                        <div class='text-center'>
+                            <a href='customerContacts(SB).php' class='btn btn-secondary' style='width: 200px;'>Back to Integration</a>
+                        </div>
+                    </div>`;
                 }
             });
         }

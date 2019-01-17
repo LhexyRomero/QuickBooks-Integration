@@ -375,22 +375,19 @@ else {
                                     else {
                                         confirmJS.$content.find('#inte'+ getUrlParameter(this.data,"id") ).html("<p style='color: red'>Failed</p>");   
                                     }
-
-                                    //Check if All Request is Done
-                                    if(i == integrateCheck.length - 1) {
-                                        $( document ).ajaxStop(function(){
-                                            confirmJS.buttons.ok.enable();
-                                        });
-                                    }
                                 }
                             });
                     }
+                    $( document ).ajaxStop(function(){
+                        confirmJS.buttons.ok.show();
+                    });
                 },
                 buttons: {
                     ok: {
                         action: function () {
                             window.location.href = "customerContacts.php";
-                        }
+                        },
+                        isHidden: true
                     }
                 }
             });

@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jan 16, 2019 at 09:32 AM
+-- Generation Time: Jan 17, 2019 at 11:10 AM
 -- Server version: 10.1.35-MariaDB
 -- PHP Version: 7.2.9
 
@@ -31,15 +31,17 @@ SET time_zone = "+00:00";
 CREATE TABLE `users` (
   `id` int(11) NOT NULL,
   `username` varchar(100) NOT NULL,
-  `password` varchar(100) NOT NULL
+  `password` varchar(100) NOT NULL,
+  `email` varchar(191) DEFAULT NULL,
+  `name` varchar(191) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
 -- Dumping data for table `users`
 --
 
-INSERT INTO `users` (`id`, `username`, `password`) VALUES
-(1, 'admin', 'admin');
+INSERT INTO `users` (`id`, `username`, `password`, `email`, `name`) VALUES
+(1, 'admin', 'admin', 'arisakakenjie@gmail.com', 'Kenjie Arisaka');
 
 -- --------------------------------------------------------
 
@@ -82,6 +84,24 @@ INSERT INTO `_account_type_db` (`account_id`, `type`) VALUES
 (108, 'Travel - International'),
 (109, 'Travel National'),
 (110, 'Wages and Salaries');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `_api_history`
+--
+
+CREATE TABLE `_api_history` (
+  `id` int(11) NOT NULL,
+  `operation` varchar(191) DEFAULT NULL,
+  `client_id` int(11) DEFAULT NULL,
+  `timestamp` date DEFAULT NULL,
+  `request_uri` varchar(191) DEFAULT NULL,
+  `request_code` varchar(191) DEFAULT NULL,
+  `method` varchar(191) DEFAULT NULL,
+  `request_body` varchar(191) DEFAULT NULL,
+  `error_message` varchar(191) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
@@ -144,7 +164,37 @@ CREATE TABLE `_relationship_db_customers` (
 --
 
 INSERT INTO `_relationship_db_customers` (`id`, `client_id`, `entity_type`, `customer_name`, `customer_lname`, `customer_address`, `license`, `customer_abn`, `representative_name`, `representative_lname`, `representative_position`, `representative_email`, `representative_mobile`, `customer_phone`, `customer_mobile`, `customer_fax`, `customer_email`, `date_modified`, `modified_by`, `modified_in`, `xero_uid`, `quickbooks_uid`, `myob_uid`, `status`, `xero_status`, `source`) VALUES
-(91, 1, NULL, 'Lhexy\'s Taylor shop', NULL, '12345 Fifth Avenue', NULL, NULL, 'Lhexy', 'Lekay', NULL, NULL, NULL, '999-99-99', '999-99-99', '999-99-99', 'asd@gmail.com', '2019-01-16 06:14:43', 0, NULL, NULL, '62', NULL, NULL, NULL, NULL);
+(91, 1, NULL, 'Datablitz', NULL, '12345 Fifth Avenue', NULL, NULL, 'Lhexy', 'Lekay', NULL, NULL, NULL, '999-99-99', '999-99-99', '999-99-99', 'asd@gmail.com', '2019-01-17 09:11:50', 0, NULL, NULL, '106', NULL, NULL, NULL, NULL),
+(92, 1, NULL, 'Dukes Basketball Camp', NULL, '25 Court St. Tucson ', NULL, NULL, 'Peter', 'Dukes', NULL, '', '', '(520) 420-5638', '', '', 'Dukes_bball@intuit.com', '2019-01-17 03:18:40', 0, NULL, NULL, '5', NULL, NULL, NULL, NULL),
+(93, 1, NULL, 'Diego Rodriguez', NULL, '321 Channing Palo Alto ', NULL, NULL, 'Diego', 'Rodriguez', NULL, '', '', '(650) 555-4477', '', '', 'Diego@Rodriguez.com', '2019-01-17 03:18:40', 0, NULL, NULL, '4', NULL, NULL, NULL, NULL),
+(94, 1, NULL, 'Bill\'s Windsurf Shop', NULL, '12 Ocean Dr. Half Moon Bay ', NULL, NULL, 'Bill', 'Lucchini', NULL, '', '', '(415) 444-6538', '', '', 'Surf@Intuit.com', '2019-01-17 03:18:40', 0, NULL, NULL, '2', NULL, NULL, NULL, NULL),
+(95, 1, NULL, 'Cool Cars', NULL, '65 Ocean Dr. Half Moon Bay ', NULL, NULL, 'Grace', 'Pariente', NULL, '', '', '(415) 555-9933', '', '', 'Cool_Cars@intuit.com', '2019-01-17 03:18:40', 0, NULL, NULL, '3', NULL, NULL, NULL, NULL),
+(96, 1, NULL, 'Dylan Sollfrank', NULL, '  ', NULL, NULL, 'Dylan', 'Sollfrank', NULL, '', '', '', '', '', '', '2019-01-17 03:18:41', 0, NULL, NULL, '6', NULL, NULL, NULL, NULL),
+(97, 1, NULL, 'Amy\'s Bird Sanctuary', NULL, '4581 Finch St. Bayshore ', NULL, NULL, 'Amy', 'Lauterbach', NULL, '', '', '(650) 555-3311', '', '', 'Birds@Intuit.com', '2019-01-17 03:18:41', 0, NULL, NULL, '1', NULL, NULL, NULL, NULL),
+(98, 1, NULL, 'Freeman Sporting Goods', NULL, '370 Easy St. Middlefield ', NULL, NULL, 'Kirby', 'Freeman', NULL, '', '', '(650) 555-0987', '(973) 555-8849', '(520) 555-7894', 'Sporting_goods@intuit.com', '2019-01-17 03:18:42', 0, NULL, NULL, '7', NULL, NULL, NULL, NULL),
+(99, 1, NULL, 'Freeman Sporting Goods:55 Twin Lane', NULL, '370 Easy St. Middlefield ', NULL, NULL, 'Amelia', '', NULL, '', '', '(650) 555-0987', '(973) 555-8849', '(520) 555-7894', 'Sporting_goods@intuit.com', '2019-01-17 03:18:42', 0, NULL, NULL, '9', NULL, NULL, NULL, NULL),
+(100, 1, NULL, 'Freeman Sporting Goods:0969 Ocean View Road', NULL, '370 Easy St. Middlefield ', NULL, NULL, 'Sasha', 'Tillou', NULL, '', '', '(415) 555-9933', '(973) 555-8849', '(520) 555-7894', 'Sporting_goods@intuit.com', '2019-01-17 03:18:42', 0, NULL, NULL, '8', NULL, NULL, NULL, NULL),
+(101, 1, NULL, 'Geeta Kalapatapu', NULL, '1987 Main St. Middlefield ', NULL, NULL, 'Geeta', 'Kalapatapu', NULL, '', '', '(650) 555-0022', '', '', 'Geeta@Kalapatapu.com', '2019-01-17 03:18:42', 0, NULL, NULL, '10', NULL, NULL, NULL, NULL),
+(102, 1, NULL, 'Kate Whelan', NULL, '45 First St. Menlo Park USA', NULL, NULL, 'Kate', 'Whelan', NULL, '', '', '(650) 554-8822', '', '', 'Kate@Whelan.com', '2019-01-17 03:22:44', 0, NULL, NULL, '14', NULL, NULL, NULL, NULL),
+(103, 1, NULL, 'Lhexy\'s Bakeshop', NULL, '12345 Fifth Avenue  ', NULL, NULL, 'Lhexy', 'Lekay', NULL, '', '', '999-99-99', '999-99-99', '999-99-99', 'asd@gmail.com', '2019-01-17 03:22:44', 0, NULL, NULL, '58', NULL, NULL, NULL, NULL),
+(104, 1, NULL, 'Gevelber Photography', NULL, '1045 Main St. Half Moon Bay ', NULL, NULL, 'Lisa', 'Gevelber', NULL, '', '', '(415) 222-4345', '', '', 'Photography@intuit.com', '2019-01-17 03:22:44', 0, NULL, NULL, '11', NULL, NULL, NULL, NULL),
+(105, 1, NULL, 'John Melton', NULL, '85 Pine St. Menlo Park ', NULL, NULL, 'John', 'Melton', NULL, '', '', '(650) 555-5879', '', '', 'John@Melton.com', '2019-01-17 03:22:44', 0, NULL, NULL, '13', NULL, NULL, NULL, NULL),
+(106, 1, NULL, 'Kookies by Kathy', NULL, '789 Sugar Lane Middlefield ', NULL, NULL, 'Kathy', 'Kuplis', NULL, '', '', '(650) 555-7896', '', '', 'qbwebsamplecompany@yahoo.com', '2019-01-17 03:22:45', 0, NULL, NULL, '16', NULL, NULL, NULL, NULL),
+(107, 1, NULL, 'Jeff\'s Jalopies', NULL, '12 Willow Rd. Menlo Park ', NULL, NULL, 'Jeff', 'Chin', NULL, '', '', '(650) 555-8989', '', '', 'Jalopies@intuit.com', '2019-01-17 03:22:45', 0, NULL, NULL, '12', NULL, NULL, NULL, NULL),
+(108, 1, NULL, 'Lhexy\'s Bike Rental', NULL, '12345 Fifth Avenue  ', NULL, NULL, 'Lhexy', 'Lekay', NULL, '', '', '999-99-99', '999-99-99', '999-99-99', 'asd@gmail.com', '2019-01-17 03:22:46', 0, NULL, NULL, '60', NULL, NULL, NULL, NULL),
+(109, 1, NULL, 'Lhexy\'s Gown Rental', NULL, '12345 Fifth Avenue  ', NULL, NULL, 'Lhexy', 'Lekay', NULL, '', '', '999-99-99', '999-99-99', '999-99-99', 'asd@gmail.com', '2019-01-17 03:22:46', 0, NULL, NULL, '59', NULL, NULL, NULL, NULL),
+(110, 1, NULL, 'Lhexy\'s VHS Rental', NULL, '12345 Fifth Avenue  ', NULL, NULL, 'Lhexy', 'Lekay', NULL, '', '', '999-99-99', '999-99-99', '999-99-99', 'asd@gmail.com', '2019-01-17 03:22:46', 0, NULL, NULL, '61', NULL, NULL, NULL, NULL),
+(111, 1, NULL, 'Mark Cho', NULL, '36 Willow Rd Menlo Park ', NULL, NULL, 'Mark', 'Cho', NULL, '', '', '(650) 554-1479', '', '', 'Mark@Cho.com', '2019-01-17 03:22:46', 0, NULL, NULL, '17', NULL, NULL, NULL, NULL),
+(112, 1, NULL, 'Lhexy\'s Taylor shop', NULL, '12345 Fifth Avenue  ', NULL, NULL, 'Lhexy', 'Lekay', NULL, '', '', '999-99-99', '999-99-99', '999-99-99', 'asd@gmail.com', '2019-01-17 03:32:52', 0, NULL, NULL, '62', NULL, NULL, NULL, NULL),
+(113, 1, NULL, 'Lhexy\'s Guitar Shop', NULL, '12345 Fifth Avenue  ', NULL, NULL, 'Lhexy', 'Lekay', NULL, '', '', '999-99-99', '999-99-99', '999-99-99', 'asd@gmail.com', '2019-01-17 03:32:52', 0, NULL, NULL, '64', NULL, NULL, NULL, NULL),
+(114, 1, NULL, 'Rago Travel Agency', NULL, '753 Cedar St. Bayshore ', NULL, NULL, 'Jeff', 'Rago', NULL, '', '', '(650) 555-1596', '', '', 'Rago_Travel@intuit.com', '2019-01-17 03:32:52', 0, NULL, NULL, '19', NULL, NULL, NULL, NULL),
+(115, 1, NULL, 'Lhexy\'s Bicycle Shop', NULL, '12345 Fifth Avenue  ', NULL, NULL, 'Lhexy', 'Lekay', NULL, '', '', '999-99-99', '999-99-99', '999-99-99', 'asd@gmail.com', '2019-01-17 03:32:52', 0, NULL, NULL, '63', NULL, NULL, NULL, NULL),
+(116, 1, NULL, 'Pye\'s Cakes', NULL, '350 Mountain View Dr. South Orange ', NULL, NULL, 'Karen', 'Pye', NULL, '', '', '(973) 555-4652', '(973) 555-2234', '', 'pyescakes@intuit.com', '2019-01-17 03:32:52', 0, NULL, NULL, '15', NULL, NULL, NULL, NULL),
+(117, 1, NULL, 'Paulsen Medical Supplies', NULL, '900 Main St. Middlefield ', NULL, NULL, 'Kathy', 'Paulsen', NULL, '', '', '(650) 557-4569', '', '', 'Medical@intuit.com', '2019-01-17 03:32:52', 0, NULL, NULL, '18', NULL, NULL, NULL, NULL),
+(118, 1, NULL, 'Rondonuwu Fruit and Vegi', NULL, '847 California Ave. San Jose ', NULL, NULL, 'Rondonuwu', 'and Vegi', NULL, '', '', '(650) 555-2645', '', '', 'Tony@Rondonuwu.com', '2019-01-17 03:32:54', 0, NULL, NULL, '21', NULL, NULL, NULL, NULL),
+(119, 1, NULL, 'Red Rock Diner', NULL, '500 Red Rock Rd. Bayshore ', NULL, NULL, 'Stephanie', 'Martini', NULL, '', '', '(650) 555-4973', '', '', 'qbwebsamplecompany@yahoo.com', '2019-01-17 03:32:54', 0, NULL, NULL, '20', NULL, NULL, NULL, NULL),
+(120, 1, NULL, 'Shara Barnett:Barnett Design', NULL, '19 Main St. Middlefield ', NULL, NULL, 'Shara', 'Barnett', NULL, '', '', '(650) 557-1289', '', '', 'Design@intuit.com', '2019-01-17 03:32:54', 0, NULL, NULL, '23', NULL, NULL, NULL, NULL),
+(121, 1, NULL, 'Shara Barnett', NULL, '77 University Palo Alto ', NULL, NULL, 'Shara', 'Barnett', NULL, '', '', '(650) 555-4563', '', '', 'Shara@Barnett.com', '2019-01-17 03:32:54', 0, NULL, NULL, '22', NULL, NULL, NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -379,6 +429,12 @@ ALTER TABLE `_account_type_db`
   ADD PRIMARY KEY (`account_id`);
 
 --
+-- Indexes for table `_api_history`
+--
+ALTER TABLE `_api_history`
+  ADD PRIMARY KEY (`id`);
+
+--
 -- Indexes for table `_project_db`
 --
 ALTER TABLE `_project_db`
@@ -441,6 +497,12 @@ ALTER TABLE `_account_type_db`
   MODIFY `account_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=111;
 
 --
+-- AUTO_INCREMENT for table `_api_history`
+--
+ALTER TABLE `_api_history`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT for table `_project_db`
 --
 ALTER TABLE `_project_db`
@@ -450,7 +512,7 @@ ALTER TABLE `_project_db`
 -- AUTO_INCREMENT for table `_relationship_db_customers`
 --
 ALTER TABLE `_relationship_db_customers`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=92;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=122;
 
 --
 -- AUTO_INCREMENT for table `_relationship_db_employee`
