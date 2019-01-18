@@ -35,19 +35,19 @@ if ($error) {
     echo "The Response message is: " . $error->getResponseBody() . "\n";
 }
 else {
-    // echo "Created Id={$customer->Id}. Reconstructed response body:\n\n";
-    // $xmlBody = XmlObjectSerializer::getPostXmlFromArbitraryEntity($customer , $urlResource);
-    // echo $xmlBody . "\n";
     require_once "../db_connect.php";
     
     if(!empty($_POST)) {
+        $project_name = @$purchase->Line->AccountBasedExpenseLineDetail->Description;
         $invoice_number = @$purchase->DocNumber;
         $invoice_date = @$purchase->TxnDate;
         $due_date = @$purchase->TxnDate;
         $amount = @$purchase->TotalAmt;
+        $account_id = @$purchase->Line->AccountBasedExpenseLineDetail->AccountRef;
         $quickbooks_uid = @$purchase->Id;
         
-        $sql = "INSERT INTO `_relationship_db_purchase` (`project_id`, `supplier_subcontractor_id`, `account_type_id`,`invoice_no`, `invoice_date`, `due_date`, `amount`, `quickbooks_uid` ,`expense_type`,`date_moved`) VALUES (1,2,98,'$invoice_number', '$invoice_date', '$due_date', '$amount', '$quickbooks_uid', 1, CURRENT_TIMESTAMP)";
+        $sql =   "INSERT INTO `tbl_expensesheet` (account_id,quickbooks_uid, name, clientname, clientemail, client_id, project_name, purchase_date, time_stamp, invoice_number, sub_gst, total_amount, total_amount_excl, inclusive_gst, gst_component, pcinvoicenumber, due_date, purchase_items, timestamp_insert, state, expense_submitted, manager, cost_centre, uploaded_invoice,date_transferred_quickbooks_to_sb) 
+                VALUES ('".$account_id."','".$quickbooks_uid."', NULL, NULL, NULL, 0, '".$project_name."', '".$invoice_date."', NULL, '".$invoice_number."',NULL, '".$amount."', NULL, NULL, NULL, NULL, '".$due_date."', NULL, NULL, NULL, NULL, NULL, NULL, NULL,CURRENT_TIMESTAMP)";
         
         if($connect->query($sql)) {
             echo "Success";

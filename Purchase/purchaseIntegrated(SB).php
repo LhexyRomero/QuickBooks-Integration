@@ -191,7 +191,6 @@ else {
                         <th>Invoice No. </th>
                         <th>Invoice Date </th>
                         <th>Due Date </th>
-                        <th>Invoice Attachment</th>
                         <th>Account type</th>
                         <th>Amount</th>
                         <th>Date Moved</th>
@@ -201,12 +200,10 @@ else {
                     <?php
                         require_once "../db_connect.php";
 
-                        $sql = "SELECT * FROM `_relationship_db_purchase` 
-                                JOIN _project_db ON _relationship_db_purchase.project_id = _project_db.project_id 
-                                JOIN _supplier_db ON supplier_subcontractor_id = supplier_id 
+                        $sql = "SELECT * FROM `tbl_expensesheet` 
                                 JOIN _account_type_db ON account_type_id = account_id 
-                                WHERE (`quickbooks_uid`IS NOT NULL AND expense_type = 2) 
-                                OR (`quickbooks_uid` IS NULL AND expense_type = 2)";
+                                WHERE transferred_to_quickbooks='yes'
+                                AND quickbooks_uid is NOT NULL";
 
                         $option = "SELECT * FROM `_account_type_db`";
 
@@ -221,19 +218,13 @@ else {
                         while($row = mysqli_fetch_assoc($query)) {
                             echo "<tr>
                                   <td>". $row["project_name"] ."</td>";
-                            echo "<td>". $row["supplier_name"] ."</td>";
-                            echo "<td>". $row["invoice_no"] ."</td>";
-                            echo "<td>". $row["invoice_date"] ."</td>";
+                            echo "<td> --- </td>";
+                            echo "<td>". $row["invoice_number"] ."</td>";
+                            echo "<td>". $row["purchase_date"] ."</td>";
                             echo "<td>". $row["due_date"] ."</td>";
-                            echo "<td>". $row["invoice_attachment"] ."</td>";
-                            echo "<td>
-                                    <select id='select_type' name='selected_expense' style='width: 150px;'>
-                                        <option value=". $row_option["account_type_id"] .">". $row["type"]. "</option>
-                                        ". $options ."
-                                    </select>
-                                </td>";
-                            echo "<td>". number_format($row["amount"],2) ."</td>";
-                            echo "<td>". $row["date_moved"] ."</td>";
+                            echo "<td>". $row["type"]." </td>";
+                            echo "<td>". number_format($row["total_amount"],2) ."</td>";
+                            echo "<td>". $row["date_transferred_to_quickbooks"] ."</td>";
                             echo "</tr>";
                         }
                     ?>
