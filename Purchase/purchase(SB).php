@@ -2,7 +2,14 @@
 require_once('../vendor/autoload.php');
 use QuickBooksOnline\API\DataService\DataService;
 $config = include('../config.php');
+
 session_start();
+if(isset($_SESSION["client_id"])) {
+}
+else {
+    header('Location:../login.php');
+}
+
 $dataService = DataService::Configure(array(
     'auth_mode' => 'oauth2',
     'ClientID' => $config['client_id'],
@@ -253,12 +260,13 @@ else {
         }
         function viewPurchase(){
             
-            console.log($("#grpSelect").serialize());
             var data = $("#grpSelect").serialize();
+            var client_id = "<?php echo $_SESSION["client_id"] ?>";
+            
             $.ajax({
                 method: "POST",
                 url: "getPurchase(SB).php",
-                data: data, 
+                data: data + "&client_id="+client_id, 
                 success: function(data){
                     console.log(data);
                     $("#expense").html(data);
@@ -294,6 +302,51 @@ else {
             }
         }
         function integratePurchase() {
+
+            $.confirm({
+                onOpenBefore: function (){
+                    this.showLoading();
+                }
+            });
+
+            var integrateCheck = document.querySelectorAll('.integrateCheck:checked');
+
+            var tbl = document.createElement("table");
+            var header = tbl.createTHead();
+            header.innerHTML = "<th>Project Name</th><th>Supplier/Subcontractor</th><th>Invoice No.</th><th>Invoice Date</th><th>Due Date</th><th>Amount</th><th>Status</th>";
+            
+            var body = tbl.createTBody();
+            for (let i = 0; i < integrateCheck.length; i++) {
+
+                var id = integrateCheck[i].value;
+                var project_name = integrateCheck[i].parentNode.parentNode.parentNode.childNodes[3].innerHTML;
+                var supplier = integrateCheck[i].parentNode.parentNode.parentNode.childNodes[5].innerHTML;
+                var invoice_no = integrateCheck[i].parentNode.parentNode.parentNode.childNodes[7].innerHTML;
+                var invoice_date = integrateCheck[i].parentNode.parentNode.parentNode.childNodes[9].innerHTML;
+                var due_date = integrateCheck[i].parentNode.parentNode.parentNode.childNodes[11].innerHTML;
+                //13 account type
+                var amount = integrateCheck[i].parentNode.parentNode.parentNode.childNodes[15].innerHTML;
+
+                body.innerHTML += "<tr id='tr"+id+"'><td>"+project_name+"</td><td>"+supplier+"</td><td>"+invoice_no+"</td><td>"+invoice_date+"</td><td>"+due_date+"</td><td>"+amount+"</td><td id='inte"+id+"'><p style='color: blue'>Integrating</p></td></tr>";
+                
+                $.ajax({
+                    method: "post",
+                    url: "purchaseToQB.php",    
+                    data:"id="+ id +"&access_token="+ access_token + "&refresh_token=" + refresh_token + "&realm_id=" + realm_id,
+                    success: function (data) {
+                        if(data == "Success") {
+                        
+                        }
+                        else {
+                            $(tbl).find("#tr" + getUrlParameter(this.data,"id")).remove();
+                        }
+                    }
+                });
+                $(document).one("ajaxStop", function() {
+                    sendEmail(tbl.innerHTML);
+                });
+            }
+/* 
             $.confirm({
                 title: "Smallbuilders to Quickbooks",
                 columnClass: "large",
@@ -315,13 +368,12 @@ else {
                         //13 account type
                         var amount = integrateCheck[i].parentNode.parentNode.parentNode.childNodes[15].innerHTML;
 
-                       
                         confirmJS.$content.find('table').append("<tr><td>"+project_name+"</td><td>"+supplier+"</td><td>"+invoice_no+"</td><td>"+invoice_date+"</td><td>"+amount+"</td><td id='inte"+id+"'><p style='color: blue'>Integrating</p></td></tr>");
                         
                         $.ajax({
                             method: "post",
                             url: "purchaseToQB.php",    
-                            data:"&id="+ id +"&access_token="+ access_token + "&refresh_token=" + refresh_token + "&realm_id=" + realm_id,
+                            data:"&id="+ id +"&access_token="+ access_token + "&refresh_token=" + refresh_token + "&realm_id=" + realm_id +"&client_id="+$_SESSION["client_id"],
                             success: function (data) {
                                 if(data == "Success") {
                                     console.log(data,"DITO SKO");
@@ -347,25 +399,62 @@ else {
                         }
                     }
                 }
-            });
+            }); */
         }
         
-        function convertNulltoEmpty(str) {
-            try {
-                if(str == null ){
-                    return "";
-                }
-                else {
-                    return str;
-                }
-            } catch (error) {
-                return "";
+        function sendEmail(tblContent) {
+            var tbl = document.createElement("table");
+            tbl.innerHTML = tblContent;
+
+            if (tbl.getElementsByTagName("tbody")[0].innerHTML == ""){
+                alert("No Integration were successful!");
+                window.location.href = "/quickbooks-integration/Sales/sales.php?selected_invoice="+selected_+"&submitButton";
+                return;
             }
+            //Add Style to every th 
+            var th = tbl.getElementsByTagName("th");
+            var td = tbl.getElementsByTagName("td");
+            //Loop to th
+            for (let i = 0; i < th.length; i++) {
+                th[i].setAttribute("style","border:solid 1px #ccc; text-align:center; padding: 15px 40px;");  
+            }
+            //Loop to td
+            for (let i = 0; i < td.length; i++) {
+                td[i].setAttribute("style","border:solid 1px #ccc; text-align:center; padding: 15px 40px;");
+            }
+            //Add Subject
+            var subj = "Expense Claim Successfully added to Quickbooks Purchase";
+            //Add Description
+            var desc = "You have successfully automated your Expense Claim details in your Quickbooks Account.";
+            //Send Emailcomposer require phpmailer/phpmailer
+
+            //Change Message Into
+            $.ajax({
+                method: "post",
+                url: "../sendMail.php",
+                data: "tblcontent=" + tbl.innerHTML + "&subj="+ subj + "&desc=" + desc,
+                success: function (data) {
+                    //Change Whole Body InnerHTML
+                    var body = document.getElementsByTagName("body")[0];
+                    body.innerHTML = `<div class="mt-5 card col-md-8 offset-2" style='background: #FCFCFC; padding: 20px 20px 20px 20px;'>
+                        <p style='color: green'>Success! A copy of your submission has been emailed to you.</p>
+                        
+                        <table class='table table-striped'>`+tblContent+`</table>
+                        
+                        <br>
+                        <div class='text-center'>
+                            <a href='purchase(SB).php' class='btn btn-secondary' style='width: 200px;'>Back to Integration</a>
+                        </div>
+                    </div>`;
+                }
+            });
         }
+
         function history(){
             $("#btnIntegrate").hide();
             $("#btnHistory").show();
         }
+
         function toPurchaseHistory(){
             $.confirm({
                 title: "Smallbuilders History",
@@ -386,7 +475,7 @@ else {
                             url: "purchaseHistory.php",
                             data: "id="+id,
                             success: function (data) {
-                                if(i < integrateCheck.length - 1) {
+                                if(i == integrateCheck.length - 1) {
                                     confirmJS.hideLoading();
                                     confirmJS.setContent("Done");
                                 }
@@ -405,6 +494,8 @@ else {
                 }
             });
         }
+
+        
         var getUrlParameter = function getUrlParameter(getURL,sParam) {
             var sPageURL = getURL,
                 sURLVariables = sPageURL.split('&'),

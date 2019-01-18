@@ -1,17 +1,17 @@
 <?php
     require_once "../db_connect.php";
     
-        
         $selected_expense =  $_POST["selected_expense"];
         $selected_project = $_POST["selected_project"];
         $selected_supplier = $_POST["selected_supplier"];
+        $client_id = $_POST["client_id"];
 
         $sql = "SELECT * FROM `tbl_expensesheet` 
             JOIN _supplier_db ON tbl_expensesheet.supplier_id = _supplier_db.supplier_id 
             JOIN _account_type_db ON account_type_id = account_id 
             WHERE transferred_to_quickbooks='no'
-            AND quickbooks_uid is NULL";
-
+            AND client_id = $client_id AND quickbooks_uid is NULL";
+        
         $sql_option = "SELECT * FROM `_account_type_db`";
 
         if($selected_expense>0){

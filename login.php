@@ -16,6 +16,8 @@
                 session_start();
                 $_SESSION["client_id"] = $row["id"];
                 header('Location:index.php');
+                
+                echo  $_SESSION["client_id"];
             }
         }
         else {

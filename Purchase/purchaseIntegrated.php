@@ -6,6 +6,12 @@ use QuickBooksOnline\API\DataService\DataService;
 $config = include('../config.php');
 
 session_start();
+if(isset($_SESSION["client_id"])) {
+
+}
+else {
+    header('Location:../login.php');
+}
 
 $dataService = DataService::Configure(array(
     'auth_mode' => 'oauth2',
@@ -203,7 +209,8 @@ else {
 
                         $sql = "SELECT * FROM `tbl_expensesheet` 
                                 JOIN _account_type_db ON account_type_id = account_id 
-                                WHERE transferred_to_quickbooks='yes'
+                                WHERE date_transferred_quickbooks_to_sb IS NOT NULL
+                                AND transferred_to_quickbooks='no'
                                 AND quickbooks_uid is NOT NULL";
 
                         $query = $connect->query($sql);

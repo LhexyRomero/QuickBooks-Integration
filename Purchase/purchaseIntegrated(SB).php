@@ -6,6 +6,12 @@ use QuickBooksOnline\API\DataService\DataService;
 $config = include('../config.php');
 
 session_start();
+if(isset($_SESSION["client_id"])) {
+
+}
+else {
+    header('Location:../login.php');
+}
 
 $dataService = DataService::Configure(array(
     'auth_mode' => 'oauth2',
@@ -165,8 +171,8 @@ else {
 
         <div class="btn-group">
             <a href="../Customer/customerContacts(SB).php" class="btn btn-secondary">Contacts</a>
-            <a href="#" class="btn btn-secondary">Sales</a>
-            <a href="#" class="btn btn-secondary active">Purchases</a>
+            <a href="../Sales/sale.php" class="btn btn-secondary">Sales</a>
+            <a href="../Purchase/purchase.php" class="btn btn-secondary active">Purchases</a>
             <a href="#" class="btn btn-secondary">Time Activity</a>
         </div>
         <br><br>
@@ -203,7 +209,7 @@ else {
                         $sql = "SELECT * FROM `tbl_expensesheet` 
                                 JOIN _account_type_db ON account_type_id = account_id 
                                 WHERE transferred_to_quickbooks='yes'
-                                AND quickbooks_uid is NOT NULL";
+                                AND (quickbooks_uid is NOT NULL OR quickbooks_uid is NULL)";
 
                         $option = "SELECT * FROM `_account_type_db`";
 

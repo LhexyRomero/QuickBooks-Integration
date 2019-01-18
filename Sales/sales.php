@@ -202,9 +202,9 @@ else {
                             $sql = "SELECT quickbooks_uid FROM _relationship_db_sales";
                             $sql_sales = "SELECT * FROM `_relationship_db_sales` JOIN _project_db 
                                         ON _relationship_db_sales.project_id = _project_db.project_id 
-                                        WHERE invoice_type = $selected_invoice AND quickbooks_uid IS NULL";
+                                        WHERE invoice_type = $selected_invoice AND client_id = ".$_SESSION["client_id"]." AND quickbooks_uid IS NULL AND date_moved IS NULL";
                             $sql_customers = "SELECT id, customer_name, quickbooks_uid FROM `_relationship_db_customers` WHERE quickbooks_uid IS NOT NULL AND customer_name IS NOT NULL";
-                            
+                           
                             $query = $connect->query($sql);
                             $sales_query = $connect->query($sql_sales);
                             $allCustomers = $connect->query($sql_customers);
@@ -278,8 +278,13 @@ else {
                     ?>
                     </tbody>
                 </table>
-            </form>
+            </form><br>
+            <div class='alert alert-primary'>
+                <input  type='radio' name="selectAction" value="1" class="integrateRadio"> Move the selected entries into my Quickbooks account. <br>
+                <input  type='radio' name="selectAction" value="2" class="integrateRadio"> I do not want to move the selected items to Quickbooks. Move the selected items into Small Builders history.
+            </div>
             <center><button id='btnIntegrate' class='mt-2 mb-5 btn btn-success btn-lg' onclick='integrateSales()' disabled>Integrate</button></center>
+            
             <script>
                 $("#SBtoQB").DataTable();         
             </script>
@@ -304,6 +309,7 @@ else {
 
         window.onload = function () {
             apiCall.getCompanyName();
+            $("#btnHistory").hide();
             var selected_ = "<?php echo $selected_invoice ?>";
             $("#invoice_type option[value='"+selected_+"']").attr("selected",true);
             $("input[name=unable]").attr('disabled', true); 
@@ -361,98 +367,120 @@ else {
 
         function integrateSales() {
             var invoice_global = "<?php echo $selected_invoice ?>";
+            var radio_val = $(".integrateRadio").val();
 
             $.confirm({
-                title: "Smallbuilders to Quickbooks",
-                columnClass: "large",
-                theme: "modern",
-                content: "<table class='table'><tr><th>Project Name</th><th>Customer Name</th><th>Invoice No.</th><th>Invoice Date</th><th>Amount</th><th>Status</th></tr></table>",
-                onOpenBefore: function () {
-
-                    var confirmJS = this;
-                    var integrateCheck = document.querySelectorAll('.integrateCheck:checked');
-                    
-                    for (let i = 0; i < integrateCheck.length; i++) {
-                        var id = integrateCheck[i].value;
-                        var project_name = integrateCheck[i].parentNode.parentNode.parentNode.childNodes[3].innerHTML;
-                        var customer_name = integrateCheck[i].parentNode.parentNode.parentNode.childNodes[5].innerHTML;
-                        var invoice_no = integrateCheck[i].parentNode.parentNode.parentNode.childNodes[7].innerHTML;
-                        var invoice_date = integrateCheck[i].parentNode.parentNode.parentNode.childNodes[9].innerHTML;
-                        var amount = integrateCheck[i].parentNode.parentNode.parentNode.childNodes[13].innerHTML;
-                        
-                        confirmJS.$content.find('table').append("<tr><td>"+project_name+"</td><td>"+customer_name+"</td><td>"+invoice_no+"</td><td>"+invoice_date+"</td><td>"+amount+"</td><td id='inte"+id+"'><p style='color: blue'>Integrating</p></td></tr>")
-                        
-                        if(invoice_global == 1){
-                            $.ajax({
-                                method: "post",
-                                url: "registeredSalesToQB.php",
-                                data:  "id=" + id + "&access_token="+ access_token + "&refresh_token=" + refresh_token + "&realm_id=" + realm_id,
-                                success: function (data) {
-                                    if(data == "Success") {
-                                        console.log("LEKI");
-                                        confirmJS.$content.find('#inte'+ getUrlParameter(this.data,"id") ).html("<p style='color: green'>Integrated</p>");   
-                                    }
-                                    else {
-                                        confirmJS.$content.find('#inte'+ getUrlParameter(this.data,"id") ).html("<p style='color: red'>Failed</p>");   
-                                    }
-
-                                    if(i == integrateCheck.length - 1) {
-                                        $( document ).ajaxStop(function(){
-                                            confirmJS.buttons.ok.enable();
-                                        });
-                                    }
-                                    
-                                }
-                            });
-                        }
-                        else {
-                            $.ajax({
-                                method: "post",
-                                url: "unregisteredSalesToQB.php",
-                                data: "id=" + id + "&access_token="+ access_token + "&refresh_token=" + refresh_token + "&realm_id=" + realm_id,
-                                success: function (data) {
-
-                                    if(data == "Success") {
-                                        console.log(data,"DITO SKO");
-                                        confirmJS.$content.find('#inte'+ getUrlParameter(this.data,"id") ).html("<p style='color: green'>Integrated</p>");   
-                                    }
-                                    else {
-                                        console.log(data);
-                                        confirmJS.$content.find('#inte'+ getUrlParameter(this.data,"id") ).html("<p style='color: red'>Failed</p>");   
-                                    }
-
-                                    if(i == integrateCheck.length - 1) {
-                                        $( document ).ajaxStop(function(){
-                                            confirmJS.buttons.ok.enable();
-                                        });
-                                    }
-                                    
-                                }
-                            });
-                        }
-                    }
-                },
-                buttons: {
-                    ok: {
-                        action: function () {
-                            window.location.href = "/quickbooks-integration/Sales/sales.php?selected_invoice="+invoice_global+"&submitButton";
-                        }
-                    }
+                onOpenBefore: function (){
+                    this.showLoading();
                 }
             });
-        }
-        
-        function convertNulltoEmpty(str) {
-            try {
-                if(str == null ){
-                    return "";
+
+            var integrateCheck = document.querySelectorAll('.integrateCheck:checked');
+
+            var tbl = document.createElement("table");
+            var header = tbl.createTHead();
+            header.innerHTML = "<th>Project Name</th><th>Customer Name</th><th>Invoice No.</th><th>Invoice Date</th><th>Due Date</th><th>Amount</th><th>Action</th>";
+
+            var body = tbl.createTBody();
+            for (let i = 0; i < integrateCheck.length; i++) {
+                var record = tbl.insertRow(-1);
+
+                var id = integrateCheck[i].value;
+                var project_name = integrateCheck[i].parentNode.parentNode.parentNode.childNodes[3].innerHTML;
+                var customer_name = integrateCheck[i].parentNode.parentNode.parentNode.childNodes[5].innerHTML;
+                var invoice_no = integrateCheck[i].parentNode.parentNode.parentNode.childNodes[7].innerHTML;
+                var invoice_date = integrateCheck[i].parentNode.parentNode.parentNode.childNodes[9].innerHTML;
+                var due_date = integrateCheck[i].parentNode.parentNode.parentNode.childNodes[11].innerHTML;
+                var amount = integrateCheck[i].parentNode.parentNode.parentNode.childNodes[13].innerHTML;
+                body.innerHTML += "<tr id='tr"+id+"'><td>"+project_name+"</td><td>"+customer_name+"</td><td>"+invoice_no+"</td><td>"+invoice_date+"</td><td>"+due_date+"</td><td>"+amount+"</td><td id='inte"+id+"'><p style='color: blue'>Integrating</p></td></tr>"
+               
+                if(radio_val == 1) {
+                    if(invoice_global == 1){
+                        $.ajax({
+                            method: "post",
+                            url: "registeredSalesToQB.php",
+                            data:  "id=" + id + "&access_token="+ access_token + "&refresh_token=" + refresh_token + "&realm_id=" + realm_id,
+                            success: function (data) {
+                                if(data == "Success") {
+                                
+                                }
+                                else {
+                                    $(tbl).find("#tr" + getUrlParameter(this.data,"id")).remove();
+                                }                            
+                            }
+                        });
+                        $(document).one("ajaxStop", function() {
+                            sendEmail(tbl.innerHTML);
+                        });
+                    }
+
+                    else {  
+                        $.ajax({
+                            method: "post",
+                            url: "unregisteredSalesToQB.php",
+                            data: "id=" + id + "&access_token="+ access_token + "&refresh_token=" + refresh_token + "&realm_id=" + realm_id,
+                            success: function (data) {
+                                if(data == "Success") {
+                                
+                                }
+                                else {
+                                    $(tbl).find("#tr" + getUrlParameter(this.data,"id")).remove();
+                                }                            
+                            }
+                        });
+                        $(document).one("ajaxStop", function() {
+                            sendEmail(tbl.innerHTML);
+                        });
+                    } 
                 }
                 else {
-                    return str;
+                    console/log("IM HERE");
                 }
-            } catch (error) {
-                return "";
             }
+        }
+
+        function sendEmail(tblContent) {
+            var tbl = document.createElement("table");
+            tbl.innerHTML = tblContent;
+
+            if (tbl.getElementsByTagName("tbody")[0].innerHTML == ""){
+                alert("No Integration were successful!");
+                window.location.href = "/quickbooks-integration/Sales/sales.php?selected_invoice="+selected_+"&submitButton";
+                return;
+            }
+            //Add Style to every th 
+            var th = tbl.getElementsByTagName("th");
+            var td = tbl.getElementsByTagName("td");
+            //Loop to th
+            for (let i = 0; i < th.length; i++) {
+                th[i].setAttribute("style","border:solid 1px #ccc; text-align:center; padding: 15px 40px;");  
+            }
+            //Loop to td
+            for (let i = 0; i < td.length; i++) {
+                td[i].setAttribute("style","border:solid 1px #ccc; text-align:center; padding: 15px 40px;");
+            }
+            var subj = "Small Builders Sales successfully added to Quickbooks Sales";
+            
+            var desc = "You have successfully automated your Payment Claim details into your Quickbooks Account. This claim is now available in your Quickbooks Sales with the following details.";
+            
+            $.ajax({
+                method: "post",
+                url: "../sendMail.php",
+                data: "tblcontent=" + tbl.innerHTML + "&subj="+ subj + "&desc=" + desc,
+                success: function (data) {
+                    var body = document.getElementsByTagName("body")[0];
+                    body.innerHTML = `<div class="mt-5 card col-md-8 offset-2" style='background: #FCFCFC; padding: 20px 20px 20px 20px;'>
+                        <p style='color: green'>Success! A copy of your submission has been emailed to you.</p>
+                        
+                        <table class='table table-striped'>`+tblContent+`</table>
+                        
+                        <br>
+                        <div class='text-center'>
+                            <a href='sales.php' class='btn btn-secondary' style='width: 200px;'>Back to Integration</a>
+                        </div>
+                    </div>`;
+                }
+            });
         }
 
         var getUrlParameter = function getUrlParameter(getURL,sParam) {
@@ -468,6 +496,51 @@ else {
                     return sParameterName[1] === undefined ? true : decodeURIComponent(sParameterName[1]);
                 }
             }
+        }
+
+        function history(){
+            $("#btnIntegrate").hide();
+            $("#btnHistory").show();
+        }
+
+        function toSaleHistory(){
+            $.confirm({
+                title: "Smallbuilders History",
+                columnClass: "medium",
+                theme: "modern",
+                content: "",
+                onOpenBefore: function () {
+                    this.showLoading();
+                    var confirmJS = this;
+                    var integrateCheck = document.querySelectorAll('.integrateCheck:checked');
+                    console.log("PURPOSE",integrateCheck);
+                    
+                    for (let i = 0; i < integrateCheck.length; i++) {
+                        var id = integrateCheck[i].value;
+                        console.log("lenggth",integrateCheck.length);
+                        $.ajax({
+                            method: "post",
+                            url: "saleHistory.php",
+                            data: "id="+id,
+                            success: function (data) {
+                                if(i == integrateCheck.length - 1) {
+                                    confirmJS.hideLoading();
+                                    confirmJS.setContent("Done");
+                                }
+                            }
+                        });
+                        console.log("lenggthafter",integrateCheck.length);
+                    }
+                    console.log("IM WORKING");
+                },
+                buttons: {
+                    ok: {
+                        action: function () {
+
+                        }
+                    }
+                }
+            });
         }
     </script>
 </html>

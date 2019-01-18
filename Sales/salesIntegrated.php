@@ -197,7 +197,7 @@ else {
 
                         $sql = "SELECT * FROM `_relationship_db_sales` JOIN _project_db 
                                 ON _relationship_db_sales.project_id = _project_db.project_id 
-                                WHERE quickbooks_uid IS NOT NULL";
+                                WHERE (quickbooks_uid IS NOT NULL OR quickbooks_uid IS NULL) AND date_moved is NOT NULL";
                         
                         $query = $connect->query($sql);
                         
