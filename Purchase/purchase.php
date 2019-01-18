@@ -6,6 +6,12 @@ use QuickBooksOnline\API\DataService\DataService;
 $config = include('../config.php');
 
 session_start();
+if(isset($_SESSION["client_id"])) {
+
+}
+else {
+    header('Location:../login.php');
+}
 
 $dataService = DataService::Configure(array(
     'auth_mode' => 'oauth2',
