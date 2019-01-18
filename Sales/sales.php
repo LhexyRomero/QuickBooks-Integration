@@ -6,6 +6,12 @@ use QuickBooksOnline\API\DataService\DataService;
 $config = include('../config.php');
 
 session_start();
+if(isset($_SESSION["client_id"])) {
+
+}
+else {
+    header('Location:../login.php');
+}
 
 $dataService = DataService::Configure(array(
     'auth_mode' => 'oauth2',
@@ -148,7 +154,7 @@ else {
             <a href="../Customer/customerContacts(SB).php" class="btn btn-secondary">Contacts</a>
             <a href="#" class="btn btn-secondary active">Sales</a>
             <a href="../Purchase/purchase.php" class="btn btn-secondary">Purchases</a>
-            <a href="#" class="btn btn-secondary">Time Activity</a>
+            <a href="../TimeActivity/timeActivity.php" class="btn btn-secondary">Time Activity</a>
         </div>
         <br><br>
         
@@ -284,7 +290,6 @@ else {
     $displayString = isset($accessTokenJson) ? $accessTokenJson : "No Access Token Generated Yet";
     echo json_encode($displayString, JSON_PRETTY_PRINT); ?>
     </pre> -->
-
 </div>
 </body>
     <script>
