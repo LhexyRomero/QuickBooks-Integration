@@ -176,7 +176,7 @@ else {
             <div class="btn-group">
                 <a href="../Customer/customerContacts(SB).php" class="btn btn-secondary" id='btnCustomers'>Customers</a>
                 <a href="../Employee/employeeContacts(SB).php" class="btn btn-secondary active">Employees</a>
-                <a href="../Supplier/vendorContacts(SB).php" class="btn btn-secondary">Vendor</a>
+                <a href="../Supplier/vendorContacts(SB).php" class="btn btn-secondary">Suppliers</a>
             </div>
         </div>
         <br>
@@ -321,56 +321,100 @@ else {
         }
 
         function integrateEmployee() {
+            //Add Loading
             $.confirm({
-                title: "Quickbooks to Smallbuilders",
-                columnClass: "large",
-                theme: "modern",
-                content: "<table class='table'><tr><th>Employee Name</th><th>Email Address</th><th>Contact No.</th><th>Status</th></tr></table>",
                 onOpenBefore: function () {
-                    //Get This
-                    var confirmJS = this;
+                    this.showLoading()
+                }
+            });
 
-                    //Collect all Check QuickBooks ids
-                    var integrateCheck = document.querySelectorAll('.integrateCheck:checked');
+            //Collect All Integrate Checks
+            var integrateCheck = document.querySelectorAll('.integrateCheck:checked');
 
+            //Create a Table (this table will be put on SB to QB successful Message)
+            var tbl = document.createElement("table");
+            var header = tbl.createTHead();
+            header.innerHTML = "<th>Employee Name</th><th>Email Address</th><th>Contact No.</th>";
 
-                    //Retrieve Customer Info
-                    for (let i = 0; i < integrateCheck.length; i++) {
-                        var id = integrateCheck[i].value;
-                        var employee_name = integrateCheck[i].parentNode.parentNode.childNodes[2].innerHTML;
-                        var employee_email = integrateCheck[i].parentNode.parentNode.childNodes[3].innerHTML;
-                        var employee_contact = integrateCheck[i].parentNode.parentNode.childNodes[4].innerHTML;
-                        confirmJS.$content.find('table').append("<tr><td>"+employee_name+"</td><td>"+employee_email+"</td><td>"+employee_contact+"</td><td id='inte"+id+"'><p style='color: blue'>Integrating</p></td></tr>");  
-                        //Pupunta sa Quickbooks info
-                        $.ajax({
-                            method: "post",
-                            url: "employeesToQB.php",
-                            data: "access_token="+ access_token + "&refresh_token=" + refresh_token + "&realm_id=" + realm_id + "&id=" + id,
-                            success: function (data) {
+            //Integrate All Checks
+            var body = tbl.createTBody();
+            for (let i = 0; i < integrateCheck.length; i++) {
+                //Insert A Row
+                var record = tbl.insertRow(-1);
 
-                                if(data == "Success") {
-                                        confirmJS.$content.find('#inte'+ getUrlParameter(this.data,"id") ).html("<p style='color: green'>Integrated</p>");
-                                    }
-                                else {
-                                    confirmJS.$content.find('#inte'+ getUrlParameter(this.data,"id") ).html("<p style='color: red'>Failed</p>");
-                                }
+                //Get Checked Record
+                var id = integrateCheck[i].value;
+                var employee_name = integrateCheck[i].parentNode.parentNode.childNodes[2].innerHTML;
+                var employee_email = integrateCheck[i].parentNode.parentNode.childNodes[3].innerHTML;
+                var employee_contact = integrateCheck[i].parentNode.parentNode.childNodes[4].innerHTML;
+                
+                //Add Record to Table
+                body.innerHTML += "<tr id='tr"+id+"'><td>"+employee_name+"</td><td>"+employee_email+"</td><td>"+employee_contact+"</td></tr>";
 
-                                //Check if All Request is Done
-                                if(i == integrateCheck.length - 1) {
-                                    $( document ).ajaxStop(function(){
-                                        confirmJS.buttons.ok.enable();
-                                    });
-                                }
-                            }
-                        });
-                    }
-                },
-                buttons: {
-                    ok: {
-                        action: function () {
-                            window.location.href = "employeeContacts(SB).php";
+                $.ajax({
+                    method: "post",
+                    url: "employeesToQB.php",
+                    data: "id=" + id + "&access_token="+ access_token + "&refresh_token=" + refresh_token + "&realm_id=" + realm_id,
+                    success: function (data) {
+                        if(data == "Success") {
+                            //DO NOT DELETE RECORD  
+                        }
+                        else {
+                            //DELETE RECORD IF FAILED TO INTEGRATE
+                            $(tbl).find("#tr" + getUrlParameter(this.data,"id")).remove();
                         }
                     }
+                });
+                $(document).one("ajaxStop", function() {
+                    sendEmail(tbl.innerHTML);
+                });
+            }
+        }
+
+        function sendEmail(tblContent) {
+            //Generate Table
+            var tbl = document.createElement("table");
+            tbl.innerHTML = tblContent;
+            //DO NOT CONTINUE IF THERE ARE NO SUCCESSFUL INTEGRATION
+            if (tbl.getElementsByTagName("tbody")[0].innerHTML == "") {
+                alert("No Integration were successful.");
+                window.location.href = "employeeContacts(SB).php";
+                return;
+            }
+            //Add Style to every th 
+            var th = tbl.getElementsByTagName("th");
+            var td = tbl.getElementsByTagName("td");
+            //Loop to th
+            for (let i = 0; i < th.length; i++) {
+                th[i].setAttribute("style","border:solid 1px #ccc; text-align:center; padding: 4px 0px 4px 7px;");  
+            }
+            //Loop to td
+            for (let i = 0; i < td.length; i++) {
+                td[i].setAttribute("style","border:solid 1px #ccc; text-align:center; padding: 4px 0px 4px 7px;");
+            }
+            //Add Subject
+            var subj = "Small Builders Employee successfully added to Quickbooks Contacts";
+            //Add Description
+            var desc = "You have successfully automated your Small Builders Employee details into your Quickbooks account. These employees are now available in your Quickbooks Contacts with the following details.";
+            //Send Email
+            //Change Message Into
+            $.ajax({
+                method: "post",
+                url: "../sendMail.php",
+                data: "tblcontent=" + tbl.innerHTML + "&subj="+ subj + "&desc=" + desc,
+                success: function (data) {
+                    //Change Whole Body InnerHTML
+                    var body = document.getElementsByTagName("body")[0];
+                    body.innerHTML = `<div class="mt-5 card col-md-8 offset-2" style='background: #FCFCFC; padding: 20px 20px 20px 20px;'>
+                        <p style='color: green'>Success! A copy of your submission has been emailed to you.</p>
+                        
+                        <table class='table table-striped'>`+tblContent+`</table>
+                        
+                        <br>
+                        <div class='text-center'>
+                            <a href='employeeContacts(SB).php' class='btn btn-secondary' style='width: 200px;'>Back to Integration</a>
+                        </div>
+                    </div>`;
                 }
             });
         }

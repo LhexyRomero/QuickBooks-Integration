@@ -1,6 +1,8 @@
 <?php
 
 require_once('../vendor/autoload.php');
+require_once "../db_connect.php";
+
 use QuickBooksOnline\API\DataService\DataService;
 
 $config = include('../config.php');
@@ -11,6 +13,17 @@ if(isset($_SESSION["client_id"])) {
 }
 else {
     header('Location:../login.php');
+}
+
+
+//API HISTORY
+$request_uri = $_SERVER["REQUEST_URI"];
+$client_id = $_SESSION["client_id"];
+
+$sql = "INSERT INTO `_api_history` (`id`,`operation`, `client_id`, `timestamp`, `request_uri`, `request_code`, `method`, `request_body`, `error_message`) VALUES (NULL,'READ', '$client_id', CURRENT_TIMESTAMP, '$request_uri', '200', 'GET', NULL, NULL);";
+
+if($connect->query($sql)) {
+    //SUCCESS
 }
 
 $dataService = DataService::Configure(array(
@@ -174,7 +187,7 @@ else {
             <div class="btn-group">
                 <a href="../Customer/customerContacts(SB).php" class="btn btn-secondary active" id='btnCustomers'>Customers</a>
                 <a href="../Employee/employeeContacts(SB).php" class="btn btn-secondary">Employees</a>
-                <a href="../Supplier/vendorContacts(SB).php" class="btn btn-secondary">Vendor</a>
+                <a href="../Supplier/vendorContacts(SB).php" class="btn btn-secondary">Suppliers</a>
             </div>
         </div>
         <br>

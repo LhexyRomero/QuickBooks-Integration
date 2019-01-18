@@ -43,7 +43,7 @@ while($row = mysqli_fetch_array($query)) {
         //Content
         $mail->isHTML(true);                                  // Set email format to HTML
         $mail->Subject = $subj;
-        $mail->Body    = "<style>table,tr,th,td {border: 1px solid gray;}</style>Please do not reply. This is an automated email.<br></br> Hi ".$row["name"].",<br><br>$desc<br><br><table style='border-collapse: collapse;'>$tblcontent</table><br>If you have any questions, contact John Dela Cruz on 0414 325 080.<br><br>Regards,<br>Small Builders";
+        $mail->Body    = "Please do not reply. This is an automated email.<br></br> Hi ".$row["name"].",<br><br>$desc<br><br><table style='border-collapse: collapse; width: 100%'>$tblcontent</table><br>If you have any questions, contact John Dela Cruz on 0414 325 080.<br><br>Regards,<br>Small Builders";
         //$mail->AltBody = 'This is the body in plain text for non-HTML mail clients';
 
         $mail->send();

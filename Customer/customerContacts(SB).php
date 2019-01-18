@@ -2,6 +2,7 @@
 <?php
 
 require_once('../vendor/autoload.php');
+require_once "../db_connect.php";
 use QuickBooksOnline\API\DataService\DataService;
 
 $config = include('../config.php');
@@ -12,6 +13,16 @@ if(isset($_SESSION["client_id"])) {
 }
 else {
     header('Location:../login.php');
+}
+
+//API HISTORY
+$request_uri = $_SERVER["REQUEST_URI"];
+$client_id = $_SESSION["client_id"];
+
+$sql = "INSERT INTO `_api_history` (`id`,`operation`, `client_id`, `timestamp`, `request_uri`, `request_code`, `method`, `request_body`, `error_message`) VALUES (NULL,'READ', '$client_id', CURRENT_TIMESTAMP, '$request_uri', '200', 'GET', NULL, NULL);";
+
+if($connect->query($sql)) {
+    //SUCCESS
 }
 
 $dataService = DataService::Configure(array(
@@ -176,7 +187,7 @@ else {
             <div class="btn-group">
                 <a href="../Customer/customerContacts(SB).php" class="btn btn-secondary active" id='btnCustomers'>Customers</a>
                 <a href="../Employee/employeeContacts(SB).php" class="btn btn-secondary">Employees</a>
-                <a href="../Supplier/vendorContacts(SB).php" class="btn btn-secondary">Vendor</a>
+                <a href="../Supplier/vendorContacts(SB).php" class="btn btn-secondary">Suppliers</a>
             </div>
         </div>
         <br>
@@ -202,9 +213,6 @@ else {
                 </thead>
                 <tbody>
                     <?php
-                        //GET FIELDS THAT HAVE QUICKBOOKS UID
-                        require_once "../db_connect.php";
-
                         $quickbooks_uids = array();
                         $sql = "SELECT * FROM _relationship_db_customers WHERE quickbooks_uid IS NULL AND client_id = ".$_SESSION["client_id"];
                     
@@ -379,67 +387,9 @@ else {
                     sendEmail(tbl.innerHTML);
                 });
             }
-            
-
-            //Send to Email if successfull integration
-
-            //Redirect to new Page
-
-            // $.confirm({
-            //     title: "Smallbuilders to Quickbooks",
-            //     columnClass: "large",
-            //     theme: "modern",
-            //     content: "<table class='table'><tr><th>Customer Name</th><th>Customer Email</th><th>Representative Name</th><th>Customer Adress</th><th>Customer Phone</th></tr></table>",
-            //     onOpenBefore: function () {
-            //         //Get This
-            //         var confirmJS = this;
-            //         //Collect all QuickBooks ids
-            //         var integrateCheck = document.querySelectorAll('.integrateCheck:checked');
-
-            //         //Retrieve Customer Info
-            //         for (let i = 0; i < integrateCheck.length; i++) {
-            //             var id = integrateCheck[i].value;
-            //             var id = integrateCheck[i].value;
-            //             var customer_name = integrateCheck[i].parentNode.parentNode.childNodes[3].innerHTML;
-            //             var customer_email = integrateCheck[i].parentNode.parentNode.childNodes[4].innerHTML;
-            //             var rep_name = integrateCheck[i].parentNode.parentNode.childNodes[5].innerHTML;
-            //             var customer_address = integrateCheck[i].parentNode.parentNode.childNodes[6].innerHTML;
-            //             var customer_phone = integrateCheck[i].parentNode.parentNode.childNodes[7].innerHTML;
-
-                        
-            //             confirmJS.$content.find('table').append("<tr><td>"+customer_name+"</td><td>"+customer_email+"</td><td>"+rep_name+"</td><td>"+customer_address+"</td>"+customer_phone+"<td></td></tr>");
-                        
-            //                 //Integrate
-            //                 $.ajax({
-            //                     method: "post",
-            //                     url: "customersToQB.php",
-            //                     data: "id=" + id + "&access_token="+ access_token + "&refresh_token=" + refresh_token + "&realm_id=" + realm_id,
-            //                     success: function (data) {
-            //                         if(data == "Success") {
-            //                             confirmJS.$content.find('#inte'+ getUrlParameter(this.data,"id") ).html("<p style='color: green'>Integrated</p>");   
-            //                         }
-            //                         else {
-            //                             confirmJS.$content.find('#inte'+ getUrlParameter(this.data,"id") ).html("<p style='color: red'>Failed</p>");   
-            //                         }
-            //                     }
-            //                 });
-            //         }
-            //         $(document).one("ajaxStop", function() {
-            //             var integrateTable = confirmJS.$content.find('table').html();
-            //             sendEmail(integrateTable);
-            //             confirmJS.buttons.ok.show();
-            //         });
-            //     },
-            //     buttons: {
-            //         ok: {
-            //             action: function () {
-            //                 window.location.href = "customerContacts(SB).php";
-            //             },
-            //             isHidden: true,
-            //         }
-            //     }
-            // });
         }
+
+        
         function sendEmail(tblContent) {
             //Generate Table
             var tbl = document.createElement("table");

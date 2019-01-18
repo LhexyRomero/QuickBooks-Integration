@@ -176,14 +176,14 @@ else {
             <div class="btn-group">
                 <a href="../Customer/customerContacts(SB).php" class="btn btn-secondary" id='btnCustomers'>Customers</a>
                 <a href="../Employee/employeeContacts(SB).php" class="btn btn-secondary">Employees</a>
-                <a href="../Supplier/vendorContacts(SB).php" class="btn btn-secondary active">Vendor</a>
+                <a href="../Supplier/vendorContacts(SB).php" class="btn btn-secondary active">Suppliers</a>
             </div>
         </div>
         <br>
         <br>
         <div id="table">
             <div class='alert alert-warning'>
-            Below Contacts are those Vendors that exist in your Smallbuilders account but didn't exist in your QuickBooks account.
+            Below Contacts are those Suppliers that exist in your Smallbuilders account but didn't exist in your QuickBooks account.
             </div>
             <nav class='nav nav-tabs nav-justified'>
                 <a class='nav-item nav-link active' href='#'>Small Builders to Quickbooks</a>
@@ -192,6 +192,7 @@ else {
             <table id='QBtoSB' class='table table-striped'>
                 <thead>
                     <tr>
+                        <td><input type='checkbox' onclick='checkAll(this);countIntegrate();'></td>
                         <td>Supplier Name</td>
                         <td>Supplier Address</td>
                         <td>Representative Name</td>
@@ -213,9 +214,9 @@ else {
                             echo "<tr>
                             <td><input type='checkbox' class='form-control integrateCheck' onclick='countIntegrate()' value='".$row["id"]."'></td>
                             <td>".$row["supplier_name"]."</td>";
-                            echo "<td>". $row["representative_email"] ."</td>";
+                            echo "<td>". $row["supplier_address"] ."</td>";
                             echo "<td>". $row["representative_name"]." " .$row["representative_lname"]."</td>";
-                            echo "<td>". $row["supplier_address"]."</td>";
+                            echo "<td>". $row["representative_email"]."</td>";
                             echo "<td>Phone: ".$row["representative_phone"]."<br>Mobile: ".$row["representative_mobile"]."<br>Fax: ".$row["representative_fax"]."</td>";
                             echo "</tr>"; 
                         }
@@ -231,16 +232,16 @@ else {
         <hr style='clear: both'>
         <div id="table2">
             <br>
-            <h3 class='text-center'>Reconciled Vendor</h3>
+            <h3 class='text-center'>Reconciled Suppliers</h3>
             <br>
             <table id='ReconciledCust'class='table table-striped'>
                 <thead>
                     <tr>
-                        <td>Vendor Name</td>
-                        <td>Vendor Email</td>
+                        <td>Supplier Name</td>
+                        <td>Supplier Address</td>
                         <td>Representative Name</td>
-                        <td>Vendor Address</td>
-                        <td>Vendor phone Number</td>
+                        <td>Email Address</td>
+                        <td>Phone Number</td>
                     </tr>
                 </thead>
                 <tbody>
@@ -256,9 +257,9 @@ else {
                         while($row = mysqli_fetch_array($query)) {
                             echo "<tr>
                                 <td>".$row["supplier_name"]."</td>
-                                <td>".$row["representative_email"]."</td>
-                                <td>".$row["representative_name"] ." ". $row["representative_lname"] . "</td>
                                 <td>".$row["supplier_address"]."</td>
+                                <td>".$row["representative_name"] ." ". $row["representative_lname"] . "</td>
+                                <td>".$row["representative_email"]."</td>
                                 <td>Phone: ".$row["representative_phone"]."<br>Mobile: ".$row["representative_mobile"]. "<br>Fax: ".$row["representative_fax"]."</td>
                             </tr>";
                         }
@@ -328,124 +329,107 @@ else {
         }
 
         function integrateVendor() {
+            //Add Loading
             $.confirm({
-                title: "Smallbuilders to Quickbooks",
-                columnClass: "medium",
-                theme: "modern",
-                content: "",
                 onOpenBefore: function () {
-                    //Add Loading 
-                    this.showLoading();
-                    //Get This
-                    var confirmJS = this;
-                    //Collect all QuickBooks ids
-                    var integrateCheck = document.querySelectorAll('.integrateCheck:checked');
-                    
-                    //Quickbooks Array
-                    var vendors = [];
-
-                    //Retrieve Vendor Info
-                    for (let i = 0; i < integrateCheck.length; i++) {
-                        var id = integrateCheck[i].value;
-                            //Pupunta sa Database Kunin ung Info
-                            $.ajax({
-                                method: "post",
-                                url: "readVendor(SBid).php",
-                                dataType: "json",
-                                data: "id=" + id + "&access_token="+ access_token + "&refresh_token=" + refresh_token + "&realm_id=" + realm_id,
-                                success: function (data) {
-                                    //Add Vendor to Array
-                                    vendors.push(data);
-
-                                    //Check if All Request is Done
-                                    if(i == integrateCheck.length - 1) {
-                                        vendorToQB (vendors,confirmJS);
-                                    }
-                                }
-                            });
-                    }
-                },
-                buttons: {
-                    ok: {
-                        action: function () {
-                            window.location.href = "vendorContacts(SB).php";
-                        }
-                    }
+                    this.showLoading()
                 }
             });
-        }
-        function vendorToQB (vendors,confirmJS) {
-            for (let i = 0; i < vendors.length; i++) {
-                //CREATE FORM
-                var frmVendor = document.createElement("form");
-                //Create Fields
 
-                //CUSTOMER ID
-                var id = vendors[i][0].id;
-                //REPRESENTATIVE NAME
-                var representative_name = convertNulltoEmpty(vendors[i][0].representative_name);
-                //REPRESENTATIVE LAST NAME
-                var representative_lname = convertNulltoEmpty(vendors[i][0].representative_lname);
-                //CUSTOMER NAME
-                var supplier_name = convertNulltoEmpty(vendors[i][0].supplier_name);   
-                //ADDRESS LINE1
-                try {
-                    var supplier_address = convertNulltoEmpty(vendors[i][0].supplier_address);
-                } catch (error) {
-                    var supplier_address = "";
-                }
-                //CUSTOMER EMAIL
-                try {
-                    var representative_email = convertNulltoEmpty(vendors[i][0].representative_email);
-                } catch (error) {
-                    var representative_email = "";
-                }
-                //PHONE
-                try {
-                    var representative_phone = convertNulltoEmpty(vendors[i][0].representative_phone);
-                } catch (error) {
-                    var representative_phone = "";
-                }
-                //MOBILE
-                try {
-                    var representative_mobile = convertNulltoEmpty(vendors[i][0].representative_mobile);
-                } catch (error) {
-                    var representative_mobile = "";
-                }
-                //FAX
-                try {
-                    var representative_fax = convertNulltoEmpty(vendors[i][0].representative_fax); 
-                } catch (error) {
-                    var representative_fax = ""; 
-                }
-                //ACCOUNT NUMBER
-                try {
-                    var bank_account_number = convertNulltoEmpty(vendor[i][0].bank_account_number);
-                } catch (error) {
-                    var bank_account_number = "";
-                }
+            //Collect All Integrate Checks
+            var integrateCheck = document.querySelectorAll('.integrateCheck:checked');
+
+            //Create a Table (this table will be put on SB to QB successful Message)
+            var tbl = document.createElement("table");
+            var header = tbl.createTHead();
+            header.innerHTML = "<th>Supplier Name</th><th>Supplier Address</th><th>Representative Name</th><th>Email Address</th><th>Phone Number</th>";
+
+            //Integrate All Checks
+            var body = tbl.createTBody();
+            for (let i = 0; i < integrateCheck.length; i++) {
+                //Insert A Row
+                var record = tbl.insertRow(-1);
+
+                //Get Checked Record
+                var id = integrateCheck[i].value;
+                var supplier_name = integrateCheck[i].parentNode.parentNode.childNodes[3].innerHTML;
+                var supplier_address = integrateCheck[i].parentNode.parentNode.childNodes[4].innerHTML;
+                var representative_name = integrateCheck[i].parentNode.parentNode.childNodes[5].innerHTML;
+                var email_address = integrateCheck[i].parentNode.parentNode.childNodes[6].innerHTML;
+                var phone_number = integrateCheck[i].parentNode.parentNode.childNodes[7].innerHTML;
+
+                //Add Record to Table
+                body.innerHTML += "<tr id='tr"+id+"'><td>"+supplier_name+"</td><td>"+supplier_address+"</td><td>"+representative_name+"</td><td>"+email_address+"</td><td>"+phone_number+"</td></tr>";
                 
-
-
-                frmVendor.innerHTML = "<input name='id' value='"+id+"'><input name='supplier_name' value='"+supplier_name+"'><input name='supplier_address' value='"+supplier_address+"'><input name='representative_address' values='"+representative_address+"'><input name='representative_phone' value='"+representative_phone+"'><input name='representative_mobile' value='"+representative_mobile+"'><input name='representative_fax' value='"+representative_fax+"'><input name='representative_name' value='"+representative_name+"'><input name='representative_lname' value='"+representative_lname+"'><input name='bank_account_number' value='"+bank_account_number+"'><input name='representative_email' value='"+representative_email+"'>";
-
-                alert($(frmVendor).serialize());
-                
+                //Integrate Per Record
                 $.ajax({
                     method: "post",
                     url: "vendorsToQB.php",
-                    data: $(frmVendor).serialize() +"&access_token="+ access_token + "&refresh_token=" + refresh_token + "&realm_id=" + realm_id,
+                    data: "id=" + id + "&access_token="+ access_token + "&refresh_token=" + refresh_token + "&realm_id=" + realm_id,
                     success: function (data) {
-                        console.log(data);
-                    },
+                        if(data == "Success") {
+                            //DO NOT DELETE RECORD  
+                        }
+                        else {
+                            //DELETE RECORD IF FAILED TO INTEGRATE
+                            $(tbl).find("#tr" + getUrlParameter(this.data,"id")).remove();
+                        }
+                    }
                 });
                 
-                //IF TAPOS LAHAT NG REQUEST
-                if(i == vendors.length - 1) {
-                    confirmJS.hideLoading();
-                    confirmJS.setContent("Done");
-                }
+                //Send Email After all Integration Finish
+                $(document).one("ajaxStop", function() {
+                    sendEmail(tbl.innerHTML);
+                });
             }
+        }
+        
+        function sendEmail(tblContent) {
+            //Generate Table
+            var tbl = document.createElement("table");
+            tbl.innerHTML = tblContent;
+            //DO NOT CONTINUE IF THERE ARE NO SUCCESSFUL INTEGRATION
+            if (tbl.getElementsByTagName("tbody")[0].innerHTML == "") {
+                alert("No Integration were successful.");
+                window.location.href = "vendorContacts(SB).php";
+                return;
+            }
+            //Add Style to every th 
+            var th = tbl.getElementsByTagName("th");
+            var td = tbl.getElementsByTagName("td");
+            //Loop to th
+            for (let i = 0; i < th.length; i++) {
+                th[i].setAttribute("style","border:solid 1px #ccc; text-align:center; padding: 4px 0px 4px 7px;");  
+            }
+            //Loop to td
+            for (let i = 0; i < td.length; i++) {
+                td[i].setAttribute("style","border:solid 1px #ccc; text-align:center; padding: 4px 0px 4px 7px;");
+            }
+            //Add Subject
+            var subj = "Small Builders Supplier successfully added to Quickbooks Contacts";
+            //Add Description
+            var desc = "You have successfully automated your Small Builders Supplier details into your Quickbooks account. These suppliers are now available in your Quickbooks Contacts with the following details.";
+            //Send Email
+            //Change Message Into
+            $.ajax({
+                method: "post",
+                url: "../sendMail.php",
+                data: "tblcontent=" + tbl.innerHTML + "&subj="+ subj + "&desc=" + desc,
+                success: function (data) {
+                    //Change Whole Body InnerHTML
+                    var body = document.getElementsByTagName("body")[0];
+                    body.innerHTML = `<div class="mt-5 card col-md-8 offset-2" style='background: #FCFCFC; padding: 20px 20px 20px 20px;'>
+                        <p style='color: green'>Success! A copy of your submission has been emailed to you.</p>
+                        
+                        <table class='table table-striped'>`+tblContent+`</table>
+                        
+                        <br>
+                        <div class='text-center'>
+                            <a href='vendorContacts(SB).php' class='btn btn-secondary' style='width: 200px;'>Back to Integration</a>
+                        </div>
+                    </div>`;
+                }
+            });
         }
 
         function convertNulltoEmpty(str) {
@@ -460,5 +444,20 @@ else {
                 return "";
             }
         }
+
+        var getUrlParameter = function getUrlParameter(getURL,sParam) {
+            var sPageURL = getURL,
+                sURLVariables = sPageURL.split('&'),
+                sParameterName,
+                i;
+
+            for (i = 0; i < sURLVariables.length; i++) {
+                sParameterName = sURLVariables[i].split('=');
+
+                if (sParameterName[0] === sParam) {
+                    return sParameterName[1] === undefined ? true : decodeURIComponent(sParameterName[1]);
+                }
+            }
+        };
     </script>
 </html>

@@ -176,14 +176,14 @@ else {
             <div class="btn-group">
                 <a href="../Customer/customerContacts(SB).php" class="btn btn-secondary" id='btnCustomers'>Customers</a>
                 <a href="../Employee/employeeContacts(SB).php" class="btn btn-secondary">Employees</a>
-                <a href="../Supplier/vendorContacts(SB).php" class="btn btn-secondary active">Vendor</a>
+                <a href="../Supplier/vendorContacts(SB).php" class="btn btn-secondary active">Suppliers</a>
             </div>
         </div>
         <br>
         <br>
         <div id="table">
             <div class='alert alert-warning'>
-            Below Contacts are those Vendors that exist in your QuickBooks account but didn't exist in your Small Builders account.
+            Below Contacts are those Suppliers that exist in your QuickBooks account but didn't exist in your Small Builders account.
             </div>
             <nav class='nav nav-tabs nav-justified'>
                 <a class='nav-item nav-link' href='vendorContacts(SB).php'>Small Builders to Quickbooks</a>
@@ -244,7 +244,7 @@ else {
         <hr style='clear: both'>
         <div id="table2">
             <br>
-            <h3 class='text-center'>Reconciled vendor</h3>
+            <h3 class='text-center'>Reconciled Suppliers</h3>
             <br>
             <table id='ReconciledCust'class='table table-striped'>
                 <thead>
