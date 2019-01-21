@@ -1,6 +1,8 @@
 <?php
 
 require_once('../vendor/autoload.php');
+require_once "../db_connect.php";
+
 use QuickBooksOnline\API\DataService\DataService;
 
 $config = include('../config.php');
@@ -11,6 +13,16 @@ if(isset($_SESSION["client_id"])) {
 }
 else {
     header('Location:../login.php');
+}
+
+//API HISTORY
+$request_uri = $_SERVER["REQUEST_URI"];
+$client_id = $_SESSION["client_id"];
+
+$sql = "INSERT INTO `_api_history` (`id`,`operation`, `client_id`, `timestamp`, `request_uri`, `request_code`, `method`, `request_body`, `error_message`) VALUES (NULL,'READ', '$client_id', CURRENT_TIMESTAMP, '$request_uri', '200', 'GET', NULL, NULL);";
+
+if($connect->query($sql)) {
+    //SUCCESS
 }
 
 
@@ -344,40 +356,47 @@ else {
         function integrateVendor() {
             $.confirm({
                 title: "Quickbooks to Smallbuilders",
-                columnClass: "medium",
+                columnClass: "large",
                 theme: "modern",
-                content: "",
+                content: "<table class='table'><tr><th>Supplier Name</th><th>Supplier Address</th><th>Representative Name</th><th>Email Address</th><th>Contact Number</th><th>Status</th></tr></table>",
                 onOpenBefore: function () {
-                    //Add Loading 
-                    this.showLoading();
                     //PUT THIS TO VARIABLE
                     var confirmJS = this;
 
                     //Collect all QuickBooks ids na nacheckan
                     var integrateCheck = document.querySelectorAll('.integrateCheck:checked');
-                    
-                    //Quickbooks Array
-                    var vendors = [];
 
                     //Retrieve vendor Info
                     for (let i = 0; i < integrateCheck.length; i++) {
                         var id = integrateCheck[i].value;
-
-                            //GET QUICKBOOKS RECORD USING ID
-                            $.ajax({
-                                method: "post",
-                                url: "readVendor(id).php",
-                                data: "access_token="+ access_token + "&refresh_token=" + refresh_token + "&realm_id=" + realm_id + "&id=" + id,
-                                success: function (data) {
-                                    //Add vendor to Array
-                                    vendors.push(data);
-
-                                    //Check if All Request is Done
-                                    if(i == integrateCheck.length - 1) {
-                                        vendorToDB(vendors,confirmJS);
-                                    }
+                        var supplier_name = integrateCheck[i].parentNode.parentNode.childNodes[3].innerHTML;
+                        var supplier_address = integrateCheck[i].parentNode.parentNode.childNodes[4].innerHTML;
+                        var representative_name = integrateCheck[i].parentNode.parentNode.childNodes[5].innerHTML;
+                        var email_address = integrateCheck[i].parentNode.parentNode.childNodes[6].innerHTML;
+                        var contact_number = integrateCheck[i].parentNode.parentNode.childNodes[7].innerHTML;
+                        confirmJS.$content.find('table').append("<tr><td>"+supplier_name+"</td><td>"+supplier_address+"</td><td>"+representative_name+"</td><td>"+email_address+"</td><td>"+contact_number+"</td><td id='inte"+id+"'><p style='color: blue'>Integrating</p></td></tr>");
+                        //GET QUICKBOOKS RECORD USING ID
+                        $.ajax({
+                            method: "post",
+                            url: "readVendor(id).php",
+                            data: "access_token="+ access_token + "&refresh_token=" + refresh_token + "&realm_id=" + realm_id + "&id=" + id,
+                            success: function (data) {
+                                if(data == "Success") {
+                                    confirmJS.$content.find('#inte'+ getUrlParameter(this.data,"id") ).html("<p style='color: green'>Integrated</p>");
                                 }
-                            });
+                                else {
+                                    confirmJS.$content.find('#inte'+ getUrlParameter(this.data,"id") ).html("<p style='color: red'>Failed</p>");
+                                }
+                                    
+
+                                //Check if All Request is Done
+                                if(i == integrateCheck.length - 1) {
+                                    $( document ).ajaxStop(function(){
+                                        confirmJS.buttons.ok.enable();
+                                    });
+                                }
+                            }
+                        });
                     }
                 },
                 buttons: {
@@ -388,96 +407,6 @@ else {
                     }
                 }
             });
-        }
-
-        function vendorToDB (vendors,confirmJS) {
-            for (let i = 0; i < vendors.length; i++) {
-                //PARSE JSON
-                var vendor = JSON.parse(vendors[i]);
-                //CHECK JSON
-                console.log(vendor);
-                //CREATE FORM
-                var frmVendor = document.createElement("form");
-                //Create Fields
-
-                //REPRESENTATIVE NAME
-                var representative_name = convertNulltoEmpty(vendor.GivenName);
-                //REPRESENTATIVE LAST NAME
-                var representative_lname = convertNulltoEmpty(vendor.FamilyName);
-                //vendor NAME
-                var supplier_name = convertNulltoEmpty(vendor.DisplayName);   
-                //ADDRESS LINE1
-                try {
-                    var supplier_address = convertNulltoEmpty(vendor.BillAddr.Line1);
-                } catch (error) {
-                    var supplier_address = "";
-                }
-                //CITY
-                try {
-                    var supplier_city = convertNulltoEmpty(vendor.BillAddr.City);
-                } catch (error) {
-                    var supplier_city = "";
-                }
-                //COUNTRY
-                try {
-                    var supplier_country = convertNulltoEmpty(vendor.BillAddr.Country);
-                } catch (error) {
-                    var supplier_country = "";
-                }  
-                //vendor EMAIL
-                try {
-                    var representative_email = convertNulltoEmpty(vendor.PrimaryEmailAddr.Address);
-                } catch (error) {
-                    var representative_email = "";
-                }
-
-                //PHONE
-                try {
-                    var representative_phone = convertNulltoEmpty(vendor.PrimaryPhone.FreeFormNumber);
-                } catch (error) {
-                    var representative_phone = "";
-                }
-                //MOBILE
-                try {
-                    var representative_mobile = convertNulltoEmpty(vendor.Mobile.FreeFormNumber);
-                } catch (error) {
-                    var representative_mobile = "";
-                }
-                //FAX
-                try {
-                    var representative_fax = convertNulltoEmpty(vendor.Fax.FreeFormNumber); 
-                } catch (error) {
-                    var representative_fax = ""; 
-                }
-                //ACCOUNT NUMBER
-                try {
-                    var bank_account_number = convertNulltoEmpty(vendor.AcctNum);
-                } catch (error) {
-                    var bank_account_number = "";
-                }
-                
-                var quickbooks_uid = convertNulltoEmpty(vendor.Id);
-                
-                frmVendor.innerHTML = "<input name='supplier_name' value='"+supplier_name+"'><input name='supplier_address' value='"+supplier_address+", "+supplier_city+", "+supplier_country+"'><input name='representative_email' value='"+representative_email+"'><input name='representative_phone' value='"+representative_phone+"'><input name='representative_mobile' value='"+representative_mobile+"'><input name='representative_fax' value='"+representative_fax+"'><input name='quickbooks_uid' value='"+quickbooks_uid+"'><input name='representative_name' value='"+representative_name+"'><input name='representative_lname' value='"+representative_lname+"'><input name='bank_account_number' value='"+bank_account_number+"'>";
-                
-                //alert($(frmVendor).serialize());
-
-                //PASOK SA DB   
-                $.ajax({
-                    method: "post",
-                    url: "vendorsToSB.php",
-                    data : $(frmVendor).serialize(),
-                    success: function () {
-                        //NAPASOK
-                    },
-                });
-                
-                //IF TAPOS NA MAGPASOK GAGAWING DONE UNG CONFIRM JS
-                if(i == vendors.length - 1) {
-                    confirmJS.hideLoading();
-                    confirmJS.setContent("Done");
-                }
-            }
         }
 
         function convertNulltoEmpty(str) {
@@ -492,5 +421,20 @@ else {
                 return "";
             }
         }
+
+        var getUrlParameter = function getUrlParameter(getURL,sParam) {
+            var sPageURL = getURL,
+                sURLVariables = sPageURL.split('&'),
+                sParameterName,
+                i;
+
+            for (i = 0; i < sURLVariables.length; i++) {
+                sParameterName = sURLVariables[i].split('=');
+
+                if (sParameterName[0] === sParam) {
+                    return sParameterName[1] === undefined ? true : decodeURIComponent(sParameterName[1]);
+                }
+            }
+        };
     </script>
 </html>

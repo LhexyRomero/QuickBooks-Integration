@@ -183,7 +183,7 @@ else {
             <div class="btn-group">
                 <a href="Customer/customerContacts(SB).php" class="btn btn-secondary" id='btnCustomers'>Customers</a>
                 <a href="Employee/employeeContacts(SB).php" class="btn btn-secondary">Employees</a>
-                <a href="Supplier/vendorContacts(SB).php" class="btn btn-secondary">Vendor</a>
+                <a href="Supplier/vendorContacts(SB).php" class="btn btn-secondary">Suppliers</a>
             </div>
         </div>
         <br>

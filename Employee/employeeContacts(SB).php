@@ -2,17 +2,30 @@
 <?php
 
 require_once('../vendor/autoload.php');
+require_once "../db_connect.php";
 use QuickBooksOnline\API\DataService\DataService;
 
 $config = include('../config.php');
 
 session_start();
+
 if(isset($_SESSION["client_id"])) {
     //Has Session
 }
 else {
     header('Location:../login.php');
 }
+
+//API HISTORY
+$request_uri = $_SERVER["REQUEST_URI"];
+$client_id = $_SESSION["client_id"];
+
+$sql = "INSERT INTO `_api_history` (`id`,`operation`, `client_id`, `timestamp`, `request_uri`, `request_code`, `method`, `request_body`, `error_message`) VALUES (NULL,'READ', '$client_id', CURRENT_TIMESTAMP, '$request_uri', '200', 'GET', NULL, NULL);";
+
+if($connect->query($sql)) {
+    //SUCCESS
+}
+
 
 $dataService = DataService::Configure(array(
     'auth_mode' => 'oauth2',
@@ -240,7 +253,6 @@ else {
                 <tbody>
                     <?php
                         //GET RECONCILED CUSTOMER
-                        require_once "../db_connect.php";
 
                         $records = array();
                         $sql = "SELECT * FROM _relationship_db_employee WHERE quickbooks_uid IS NOT NULL AND client_id = ".$_SESSION["client_id"];
