@@ -6,7 +6,7 @@
     $query = $connect->query($sql);
     
     if($query) {
-        echo "Success History!";
+        echo "Success";
         return;
     }
 ?>

@@ -208,7 +208,8 @@ else {
 
                         $sql = "SELECT * FROM `tbl_expensesheet` 
                                 JOIN _account_type_db ON account_type_id = account_id 
-                                WHERE transferred_to_quickbooks='yes'
+                                WHERE transferred_to_quickbooks='no'
+                                AND date_moved IS NOT NULL
                                 AND (quickbooks_uid is NOT NULL OR quickbooks_uid is NULL)";
 
                         $option = "SELECT * FROM `_account_type_db`";
@@ -230,7 +231,7 @@ else {
                             echo "<td>". $row["due_date"] ."</td>";
                             echo "<td>". $row["type"]." </td>";
                             echo "<td>". number_format($row["total_amount"],2) ."</td>";
-                            echo "<td>". $row["date_transferred_to_quickbooks"] ."</td>";
+                            echo "<td>". $row["date_moved"] ."</td>";
                             echo "</tr>";
                         }
                     ?>
