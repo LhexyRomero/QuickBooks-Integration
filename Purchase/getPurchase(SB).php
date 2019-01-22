@@ -10,6 +10,7 @@
             JOIN _supplier_db ON tbl_expensesheet.supplier_id = _supplier_db.supplier_id 
             JOIN _account_type_db ON account_type_id = account_id 
             WHERE transferred_to_quickbooks='no'
+            AND date_moved IS NULL
             AND client_id = $client_id AND quickbooks_uid is NULL";
         
         $sql_option = "SELECT * FROM `_account_type_db`";

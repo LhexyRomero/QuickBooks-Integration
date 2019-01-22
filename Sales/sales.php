@@ -280,11 +280,11 @@ else {
                 </table>
             </form><br>
             <div class='alert alert-primary'>
-                <input  type='radio' name="selectAction" value="1" class="integrateRadio"> Move the selected entries into my Quickbooks account. <br>
-                <input  type='radio' name="selectAction" value="2" class="integrateRadio"> I do not want to move the selected items to Quickbooks. Move the selected items into Small Builders history.
+                <input  type='radio' name="selectAction" class="integrateRadio" checked> Move the selected entries into my Quickbooks account. <br>
+                <input  type='radio' name="selectAction" class="integrateRadio" onclick ="history()"> I do not want to move the selected items to Quickbooks. Move the selected items into Small Builders history.
             </div>
-            <center><button id='btnIntegrate' class='mt-2 mb-5 btn btn-success btn-lg' onclick='integrateSales()' disabled>Integrate</button></center>
-            
+            <center><button id='btnIntegrate' class='mt-2 mb-5 btn btn-success btn-lg' onclick='integrateSales()' disabled>Integrate</button>
+            <button id='btnHistory' class='mt-2 mb-5 btn btn-success btn-lg' onclick='integrateSales(true)'>Integrate</button></center>
             <script>
                 $("#SBtoQB").DataTable();         
             </script>
@@ -365,7 +365,8 @@ else {
             }
         }
 
-        function integrateSales() {
+        function integrateSales(history) {
+            console.log(history);
             var invoice_global = "<?php echo $selected_invoice ?>";
             var radio_val = $(".integrateRadio").val();
 
@@ -379,7 +380,7 @@ else {
 
             var tbl = document.createElement("table");
             var header = tbl.createTHead();
-            header.innerHTML = "<th>Project Name</th><th>Customer Name</th><th>Invoice No.</th><th>Invoice Date</th><th>Due Date</th><th>Amount</th><th>Action</th>";
+            header.innerHTML = "<th>Project Name</th><th>Customer Name</th><th>Invoice No.</th><th>Invoice Date</th><th>Due Date</th><th>Amount</th>";
 
             var body = tbl.createTBody();
             for (let i = 0; i < integrateCheck.length; i++) {
@@ -392,9 +393,28 @@ else {
                 var invoice_date = integrateCheck[i].parentNode.parentNode.parentNode.childNodes[9].innerHTML;
                 var due_date = integrateCheck[i].parentNode.parentNode.parentNode.childNodes[11].innerHTML;
                 var amount = integrateCheck[i].parentNode.parentNode.parentNode.childNodes[13].innerHTML;
-                body.innerHTML += "<tr id='tr"+id+"'><td>"+project_name+"</td><td>"+customer_name+"</td><td>"+invoice_no+"</td><td>"+invoice_date+"</td><td>"+due_date+"</td><td>"+amount+"</td><td id='inte"+id+"'><p style='color: blue'>Integrating</p></td></tr>"
+                body.innerHTML += "<tr id='tr"+id+"'><td>"+project_name+"</td><td>"+customer_name+"</td><td>"+invoice_no+"</td><td>"+invoice_date+"</td><td>"+due_date+"</td><td>"+amount+"</td></tr>"
                
-                if(radio_val == 1) {
+                if(history){
+                    $.ajax({
+                        method: "post",
+                        url: "saleHistory.php",
+                        data:  "id=" + id,
+                        success: function (data) {
+                            if(data == "Success") {
+                            
+                            }
+                            else {
+                                $(tbl).find("#tr" + getUrlParameter(this.data,"id")).remove();
+                            }                            
+                        }
+                    });
+                    $(document).one("ajaxStop", function() {
+                        sendEmail(tbl.innerHTML,true);
+                    });
+                }
+
+                else {
                     if(invoice_global == 1){
                         $.ajax({
                             method: "post",
@@ -410,7 +430,7 @@ else {
                             }
                         });
                         $(document).one("ajaxStop", function() {
-                            sendEmail(tbl.innerHTML);
+                            sendEmail(tbl.innerHTML,false);
                         });
                     }
 
@@ -429,58 +449,73 @@ else {
                             }
                         });
                         $(document).one("ajaxStop", function() {
-                            sendEmail(tbl.innerHTML);
+                            sendEmail(tbl.innerHTML,false);
                         });
                     } 
-                }
-                else {
-                    console/log("IM HERE");
                 }
             }
         }
 
-        function sendEmail(tblContent) {
+        function sendEmail(tblContent,history) {
             var tbl = document.createElement("table");
             tbl.innerHTML = tblContent;
 
             if (tbl.getElementsByTagName("tbody")[0].innerHTML == ""){
                 alert("No Integration were successful!");
-                window.location.href = "/quickbooks-integration/Sales/sales.php?selected_invoice="+selected_+"&submitButton";
                 return;
             }
-            //Add Style to every th 
             var th = tbl.getElementsByTagName("th");
             var td = tbl.getElementsByTagName("td");
-            //Loop to th
             for (let i = 0; i < th.length; i++) {
                 th[i].setAttribute("style","border:solid 1px #ccc; text-align:center; padding: 15px 40px;");  
             }
-            //Loop to td
             for (let i = 0; i < td.length; i++) {
                 td[i].setAttribute("style","border:solid 1px #ccc; text-align:center; padding: 15px 40px;");
             }
-            var subj = "Small Builders Sales successfully added to Quickbooks Sales";
-            
-            var desc = "You have successfully automated your Payment Claim details into your Quickbooks Account. This claim is now available in your Quickbooks Sales with the following details.";
-            
-            $.ajax({
-                method: "post",
-                url: "../sendMail.php",
-                data: "tblcontent=" + tbl.innerHTML + "&subj="+ subj + "&desc=" + desc,
-                success: function (data) {
-                    var body = document.getElementsByTagName("body")[0];
-                    body.innerHTML = `<div class="mt-5 card col-md-8 offset-2" style='background: #FCFCFC; padding: 20px 20px 20px 20px;'>
-                        <p style='color: green'>Success! A copy of your submission has been emailed to you.</p>
-                        
-                        <table class='table table-striped'>`+tblContent+`</table>
-                        
-                        <br>
-                        <div class='text-center'>
-                            <a href='sales.php' class='btn btn-secondary' style='width: 200px;'>Back to Integration</a>
-                        </div>
-                    </div>`;
-                }
-            });
+
+            if(history){
+                var subj = "Small Builders Sales successfully moved to Small Builders History";
+                var desc = "You have successfully automated your Payment Claim details into your Small Builders History.";
+                
+                $.ajax({
+                    method: "post",
+                    url: "../sendMail.php",
+                    data: "tblcontent=" + tbl.innerHTML + "&subj="+ subj + "&desc=" + desc,
+                    success: function (data) {
+
+                        var body = document.getElementsByTagName("body")[0];
+                        body.innerHTML = `<div class="mt-5 card col-md-8 offset-2" style='background: #FCFCFC; padding: 20px 20px 20px 20px;'>
+                            <p style='color: green'>Success! A copy of your submission has been emailed to you.</p>
+                        </div>`;
+
+                        setTimeout(function() {window.location.href = "/quickbooks-integration/Sales/sales.php"},2000);
+                    }
+                });
+            }
+
+            else {
+                var subj = "Small Builders Sales successfully added to Quickbooks Sales";
+                var desc = "You have successfully automated your Payment Claim details into your Quickbooks Account. This claim is now available in your Quickbooks Sales with the following details.";
+                
+                $.ajax({
+                    method: "post",
+                    url: "../sendMail.php",
+                    data: "tblcontent=" + tbl.innerHTML + "&subj="+ subj + "&desc=" + desc,
+                    success: function (data) {
+                        var body = document.getElementsByTagName("body")[0];
+                        body.innerHTML = `<div class="mt-5 card col-md-8 offset-2" style='background: #FCFCFC; padding: 20px 20px 20px 20px;'>
+                            <p style='color: green'>Success! A copy of your submission has been emailed to you.</p>
+                            
+                            <table class='table table-striped'>`+tblContent+`</table>
+                            
+                            <br>
+                            <div class='text-center'>
+                                <a href='sales.php' class='btn btn-secondary' style='width: 200px;'>Back to Integration</a>
+                            </div>
+                        </div>`;
+                    }
+                });
+            }
         }
 
         var getUrlParameter = function getUrlParameter(getURL,sParam) {
@@ -501,46 +536,6 @@ else {
         function history(){
             $("#btnIntegrate").hide();
             $("#btnHistory").show();
-        }
-
-        function toSaleHistory(){
-            $.confirm({
-                title: "Smallbuilders History",
-                columnClass: "medium",
-                theme: "modern",
-                content: "",
-                onOpenBefore: function () {
-                    this.showLoading();
-                    var confirmJS = this;
-                    var integrateCheck = document.querySelectorAll('.integrateCheck:checked');
-                    console.log("PURPOSE",integrateCheck);
-                    
-                    for (let i = 0; i < integrateCheck.length; i++) {
-                        var id = integrateCheck[i].value;
-                        console.log("lenggth",integrateCheck.length);
-                        $.ajax({
-                            method: "post",
-                            url: "saleHistory.php",
-                            data: "id="+id,
-                            success: function (data) {
-                                if(i == integrateCheck.length - 1) {
-                                    confirmJS.hideLoading();
-                                    confirmJS.setContent("Done");
-                                }
-                            }
-                        });
-                        console.log("lenggthafter",integrateCheck.length);
-                    }
-                    console.log("IM WORKING");
-                },
-                buttons: {
-                    ok: {
-                        action: function () {
-
-                        }
-                    }
-                }
-            });
         }
     </script>
 </html>

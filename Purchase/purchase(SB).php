@@ -235,7 +235,7 @@ else {
                 <input  type='radio' name="selectAction" value="0" class="integrateRadio" onclick="history()"> I do not want to move the selected items to Quickbooks. Move the selected items into Small Builders history.
             </div>
             <center><button id='btnIntegrate' class='mt-2 mb-5 btn btn-success btn-lg' onclick='integratePurchase()' disabled>Integrate</button>
-            <button id='btnHistory' class='mt-2 mb-5 btn btn-success btn-lg' onclick='toPurchaseHistory()'>Integrate</button></center>
+            <button id='btnHistory' class='mt-2 mb-5 btn btn-success btn-lg' onclick='integratePurchase(true)'>Integrate</button></center>
             <script>
                 $("#selectExpense").select2();
                 $("#selectProject").select2();
@@ -301,7 +301,7 @@ else {
                 }
             }
         }
-        function integratePurchase() {
+        function integratePurchase(history) {
 
             $.confirm({
                 onOpenBefore: function (){
@@ -313,7 +313,7 @@ else {
 
             var tbl = document.createElement("table");
             var header = tbl.createTHead();
-            header.innerHTML = "<th>Project Name</th><th>Supplier/Subcontractor</th><th>Invoice No.</th><th>Invoice Date</th><th>Due Date</th><th>Amount</th><th>Status</th>";
+            header.innerHTML = "<th>Project Name</th><th>Supplier/Subcontractor</th><th>Invoice No.</th><th>Invoice Date</th><th>Due Date</th><th>Amount</th>";
             
             var body = tbl.createTBody();
             for (let i = 0; i < integrateCheck.length; i++) {
@@ -327,24 +327,44 @@ else {
                 //13 account type
                 var amount = integrateCheck[i].parentNode.parentNode.parentNode.childNodes[15].innerHTML;
 
-                body.innerHTML += "<tr id='tr"+id+"'><td>"+project_name+"</td><td>"+supplier+"</td><td>"+invoice_no+"</td><td>"+invoice_date+"</td><td>"+due_date+"</td><td>"+amount+"</td><td id='inte"+id+"'><p style='color: blue'>Integrating</p></td></tr>";
+                body.innerHTML += "<tr id='tr"+id+"'><td>"+project_name+"</td><td>"+supplier+"</td><td>"+invoice_no+"</td><td>"+invoice_date+"</td><td>"+due_date+"</td><td>"+amount+"</td></tr>";
                 
-                $.ajax({
-                    method: "post",
-                    url: "purchaseToQB.php",    
-                    data:"id="+ id +"&access_token="+ access_token + "&refresh_token=" + refresh_token + "&realm_id=" + realm_id,
-                    success: function (data) {
-                        if(data == "Success") {
-                        
+                if(history){
+                    $.ajax({
+                        method: "post",
+                        url: "purchaseHistory.php",    
+                        data:"id="+ id +"&access_token="+ access_token + "&refresh_token=" + refresh_token + "&realm_id=" + realm_id,
+                        success: function (data) {
+                            if(data == "Success") {
+                            
+                            }
+                            else {
+                                $(tbl).find("#tr" + getUrlParameter(this.data,"id")).remove();
+                            }
                         }
-                        else {
-                            $(tbl).find("#tr" + getUrlParameter(this.data,"id")).remove();
+                    });
+                    $(document).one("ajaxStop", function() {
+                        sendEmail(tbl.innerHTML,true);
+                    });
+                }
+                else {
+                    $.ajax({
+                        method: "post",
+                        url: "purchaseToQB.php",    
+                        data:"id="+ id +"&access_token="+ access_token + "&refresh_token=" + refresh_token + "&realm_id=" + realm_id,
+                        success: function (data) {
+                            if(data == "Success") {
+                            
+                            }
+                            else {
+                                $(tbl).find("#tr" + getUrlParameter(this.data,"id")).remove();
+                            }
                         }
-                    }
-                });
-                $(document).one("ajaxStop", function() {
-                    sendEmail(tbl.innerHTML);
-                });
+                    });
+                    $(document).one("ajaxStop", function() {
+                        sendEmail(tbl.innerHTML,false);
+                    });
+                }
             }
 /* 
             $.confirm({
@@ -402,7 +422,7 @@ else {
             }); */
         }
         
-        function sendEmail(tblContent) {
+        function sendEmail(tblContent,history) {
             var tbl = document.createElement("table");
             tbl.innerHTML = tblContent;
 
@@ -422,32 +442,49 @@ else {
             for (let i = 0; i < td.length; i++) {
                 td[i].setAttribute("style","border:solid 1px #ccc; text-align:center; padding: 15px 40px;");
             }
-            //Add Subject
-            var subj = "Expense Claim Successfully added to Quickbooks Purchase";
-            //Add Description
-            var desc = "You have successfully automated your Expense Claim details in your Quickbooks Account.";
-            //Send Emailcomposer require phpmailer/phpmailer
 
-            //Change Message Into
-            $.ajax({
-                method: "post",
-                url: "../sendMail.php",
-                data: "tblcontent=" + tbl.innerHTML + "&subj="+ subj + "&desc=" + desc,
-                success: function (data) {
-                    //Change Whole Body InnerHTML
-                    var body = document.getElementsByTagName("body")[0];
-                    body.innerHTML = `<div class="mt-5 card col-md-8 offset-2" style='background: #FCFCFC; padding: 20px 20px 20px 20px;'>
-                        <p style='color: green'>Success! A copy of your submission has been emailed to you.</p>
-                        
-                        <table class='table table-striped'>`+tblContent+`</table>
-                        
-                        <br>
-                        <div class='text-center'>
-                            <a href='purchase(SB).php' class='btn btn-secondary' style='width: 200px;'>Back to Integration</a>
-                        </div>
-                    </div>`;
-                }
-            });
+            if(history) {
+                var subj = "Expense Claim Successfully moved to Small Builders History";
+                var desc = "You have successfully moved your Expense Claim details in Small Builders History.";
+                
+                $.ajax({
+                    method: "post",
+                    url: "../sendMail.php",
+                    data: "tblcontent=" + tbl.innerHTML + "&subj="+ subj + "&desc=" + desc,
+                    success: function (data) {
+                        var body = document.getElementsByTagName("body")[0];
+                        body.innerHTML = `<div class="mt-5 card col-md-8 offset-2" style='background: #FCFCFC; padding: 20px 20px 20px 20px;'>
+                            <p style='color: green'>Success! A copy of your submission has been emailed to you.</p>
+                        </div>`;
+
+                        setTimeout(function() {window.location.href = "/quickbooks-integration/Purchase/purchase(SB).php"},2000);
+                    }
+                });
+            }
+            else {
+                var subj = "Expense Claim Successfully added to Quickbooks Purchase";
+                var desc = "You have successfully automated your Expense Claim details in your Quickbooks Account.";
+                
+                $.ajax({
+                    method: "post",
+                    url: "../sendMail.php",
+                    data: "tblcontent=" + tbl.innerHTML + "&subj="+ subj + "&desc=" + desc,
+                    success: function (data) {
+                        //Change Whole Body InnerHTML
+                        var body = document.getElementsByTagName("body")[0];
+                        body.innerHTML = `<div class="mt-5 card col-md-8 offset-2" style='background: #FCFCFC; padding: 20px 20px 20px 20px;'>
+                            <p style='color: green'>Success! A copy of your submission has been emailed to you.</p>
+                            
+                            <table class='table table-striped'>`+tblContent+`</table>
+                            
+                            <br>
+                            <div class='text-center'>
+                                <a href='purchase(SB).php' class='btn btn-secondary' style='width: 200px;'>Back to Integration</a>
+                            </div>
+                        </div>`;
+                    }
+                });
+            }
         }
 
         function history(){
