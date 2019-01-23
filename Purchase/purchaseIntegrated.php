@@ -173,13 +173,13 @@ else {
         <div class="btn-group">
             <a href="../Customer/customerContacts(SB).php" class="btn btn-secondary">Contacts</a>
             <a href="../Sales/sales.php" class="btn btn-secondary">Sales</a>
-            <a href="../Purchase/purchase.php" class="btn btn-secondary active">Purchases</a>
+            <a href="../Purchase/purchase(SB).php" class="btn btn-secondary active">Purchases</a>
             <a href="#" class="btn btn-secondary">Time Activity</a>
         </div>
         <br><br>
         
         <div class="btn-group" id="customer">
-            <a href="purchase.php" class="btn btn-secondary">Register</a>
+            <a href="purchase(SB).php" class="btn btn-secondary">Register</a>
             <a href="purchaseIntegrated.php" class="btn btn-secondary active" >History</a>
         </div>
         <br>
@@ -197,8 +197,8 @@ else {
                         <th>Supplier/Subcontractor</th>
                         <th>Invoice No. </th>
                         <th>Invoice Date </th>
-                        <th>Due Date </th>
-                        <th>Account type</th>
+                        <th>Due Date </th><!-- 
+                        <th>Account type</th> -->
                         <th>Amount</th>
                         <th>Date Moved</th>
                     </tr>
@@ -208,7 +208,6 @@ else {
                         require_once "../db_connect.php";
 
                         $sql = "SELECT * FROM `tbl_expensesheet` 
-                                JOIN _account_type_db ON account_type_id = account_id 
                                 WHERE date_transferred_quickbooks_to_sb IS NOT NULL
                                 AND transferred_to_quickbooks='no'
                                 AND quickbooks_uid is NOT NULL";
@@ -221,8 +220,8 @@ else {
                             echo "<td> --- </td>";
                             echo "<td>". $row["invoice_number"] ."</td>";
                             echo "<td>". $row["purchase_date"] ."</td>";
-                            echo "<td>". $row["due_date"] ."</td>";
-                            echo "<td> ". $row["type"]. "</td>";
+                            echo "<td>". $row["due_date"] ."</td>";/* 
+                            echo "<td> ". $row["type"]. "</td>"; */
                             echo "<td>". number_format($row["total_amount"],2) ."</td>";
                             echo "<td>". $row["date_transferred_quickbooks_to_sb"] ."</td>";
                             echo "</tr>";
@@ -230,7 +229,6 @@ else {
                     ?>
                 </tbody>
             </table>
-            <center><button id='btnIntegrate' class='mt-2 mb-5 btn btn-success btn-lg' onclick='integratePurchase()' disabled>Integrate</button></center>
             <script>
                 $("#QBtoSB").DataTable();         
                 $('#select_types').select2();

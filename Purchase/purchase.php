@@ -166,7 +166,7 @@ else {
 
         <div class="btn-group">
             <a href="../Customer/customerContacts(SB).php" class="btn btn-secondary">Contacts</a>
-            <a href="#" class="btn btn-secondary">Sales</a>
+            <a href="../Sales/sales.php" class="btn btn-secondary">Sales</a>
             <a href="#" class="btn btn-secondary active">Purchases</a>
             <a href="#" class="btn btn-secondary">Time Activity</a>
         </div>
@@ -174,7 +174,7 @@ else {
         
         <div class="btn-group" id="customer">
             <a href="#" class="btn btn-secondary active" id='btnCustomers'>Register</a>
-            <a href="purchaseIntegrated.php" class="btn btn-secondary" >History</a>
+            <a href="purchaseIntegrated(SB).php" class="btn btn-secondary" >History</a>
         </div>
         <br>
         <br>
@@ -193,7 +193,6 @@ else {
                         <th>Invoice No. </th>
                         <th>Invoice Date </th>
                         <th>Due Date </th>
-                        <th>Account type</th>
                         <th>Amount</th>
                     </tr>
                 </thead>
@@ -228,8 +227,8 @@ else {
                             } 
                             else
                             {
-                                $account_id = @$purchase->Line->AccountBasedExpenseLineDetail->AccountRef;
-                                
+                                /* $account_id = @$purchase->Line->AccountBasedExpenseLineDetail->AccountRef;
+                                 */
                                 echo "<tr>
                                 <td><center><input type='checkbox' class='form-control integrateCheck' onclick='countIntegrate()' value='".$purchase->Id."'></center></td>
                                 <td>".@$purchase->Line->AccountBasedExpenseLineDetail->Description."</td>";
@@ -237,17 +236,17 @@ else {
                                 echo "<td>". @$purchase->DocNumber. "</td>";
                                 echo "<td>". @$purchase->TxnDate. "</td>";
                                 echo "<td>". @$purchase->TxnDate. "</td>";
-                                echo "<td>
+                                /* echo "<td>
                                         <select name='type' id='selected_type".$purchase->Id."'>
                                             ".selectAccount($account_id,$account_options)."
                                         </select>
-                                    </td>";
+                                    </td>"; */
                                 echo "<td>". @$purchase->TotalAmt. "</td>";
                                 echo "</tr>";
                             } 
                         }
 
-                        function selectAccount($id, $account_options) {
+                        /* function selectAccount($id, $account_options) {
                             $options = "<option value='0' hidden> --- Select Account Type --- </option>";
                             for ($i=0; $i < sizeof($account_options); $i++) { 
                                 if(strpos($account_options[$i], $id) !== false) {
@@ -262,7 +261,7 @@ else {
                                 }
                             }
                             return $options;
-                        }
+                        } */
                     ?>
                 </tbody>
             </table>
@@ -290,11 +289,9 @@ else {
                                     echo $json["refresh_token"];?>";
         var realm_id = "<?php echo $accessToken->getRealmID(); ?>";
 
-
         window.onload = function () {
             apiCall.getCompanyName();
         }
-
         function countIntegrate() {
             var integrateCheck = document.getElementsByClassName("integrateCheck");
             var checks = 0;
@@ -332,21 +329,24 @@ else {
                 title: "Quickbooks to Smallbuilders",
                 columnClass: "col-md-12",
                 theme: "modern",
-                content: "<table class='table'><tr><th>Project Name</th><th>Supplier/Subcontractor</th><th>Invoice No.</th><th>Invoice Date</th><th>Account Type</th><th>Amount</th><th>Status</th></tr></table>",
+                content: "<table class='table'><tr><th>Project Name</th><th>Supplier/Subcontractor</th><th>Invoice No.</th><th>Invoice Date</th><th>Amount</th><th>Status</th></tr></table>",
                 onOpenBefore: function () {
                     var confirmJS = this;
                     var integrateCheck = document.querySelectorAll('.integrateCheck:checked');
                     
                     for (let i = 0; i < integrateCheck.length; i++) {
+
+                        console.log($("select[name=type]").val());
+                        console.log($("select[name=type] option:selected").text());
                         var id = integrateCheck[i].value;
                         var project_name = integrateCheck[i].parentNode.parentNode.parentNode.childNodes[3].innerHTML;
                         var supplier = integrateCheck[i].parentNode.parentNode.parentNode.childNodes[4].innerHTML;
                         var invoice_no = integrateCheck[i].parentNode.parentNode.parentNode.childNodes[5].innerHTML;
-                        var invoice_date = integrateCheck[i].parentNode.parentNode.parentNode.childNodes[6].innerHTML;
-                        var account_type = integrateCheck[i].parentNode.parentNode.parentNode.childNodes[8].innerHTML;
-                        var amount = integrateCheck[i].parentNode.parentNode.parentNode.childNodes[9].innerHTML;
+                        var invoice_date = integrateCheck[i].parentNode.parentNode.parentNode.childNodes[6].innerHTML;/* 
+                        var account_type = integrateCheck[i].parentNode.parentNode.parentNode.childNodes[8].innerHTML; */
+                        var amount = integrateCheck[i].parentNode.parentNode.parentNode.childNodes[8].innerHTML;
                         
-                        confirmJS.$content.find('table').append("<tr><td>"+project_name+"</td><td>"+supplier+"</td><td>"+invoice_no+"</td><td>"+invoice_date+"</td><td>"+account_type+"</td><td>"+amount+"</td><td id='inte"+id+"'><p style='color: blue'>Integrating</p></td></tr>");
+                        confirmJS.$content.find('table').append("<tr><td>"+project_name+"</td><td>"+supplier+"</td><td>"+invoice_no+"</td><td>"+invoice_date+"</td><td>"+amount+"</td><td id='inte"+id+"'><p style='color: blue'>Integrating</p></td></tr>");
                             //GET QUICKBOOKS RECORD USING ID
                             $.ajax({
                                 method: "post",
