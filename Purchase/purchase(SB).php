@@ -258,6 +258,7 @@ else {
             apiCall.getCompanyName();
             $("#btnHistory").hide();
         }
+        
         function viewPurchase(){
             
             var data = $("#grpSelect").serialize();
