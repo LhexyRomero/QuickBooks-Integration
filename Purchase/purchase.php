@@ -326,9 +326,11 @@ else {
         }
 
         function integratePurchase() {
+            var client_id = "<?php echo $_SESSION["client_id"] ?>";
+
             $.confirm({
                 title: "Quickbooks to Smallbuilders",
-                columnClass: "large",
+                columnClass: "col-md-12",
                 theme: "modern",
                 content: "<table class='table'><tr><th>Project Name</th><th>Supplier/Subcontractor</th><th>Invoice No.</th><th>Invoice Date</th><th>Account Type</th><th>Amount</th><th>Status</th></tr></table>",
                 onOpenBefore: function () {
@@ -349,7 +351,7 @@ else {
                             $.ajax({
                                 method: "post",
                                 url: "purchaseToSB.php",
-                                data: "access_token="+ access_token + "&refresh_token=" + refresh_token + "&realm_id=" + realm_id + "&id=" + id,
+                                data: "access_token="+ access_token + "&refresh_token=" + refresh_token + "&realm_id=" + realm_id + "&id=" + id +"&client_id=" + client_id,
                                 success: function (data) {
                                     if(data == "Success") {
                                         confirmJS.$content.find('#inte'+ getUrlParameter(this.data,"id") ).html("<p style='color: green'>Integrated</p>");   

@@ -13,6 +13,7 @@ $accessTokenKey = $_POST["access_token"];
 $refreshTokenKey = $_POST["refresh_token"];
 $realmId = $_POST["realm_id"];
 $id = $_POST["id"];
+$client_id = $_POST["client_id"];
 
 $dataService = DataService::Configure(array(
     'auth_mode' => 'oauth2',
@@ -47,7 +48,7 @@ else {
         $quickbooks_uid = @$purchase->Id;
         
         $sql =   "INSERT INTO `tbl_expensesheet` (account_type_id,quickbooks_uid, name, clientname, clientemail, client_id, project_name, purchase_date, time_stamp, invoice_number, sub_gst, total_amount, total_amount_excl, inclusive_gst, gst_component, pcinvoicenumber, due_date, purchase_items, timestamp_insert, state, expense_submitted, manager, cost_centre, uploaded_invoice,date_transferred_quickbooks_to_sb) 
-                VALUES ('".$account_id."','".$quickbooks_uid."', NULL, NULL, NULL, 0, '".$project_name."', '".$invoice_date."', NULL, '".$invoice_number."',NULL, '".$amount."', NULL, NULL, NULL, NULL, '".$due_date."', NULL, NULL, NULL, NULL, NULL, NULL, NULL,CURRENT_TIMESTAMP)";
+                VALUES ('".$account_id."','".$quickbooks_uid."', NULL, NULL, NULL, '".$client_id."', '".$project_name."', '".$invoice_date."', NULL, '".$invoice_number."',NULL, '".$amount."', NULL, NULL, NULL, NULL, '".$due_date."', NULL, NULL, NULL, NULL, NULL, NULL, NULL,CURRENT_TIMESTAMP)";
         
         if($connect->query($sql)) {
             echo "Success";
