@@ -153,7 +153,7 @@ else {
         <div class="btn-group">
             <a href="../Customer/customerContacts(SB).php" class="btn btn-secondary">Contacts</a>
             <a href="#" class="btn btn-secondary active">Sales</a>
-            <a href="../Purchase/purchase.php" class="btn btn-secondary">Purchases</a>
+            <a href="../Purchase/purchase(SB).php" class="btn btn-secondary">Purchases</a>
             <a href="../TimeActivity/timeActivity.php" class="btn btn-secondary">Time Activity</a>
         </div>
         <br><br>
@@ -225,9 +225,9 @@ else {
                             
                                 if($row["customer_id"] == ""){
                                     $output .= "<tr class='sales' id = '".$row["id"]."'>
-                                        <td><center><input type='checkbox' id='check_no".$row["id"]."' name='unable' class='form-control integrateCheck' onclick='countIntegrate()' value='".$row["id"]."'></td></center>
+                                        <td><center><input type='checkbox' id='check_no".$row["id"]."' name='unable' class='form-control' onclick='countIntegrate()' value='".$row["id"]."'></td></center>
                                         <td>". $row["project_name"]. "</td>
-                                        <td><select id='selected_customer_a".$row["id"]."' onchange='updateCustomer(".$row["id"].",1)'>    
+                                        <td><select name='customer' id='selected_customer_a".$row["id"]."' onchange='updateCustomer(".$row["id"].",1)'>    
                                                 <option value ='0' hidden> --- Select Customer --- </option>
                                                     ". selectCustomer($row["customer_id"],$customer_options). "
                                                 </select>
@@ -243,7 +243,7 @@ else {
                                     $output .= "<tr class='sales' id = '".$row["id"]."'>
                                         <td><center><input type='checkbox' class='form-control integrateCheck' onclick='countIntegrate()' value='".$row["id"]."'></td></center>
                                         <td>". $row["project_name"]. "</td>
-                                        <td><select id='selected_customer_b".$row["id"]."' onchange='updateCustomer(".$row["id"].",2)'>   
+                                        <td><select name='customer' id='selected_customer_b".$row["id"]."' onchange='updateCustomer(".$row["id"].",2)'>   
                                                 ". selectCustomer($row["customer_id"],$customer_options)  ." 
                                             </select>
                                             </td>
@@ -330,6 +330,7 @@ else {
                 success: function(data){
                     $("#check_no"+id).attr('disabled', false); 
                     $("#check_no"+id).attr( 'checked', true );
+                    $("#check_no"+id).addClass( 'integrateCheck');
                     countIntegrate();
                 }
             });
@@ -352,6 +353,7 @@ else {
         }
 
         function checkAll(elem) {
+            
             var integrateCheck = document.getElementsByClassName("integrateCheck");
             if(elem.checked == true) {
                 for (let i = 0; i < integrateCheck.length; i++) {
@@ -388,7 +390,7 @@ else {
 
                 var id = integrateCheck[i].value;
                 var project_name = integrateCheck[i].parentNode.parentNode.parentNode.childNodes[3].innerHTML;
-                var customer_name = integrateCheck[i].parentNode.parentNode.parentNode.childNodes[5].innerHTML;
+                var customer_name = $("select[name=customer] option:selected").text();
                 var invoice_no = integrateCheck[i].parentNode.parentNode.parentNode.childNodes[7].innerHTML;
                 var invoice_date = integrateCheck[i].parentNode.parentNode.parentNode.childNodes[9].innerHTML;
                 var due_date = integrateCheck[i].parentNode.parentNode.parentNode.childNodes[11].innerHTML;

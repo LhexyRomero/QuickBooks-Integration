@@ -47,8 +47,8 @@ else {
         $account_id = @$purchase->Line->AccountBasedExpenseLineDetail->AccountRef;
         $quickbooks_uid = @$purchase->Id;
         
-        $sql =   "INSERT INTO `tbl_expensesheet` (account_type_id,quickbooks_uid, name, clientname, clientemail, client_id, project_name, purchase_date, time_stamp, invoice_number, sub_gst, total_amount, total_amount_excl, inclusive_gst, gst_component, pcinvoicenumber, due_date, purchase_items, timestamp_insert, state, expense_submitted, manager, cost_centre, uploaded_invoice,date_transferred_quickbooks_to_sb) 
-                VALUES ('".$account_id."','".$quickbooks_uid."', NULL, NULL, NULL, '".$client_id."', '".$project_name."', '".$invoice_date."', NULL, '".$invoice_number."',NULL, '".$amount."', NULL, NULL, NULL, NULL, '".$due_date."', NULL, NULL, NULL, NULL, NULL, NULL, NULL,CURRENT_TIMESTAMP)";
+        $sql =   "INSERT INTO `tbl_expensesheet` (quickbooks_uid, name, clientname, clientemail, client_id, project_name, purchase_date, time_stamp, invoice_number, sub_gst, total_amount, total_amount_excl, inclusive_gst, gst_component, pcinvoicenumber, due_date, purchase_items, timestamp_insert, state, expense_submitted, manager, cost_centre, uploaded_invoice,date_transferred_quickbooks_to_sb,date_moved) 
+                VALUES ('".$quickbooks_uid."', NULL, NULL, NULL, '".$client_id."', '".$project_name."', '".$invoice_date."', NULL, '".$invoice_number."',NULL, '".$amount."', NULL, NULL, NULL, NULL, '".$due_date."', NULL, NULL, NULL, NULL, NULL, NULL, NULL,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP)";
         
         if($connect->query($sql)) {
             echo "Success";

@@ -178,8 +178,8 @@ else {
         <br><br>
         
         <div class="btn-group" id="customer">
-            <a href="purchase.php" class="btn btn-secondary">Register</a>
-            <a href="purchaseIntegrated.php" class="btn btn-secondary active" >History</a>
+            <a href="purchase(SB).php" class="btn btn-secondary">Register</a>
+            <a href="purchaseIntegrated(SB).php" class="btn btn-secondary active" >History</a>
         </div>
         <br>
         <br>
@@ -207,10 +207,10 @@ else {
                         require_once "../db_connect.php";
 
                         $sql = "SELECT * FROM `tbl_expensesheet` 
-                                JOIN _account_type_db ON account_type_id = account_id 
-                                WHERE transferred_to_quickbooks='no'
-                                AND date_moved IS NOT NULL
-                                AND (quickbooks_uid is NOT NULL OR quickbooks_uid is NULL)";
+                        JOIN _account_type_db ON account_type_id = account_id
+                        WHERE (transferred_to_quickbooks='no' AND quickbooks_uid is NULL)
+                        OR (quickbooks_uid is NOT NULL AND transferred_to_quickbooks='yes')
+                        AND date_moved IS NOT NULL";
 
                         $option = "SELECT * FROM `_account_type_db`";
 

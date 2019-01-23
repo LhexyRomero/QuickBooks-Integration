@@ -155,7 +155,7 @@ else {
         
         <div class="btn-group" id="customer">
             <a href="#" class="btn btn-secondary active" onclick="register(this)" id='btnRegister'>Register</a>
-            <a href="purchaseIntegrated.php" class="btn btn-secondary">History</a>
+            <a href="purchaseIntegrated(SB).php" class="btn btn-secondary">History</a>
         </div>
         <br>
         <br>
