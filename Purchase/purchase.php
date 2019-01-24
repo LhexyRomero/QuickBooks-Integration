@@ -204,9 +204,11 @@ else {
                         $quickbooks_uids = array();
                         $sql = "SELECT quickbooks_uid FROM tbl_expensesheet";
                         $sql_account = "SELECT * FROM _account_type_db";
+                        $sql_project = "SELECT * FROM _project_db";
 
                         $query = $connect->query($sql);
                         $allAccount = $connect->query($sql_account);
+                        $allProject = $connect->query($sql_project);
 
                         $account_options = array();
 
@@ -219,6 +221,10 @@ else {
                             array_push($account_options,$account_option);
                         }
 
+                        $project_option = "";
+                        while($project = mysqli_fetch_assoc($allProject)) {
+                            $project_option .= "<option value='".$project["project_name"]."'>".$project["project_name"]."</option>";
+                        }
                         //GET Quickbooks Records
                         $allPurchase = $dataService->Query('SELECT * FROM Purchase');
                         foreach($allPurchase as $purchase) {
@@ -230,8 +236,12 @@ else {
                                 /* $account_id = @$purchase->Line->AccountBasedExpenseLineDetail->AccountRef;
                                  */
                                 echo "<tr>
-                                <td><center><input type='checkbox' class='form-control integrateCheck' onclick='countIntegrate()' value='".$purchase->Id."'></center></td>
-                                <td>".@$purchase->Line->AccountBasedExpenseLineDetail->Description."</td>";
+                                <td><center><input id='check_no".$purchase->Id."' name='unable' type='checkbox' class='form-control' onclick='countIntegrate()' value='".$purchase->Id."'></center></td>
+                                <td><select name=project id='selected_project".$purchase->Id."' onchange='updateProject(".$purchase->Id.")'>
+                                        <option value ='0' hidden> --- Select Project --- </option>
+                                            ".$project_option."
+                                    </select>
+                                </td>";
                                 echo "<td> --- </td>";
                                 echo "<td>". @$purchase->DocNumber. "</td>";
                                 echo "<td>". @$purchase->TxnDate. "</td>";
@@ -291,7 +301,21 @@ else {
 
         window.onload = function () {
             apiCall.getCompanyName();
+            
+            $("input[name=unable]").attr('disabled', true); 
         }
+
+        var projects = [];
+        function updateProject(id){
+            name = $("#selected_project"+id).val();
+                    $("#check_no"+id).attr('disabled', false); 
+                    $("#check_no"+id).attr( 'checked', true );
+                    $("#check_no"+id).addClass( 'integrateCheck');
+            
+            projects.push(name);
+            countIntegrate();
+        }
+
         function countIntegrate() {
             var integrateCheck = document.getElementsByClassName("integrateCheck");
             var checks = 0;
@@ -326,70 +350,91 @@ else {
             var client_id = "<?php echo $_SESSION["client_id"] ?>";
 
             $.confirm({
-                title: "Quickbooks to Smallbuilders",
-                columnClass: "col-md-12",
-                theme: "modern",
-                content: "<table class='table'><tr><th>Project Name</th><th>Supplier/Subcontractor</th><th>Invoice No.</th><th>Invoice Date</th><th>Amount</th><th>Status</th></tr></table>",
-                onOpenBefore: function () {
-                    var confirmJS = this;
-                    var integrateCheck = document.querySelectorAll('.integrateCheck:checked');
-                    
-                    for (let i = 0; i < integrateCheck.length; i++) {
-
-                        console.log($("select[name=type]").val());
-                        console.log($("select[name=type] option:selected").text());
-                        var id = integrateCheck[i].value;
-                        var project_name = integrateCheck[i].parentNode.parentNode.parentNode.childNodes[3].innerHTML;
-                        var supplier = integrateCheck[i].parentNode.parentNode.parentNode.childNodes[4].innerHTML;
-                        var invoice_no = integrateCheck[i].parentNode.parentNode.parentNode.childNodes[5].innerHTML;
-                        var invoice_date = integrateCheck[i].parentNode.parentNode.parentNode.childNodes[6].innerHTML;/* 
-                        var account_type = integrateCheck[i].parentNode.parentNode.parentNode.childNodes[8].innerHTML; */
-                        var amount = integrateCheck[i].parentNode.parentNode.parentNode.childNodes[8].innerHTML;
-                        
-                        confirmJS.$content.find('table').append("<tr><td>"+project_name+"</td><td>"+supplier+"</td><td>"+invoice_no+"</td><td>"+invoice_date+"</td><td>"+amount+"</td><td id='inte"+id+"'><p style='color: blue'>Integrating</p></td></tr>");
-                            //GET QUICKBOOKS RECORD USING ID
-                            $.ajax({
-                                method: "post",
-                                url: "purchaseToSB.php",
-                                data: "access_token="+ access_token + "&refresh_token=" + refresh_token + "&realm_id=" + realm_id + "&id=" + id +"&client_id=" + client_id,
-                                success: function (data) {
-                                    if(data == "Success") {
-                                        confirmJS.$content.find('#inte'+ getUrlParameter(this.data,"id") ).html("<p style='color: green'>Integrated</p>");   
-                                    }
-                                    else {
-                                        confirmJS.$content.find('#inte'+ getUrlParameter(this.data,"id") ).html("<p style='color: red'>Failed</p>");   
-                                    }
-
-                                    if(i == integrateCheck.length - 1) {
-                                        $( document ).ajaxStop(function(){
-                                            confirmJS.buttons.ok.enable();
-                                        });
-                                    }
-                                }
-                            });
-                    }
-                },
-                buttons: {
-                    ok: {
-                        action: function () {
-                            window.location.href = "purchase.php";
-                        }
-                    }
+                onOpenBefore: function (){
+                    this.showLoading();
                 }
             });
+
+            var integrateCheck = document.querySelectorAll('.integrateCheck:checked');
+
+            var tbl = document.createElement("table");
+            var header = tbl.createTHead();
+            header.innerHTML = "<th>Project Name</th><th>Supplier/Subcontractor</th><th>Invoice No.</th><th>Invoice Date</th><th>Amount</th>";
+            
+            var body = tbl.createTBody();
+            for (let i = 0; i < integrateCheck.length; i++) {
+
+                var id = integrateCheck[i].value;
+                var project_name = projects[i];
+                var supplier = integrateCheck[i].parentNode.parentNode.parentNode.childNodes[4].innerHTML;
+                var invoice_no = integrateCheck[i].parentNode.parentNode.parentNode.childNodes[5].innerHTML;
+                var invoice_date = integrateCheck[i].parentNode.parentNode.parentNode.childNodes[6].innerHTML;/* 
+                var account_type = integrateCheck[i].parentNode.parentNode.parentNode.childNodes[8].innerHTML; */
+                var amount = integrateCheck[i].parentNode.parentNode.parentNode.childNodes[8].innerHTML;
+
+                body.innerHTML +="<tr><td>"+project_name+"</td><td>"+supplier+"</td><td>"+invoice_no+"</td><td>"+invoice_date+"</td><td>"+amount+"</td></tr>";
+                $.ajax({
+                    method: "post",
+                    url: "purchaseToSB.php",
+                    data: "access_token="+ access_token + "&refresh_token=" + refresh_token + "&realm_id=" + realm_id + "&id=" + id +"&client_id=" + client_id +"&project_name=" + project_name,
+                    success: function (data) {
+                        if(data == "Success") {
+                        
+                        }
+                        else {
+                            $(tbl).find("#tr" + getUrlParameter(this.data,"id")).remove();
+                        }
+                    }
+                });
+                $(document).one("ajaxStop", function() {
+                    sendEmail(tbl.innerHTML,true);
+                });
+            }
         }
 
-        function convertNulltoEmpty(str) {
-            try {
-                if(str == null ){
-                    return "";
-                }
-                else {
-                    return str;
-                }
-            } catch (error) {
-                return "";
+        function sendEmail(tblContent,history) {
+            var tbl = document.createElement("table");
+            tbl.innerHTML = tblContent;
+
+            if (tbl.getElementsByTagName("tbody")[0].innerHTML == ""){
+                alert("No Integration were successful!");
+                window.location.href = "/quickbooks-integration/Purchase/purchase.php";
+                return;
             }
+
+            var th = tbl.getElementsByTagName("th");
+            var td = tbl.getElementsByTagName("td");
+
+            for (let i = 0; i < th.length; i++) {
+                th[i].setAttribute("style","border:solid 1px #ccc; text-align:center; padding: 15px 40px;");  
+            }
+
+            for (let i = 0; i < td.length; i++) {
+                td[i].setAttribute("style","border:solid 1px #ccc; text-align:center; padding: 15px 40px;");
+            }
+
+            var subj = "Expense Claim Successfully added to Small Builders";
+            var desc = "You have successfully automated your Expense Claim details in your Small Builders Account.";
+            
+            $.ajax({
+                method: "post",
+                url: "../sendMail.php",
+                data: "tblcontent=" + tbl.innerHTML + "&subj="+ subj + "&desc=" + desc,
+                success: function (data) {
+
+                    var body = document.getElementsByTagName("body")[0];
+                    body.innerHTML = `<div class="mt-5 card col-md-8 offset-2" style='background: #FCFCFC; padding: 20px 20px 20px 20px;'>
+                        <p style='color: green'>Success! A copy of your submission has been emailed to you.</p>
+                        
+                        <table class='table table-striped'>`+tblContent+`</table>
+                        
+                        <br>
+                        <div class='text-center'>
+                            <a href='purchase.php' class='btn btn-secondary' style='width: 200px;'>Back to Integration</a>
+                        </div>
+                    </div>`;
+                }
+            });
         }
 
         var getUrlParameter = function getUrlParameter(getURL,sParam) {

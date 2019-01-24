@@ -287,6 +287,7 @@ else {
             <button id='btnHistory' class='mt-2 mb-5 btn btn-success btn-lg' onclick='integrateSales(true)'>Integrate</button></center>
             <script>
                 $("#SBtoQB").DataTable();         
+                $("#btnHistory").hide();
             </script>
         </div>
         <hr style='clear: both'>
@@ -308,8 +309,9 @@ else {
         var realm_id = "<?php echo $accessToken->getRealmID(); ?>";
 
         window.onload = function () {
-            apiCall.getCompanyName();
             $("#btnHistory").hide();
+            apiCall.getCompanyName();
+
             var selected_ = "<?php echo $selected_invoice ?>";
             $("#invoice_type option[value='"+selected_+"']").attr("selected",true);
             $("input[name=unable]").attr('disabled', true); 
