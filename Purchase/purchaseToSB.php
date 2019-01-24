@@ -14,6 +14,7 @@ $refreshTokenKey = $_POST["refresh_token"];
 $realmId = $_POST["realm_id"];
 $id = $_POST["id"];
 $client_id = $_POST["client_id"];
+$project_name = $_POST["project_name"];
 
 $dataService = DataService::Configure(array(
     'auth_mode' => 'oauth2',
@@ -39,7 +40,6 @@ else {
     require_once "../db_connect.php";
     
     if(!empty($_POST)) {
-        $project_name = @$purchase->Line->AccountBasedExpenseLineDetail->Description;
         $invoice_number = @$purchase->DocNumber;
         $invoice_date = @$purchase->TxnDate;
         $due_date = @$purchase->TxnDate;
